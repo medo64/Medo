@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>Medo</AssemblyName>
+    <RootNamespace>Medo</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>Common classes</Description>
+    <Authors>Josip Medved</Authors>
+    <Copyright>Copyright (c) 2004 Josip Medved</Copyright>
+  </PropertyGroup>
+
+</Project>
