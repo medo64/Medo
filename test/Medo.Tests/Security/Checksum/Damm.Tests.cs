@@ -1,10 +1,11 @@
 using System;
 using System.Text;
 using Xunit;
-using Medo.Security.Checksum;
 
-namespace Tests {
-    public class DammTests {
+namespace Medo.Tests.Security.Checksum.Damm {
+    using Medo.Security.Checksum;
+
+    public class Tests {
 
         [Fact(DisplayName = "Damm: Basic")]
         public void Basic() {

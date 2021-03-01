@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <RootNamespace>Tests</RootNamespace>
-    <AssemblyName>Tests</AssemblyName>
+    <RootNamespace>Medo.Tests</RootNamespace>
+    <AssemblyName>Medo.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../src/Medo/Medo.csproj" />
+    <ProjectReference Include="../../src/Medo/Medo.csproj" />
   </ItemGroup>
 
 </Project>

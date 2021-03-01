@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
@@ -7,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo", "Medo\Medo.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.WindowsForms", "Medo.WindowsForms\Medo.WindowsForms.csproj", "{134D5DEE-9944-4E54-839F-B7B9FE295868}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "..\test\Tests.csproj", "{6DE48C36-A9FE-4FD3-9483-25C7DFB6F0EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.Tests", "..\test\Medo.Tests\Medo.Tests.csproj", "{6DE48C36-A9FE-4FD3-9483-25C7DFB6F0EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
