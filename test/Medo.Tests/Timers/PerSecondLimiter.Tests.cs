@@ -21,5 +21,21 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
             Assert.False(tps.IsReadyForNext());
         }
 
+        [Fact(DisplayName = "PerSecondLimiter: No limit")]
+        public void NoLimit() {
+            var tps = new PerSecondLimiter(0);
+
+            for (var i = 0; i < 100; i++) {
+                Assert.True(tps.IsReadyForNext());
+            }
+        }
+
+        [Fact(DisplayName = "PerSecondLimiter: Throw on negative")]
+        public void ThrowOnNegative() {
+            Assert.Throws<ArgumentOutOfRangeException>(() => {
+                var _ = new PerSecondLimiter(-1);
+            });
+        }
+
     }
 }

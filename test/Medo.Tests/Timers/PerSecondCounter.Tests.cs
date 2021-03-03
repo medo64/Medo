@@ -73,5 +73,15 @@ namespace Medo.Tests.Timers.PerSecondCounter {
             Assert.Equal(0.0, tps.ValuePerSecond);
         }
 
+        [Fact(DisplayName = "PerSecondCounter: Throw on OutOfRange")]
+        public void ThrowOnOutOfRange() {
+            Assert.Throws<ArgumentOutOfRangeException>(() => {
+                var _ = new PerSecondCounter(99);
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(() => {
+                var _ = new PerSecondCounter(10001);
+            });
+        }
+
     }
 }

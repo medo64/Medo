@@ -12,7 +12,7 @@ namespace Medo.Timers {
         /// </summary>
         /// <param name="perSecondrate">Number of requests targeted per-second.</param>
         public PerSecondLimiter(long perSecondRate) {
-            if (perSecondRate < 1) { throw new ArgumentOutOfRangeException(nameof(perSecondRate), "Number of requests per second."); }
+            if (perSecondRate < 0) { throw new ArgumentOutOfRangeException(nameof(perSecondRate), "Number of requests per second."); }
             PerSecondRate = perSecondRate;
         }
 
@@ -30,6 +30,7 @@ namespace Medo.Timers {
         /// </summary>
         /// <param name="value">Value to increment by.</param>
         public bool IsReadyForNext(long value) {
+            if (PerSecondRate == 0) { return true; }  // skip calculations if unlimited
             try {
                 DataLock.WaitOne();
                 var ticks = DateTime.UtcNow.Ticks;
