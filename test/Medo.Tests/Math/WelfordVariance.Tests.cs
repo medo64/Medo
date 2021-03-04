@@ -125,6 +125,18 @@ namespace Medo.Tests.Math.WelfordVariance {
             Assert.Equal(3.16227766016838, stats.RelativeStandardDeviation, 15);
         }
 
+        [Fact(DisplayName = "WelfordVariance: Example (10)")]
+        public void Example10() {
+            var stats = new WelfordVariance();
+            stats.AddRange(new double[] { -1, 0, 1 });
+            Assert.Equal(0, stats.Mean, 15);
+            Assert.Equal(0.666666666666667, stats.Variance, 15);
+            Assert.Equal(1, stats.SampleVariance, 15);
+            Assert.Equal(0.816496580927726, stats.StandardDeviation, 15);
+            Assert.Equal(1, stats.SampleStandardDeviation, 15);
+            Assert.Equal(double.PositiveInfinity, stats.RelativeStandardDeviation, 15);
+        }
+
         [Fact(DisplayName = "WelfordVariance: No values")]
         public void NoValue() {
             var stats = new WelfordVariance();
