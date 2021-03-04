@@ -101,5 +101,14 @@ namespace Medo.Math {
             get { return (count >= 2) ? Math.Sqrt(SampleVariance) : double.NaN; }
         }
 
+        /// <summary>
+        /// Gets current relative standard deviation.
+        /// Double.NaN if less than two values are present.
+        /// Value will be expressed as decimal number (e.g. 0.42 is 42%).
+        /// </summary>
+        public double RelativeStandardDeviation {
+            get { return (count >= 2) ? SampleStandardDeviation / Math.Abs(Mean) : double.NaN; }
+        }
+
     }
 }
