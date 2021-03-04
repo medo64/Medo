@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace Medo.Tests.Security.Checksum.WelfordVariance {
+namespace Medo.Tests.Math.WelfordVariance {
     using Medo.Math;
 
     public class Tests {
@@ -81,6 +81,17 @@ namespace Medo.Tests.Security.Checksum.WelfordVariance {
             Assert.Equal(4.571428571428571, stats.SampleVariance);
             Assert.Equal(2, stats.StandardDeviation);
             Assert.Equal(2.138089935299395, stats.SampleStandardDeviation);
+        }
+
+        [Fact(DisplayName = "WelfordVariance: Example (7)")]
+        public void Example7() {
+            var stats = new WelfordVariance();
+            stats.AddRange(new double[] { 9, 2, 5, 4, 12, 7, 8, 11, 9, 3, 7, 4, 12, 5, 4, 10, 9, 6, 9, 4 });
+            Assert.Equal(7, stats.Mean);
+            Assert.Equal(8.9, stats.Variance);
+            Assert.Equal(9.368421052631579, stats.SampleVariance);
+            Assert.Equal(2.9832867780352594, stats.StandardDeviation);
+            Assert.Equal(3.0607876523260447, stats.SampleStandardDeviation);
         }
 
         [Fact(DisplayName = "WelfordVariance: No values")]
