@@ -43,8 +43,13 @@ trap "echo -n \"$ANSI_RESET\"" EXIT
 
 BASE_DIRECTORY="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-SOLUTION_FILE="Medo.sln"
-OUTPUT_FILES="Medo.dll Medo.pdb Medo.WinForms.dll Medo.WinForms.pdb "
+SOLUTION_FILES="Medo.sln"
+OUTPUT_FILES="Medo.dll Medo.pdb"
+
+if [[ `uname -o` == "Msys" ]]; then  # assume Windows
+    SOLUTION_FILES="$SOLUTION_FILES Medo.WindowsForms.sln"
+    OUTPUT_FILES="$OUTPUT_FILES Medo.WinForms.dll Medo.WinForms.pdb"
+fi
 
 
 function clean() {
@@ -56,15 +61,18 @@ function clean() {
 }
 
 function debug() {
+    echo ".NET `dotnet --version`"
     mkdir -p "$BASE_DIRECTORY/bin/"
     mkdir -p "$BASE_DIRECTORY/build/debug/"
-    dotnet build "$BASE_DIRECTORY/src/$SOLUTION_FILE" \
-                 --configuration "Debug" \
-                 --output "$BASE_DIRECTORY/build/debug/" \
-                 --verbosity "minimal" \
-                 || return 1
+    for SOLUTION_FILE in $SOLUTION_FILES; do
+        dotnet build "$BASE_DIRECTORY/src/$SOLUTION_FILE" \
+                    --configuration "Debug" \
+                    --output "$BASE_DIRECTORY/build/debug/" \
+                    --verbosity "minimal" \
+                    || return 1
+    done
     for FILE in $OUTPUT_FILES; do
-        cp "$BASE_DIRECTORY/build/release/$FILE" "$BASE_DIRECTORY/bin/$FILE" || return 1
+        cp "$BASE_DIRECTORY/build/debug/$FILE" "$BASE_DIRECTORY/bin/$FILE" || return 1
     done
     echo "${ANSI_CYAN}Output in 'bin/'${ANSI_RESET}"
 }
@@ -73,13 +81,16 @@ function release() {
     if [[ `shell git status -s 2>/dev/null | wc -l` -gt 0 ]]; then
         echo "${ANSI_YELLOW}Uncommited changes present.${ANSI_RESET}" >&2
     fi
+    echo ".NET `dotnet --version`"
     mkdir -p "$BASE_DIRECTORY/bin/"
     mkdir -p "$BASE_DIRECTORY/build/release/"
-    dotnet build "$BASE_DIRECTORY/src/$SOLUTION_FILE" \
-                 --configuration "Release" \
-                 --output "$BASE_DIRECTORY/build/release/" \
-                 --verbosity "minimal" \
-                 || return 1
+    for SOLUTION_FILE in $SOLUTION_FILES; do
+        dotnet build "$BASE_DIRECTORY/src/$SOLUTION_FILE" \
+                    --configuration "Release" \
+                    --output "$BASE_DIRECTORY/build/release/" \
+                    --verbosity "minimal" \
+                    || return 1
+    done
     for FILE in $OUTPUT_FILES; do
         cp "$BASE_DIRECTORY/build/release/$FILE" "$BASE_DIRECTORY/bin/$FILE" || return 1
     done
@@ -87,13 +98,15 @@ function release() {
 }
 
 function test() {
-    mkdir -p "$BASE_DIRECTORY/build/test/"
     echo ".NET `dotnet --version`"
-    dotnet test "$BASE_DIRECTORY/src/$SOLUTION_FILE" \
-                --configuration "Debug" \
-                --output "$BASE_DIRECTORY/build/test/" \
-                --verbosity "minimal" \
-                || return 1
+    mkdir -p "$BASE_DIRECTORY/build/test/"
+    for SOLUTION_FILE in $SOLUTION_FILES; do
+        dotnet test "$BASE_DIRECTORY/src/$SOLUTION_FILE" \
+                    --configuration "Debug" \
+                    --output "$BASE_DIRECTORY/build/test/" \
+                    --verbosity "minimal" \
+                    || return 1
+    done
 }
 
 

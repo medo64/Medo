@@ -11,5 +11,5 @@ debug: clean
 release: clean
 	@./Make.sh release
 
-test: debug
+test:
 	@./Make.sh test
