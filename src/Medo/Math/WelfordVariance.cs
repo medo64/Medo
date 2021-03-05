@@ -19,7 +19,9 @@ namespace Medo.Math {
         /// Only finite numbers from collection are added.
         /// </summary>
         /// <param name="collection">Collection.</param>
+        /// <exception cref="ArgumentNullException">Collection cannot be null.</exception>
         public WelfordVariance(IEnumerable<double> collection) {
+            if (collection == null) { throw new ArgumentNullException(nameof(collection), "Collection cannot be null."); }
             AddRange(collection);
         }
 
@@ -40,7 +42,7 @@ namespace Medo.Math {
         /// Only finite numbers from collection are added.
         /// </summary>
         /// <param name="collection">Collection to add.</param>
-        /// <exception cref="NullReferenceException">Collection cannot be null.</exception>
+        /// <exception cref="ArgumentNullException">Collection cannot be null.</exception>
         public void AddRange(IEnumerable<double> collection) {
             if (collection == null) { throw new ArgumentNullException(nameof(collection), "Collection cannot be null."); }
             foreach (var value in collection) {
@@ -48,28 +50,13 @@ namespace Medo.Math {
             }
         }
 
-        #region Algorithm
-
-        private void AddOne(double value) {
-            count += 1;
-            var delta = value - mean;
-            mean += delta / count;
-            var delta2 = value - mean;
-            m2 += delta * delta2;
-        }
-
-        long count = 0;
-        double mean = 0.0;
-        double m2 = 0.0;
-
-        #endregion Algorithm
 
         /// <summary>
         /// Gets current mean.
         /// Double.NaN if less than two values are present.
         /// </summary>
         public double Mean {
-            get { return (count >= 2) ? mean : double.NaN; }
+            get { return (_count >= 2) ? _mean : double.NaN; }
         }
 
         /// <summary>
@@ -77,7 +64,7 @@ namespace Medo.Math {
         /// Double.NaN if less than two values are present.
         /// </summary>
         public double Variance {
-            get { return (count >= 2) ? m2 / count : double.NaN; }
+            get { return (_count >= 2) ? _m2 / _count : double.NaN; }
         }
 
         /// <summary>
@@ -85,7 +72,7 @@ namespace Medo.Math {
         /// Double.NaN if less than two values are present.
         /// </summary>
         public double SampleVariance {
-            get { return (count >= 2) ? m2 / (count - 1) : double.NaN; }
+            get { return (_count >= 2) ? _m2 / (_count - 1) : double.NaN; }
         }
 
         /// <summary>
@@ -93,7 +80,7 @@ namespace Medo.Math {
         /// Double.NaN if less than two values are present.
         /// </summary>
         public double StandardDeviation {
-            get { return (count >= 2) ? Math.Sqrt(Variance) : double.NaN; }
+            get { return (_count >= 2) ? Math.Sqrt(Variance) : double.NaN; }
         }
 
         /// <summary>
@@ -101,7 +88,7 @@ namespace Medo.Math {
         /// Double.NaN if less than two values are present.
         /// </summary>
         public double SampleStandardDeviation {
-            get { return (count >= 2) ? Math.Sqrt(SampleVariance) : double.NaN; }
+            get { return (_count >= 2) ? Math.Sqrt(SampleVariance) : double.NaN; }
         }
 
         /// <summary>
@@ -110,8 +97,25 @@ namespace Medo.Math {
         /// Value will be expressed as decimal number (e.g. 0.42 is 42%).
         /// </summary>
         public double RelativeStandardDeviation {
-            get { return (count >= 2) ? SampleStandardDeviation / Math.Abs(Mean) : double.NaN; }
+            get { return (_count >= 2) ? SampleStandardDeviation / Math.Abs(Mean) : double.NaN; }
         }
+
+
+        #region Algorithm
+
+        long _count;
+        double _mean;
+        double _m2;
+
+        private void AddOne(double value) {
+            _count += 1;
+            var delta = value - _mean;
+            _mean += delta / _count;
+            var delta2 = value - _mean;
+            _m2 += delta * delta2;
+        }
+
+        #endregion Algorithm
 
     }
 }

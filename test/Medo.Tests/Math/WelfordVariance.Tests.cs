@@ -187,5 +187,16 @@ namespace Medo.Tests.Math.WelfordVariance {
             });
         }
 
+        [Fact(DisplayName = "WelfordVariance: No null collection")]
+        public void NoNullCollection() {
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new WelfordVariance(null);
+            });
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new WelfordVariance();
+                stats.AddRange(null);
+            });
+        }
+
     }
 }
