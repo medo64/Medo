@@ -89,7 +89,7 @@ namespace Medo.Timers {
 
         #region Variables
 
-        private readonly ReaderWriterLockSlim DataLock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim DataLock = new();
         private readonly int TimebaseDivisor;
 
         private int CurrTime = 0, PastTime = 0;

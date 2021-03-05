@@ -59,7 +59,7 @@ namespace Medo.Timers {
 
         #region Variables
 
-        private readonly Mutex DataLock = new Mutex();
+        private readonly Mutex DataLock = new();
         private readonly long PerSecondRate;
 
         private long CurrTickSeconds = 0;

@@ -21,7 +21,6 @@ namespace Medo.Math {
         /// <param name="collection">Collection.</param>
         /// <exception cref="ArgumentNullException">Collection cannot be null.</exception>
         public WelfordVariance(IEnumerable<double> collection) {
-            if (collection == null) { throw new ArgumentNullException(nameof(collection), "Collection cannot be null."); }
             AddRange(collection);
         }
 
