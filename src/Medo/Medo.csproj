@@ -24,4 +24,8 @@
     <Copyright>Copyright (c) 2004 Josip Medved</Copyright>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="5.0.0" />
+  </ItemGroup>
+
 </Project>
