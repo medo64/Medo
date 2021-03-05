@@ -21,6 +21,7 @@ namespace Medo.Math {
         /// Only finite numbers from collection are added.
         /// </summary>
         /// <param name="collection">Collection.</param>
+        /// <exception cref="ArgumentNullException">Collection cannot be null.</exception>
         public MovingAverage(IEnumerable<double> collection)
             : this(10, collection) {
         }
@@ -28,19 +29,23 @@ namespace Medo.Math {
         /// <summary>
         /// Creates new instance.
         /// </summary>
-        /// <param name="maxCount">Number of items to use for calculation.</param>
-        public MovingAverage(int maxCount) {
-            _maxCount = maxCount;
+        /// <param name="count">Number of items to use for calculation.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
+        public MovingAverage(int count) {
+            if (count < 1) { throw new ArgumentOutOfRangeException(nameof(count), "Count must be larger than 0."); }
+            _count = count;
         }
 
         /// <summary>
         /// Creates a new instance.
         /// Only finite numbers from collection are added.
         /// </summary>
-        /// <param name="maxCount">Number of items to use for calculation.</param>
+        /// <param name="count">Number of items to use for calculation.</param>
         /// <param name="collection">Collection.</param>
-        public MovingAverage(int maxCount, IEnumerable<double> collection)
-            : this(maxCount) {
+        /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
+        /// <exception cref="ArgumentNullException">Collection cannot be null.</exception>
+        public MovingAverage(int count, IEnumerable<double> collection)
+            : this(count) {
             AddRange(collection);
         }
 
@@ -68,19 +73,6 @@ namespace Medo.Math {
             }
         }
 
-        #region Algorithm
-
-        private readonly Queue<double> _items = new();
-        private readonly int _maxCount;
-
-        private void AddOne(double value) {
-            _items.Enqueue(value);
-            while (_items.Count > _maxCount) {
-                _items.Dequeue();
-            }
-        }
-
-        #endregion Algorithm
 
         /// <summary>
         /// Returns average or NaN if there is no data to calculate.
@@ -99,6 +91,21 @@ namespace Medo.Math {
                 }
             }
         }
+
+
+        #region Algorithm
+
+        private readonly Queue<double> _items = new();
+        private readonly int _count;
+
+        private void AddOne(double value) {
+            _items.Enqueue(value);
+            while (_items.Count > _count) {
+                _items.Dequeue();
+            }
+        }
+
+        #endregion Algorithm
 
     }
 }

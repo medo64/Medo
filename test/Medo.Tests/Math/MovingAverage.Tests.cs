@@ -195,5 +195,29 @@ namespace Medo.Tests.Math.MovingAverage {
             });
         }
 
+        [Fact(DisplayName = "MovingAverage: No null collection")]
+        public void NoNullCollection() {
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new MovingAverage(null);
+            });
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new MovingAverage(10, null);
+            });
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new MovingAverage();
+                stats.AddRange(null);
+            });
+        }
+
+        [Fact(DisplayName = "MovingAverage: No count out of range")]
+        public void NoCountOutOfRange() {
+            Assert.Throws<ArgumentOutOfRangeException>(delegate {
+                var stats = new MovingAverage(0);
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(delegate {
+                var stats = new MovingAverage(0, new double[] { 0 });
+            });
+        }
+
     }
 }
