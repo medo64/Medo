@@ -4,7 +4,6 @@ namespace Medo.Security.Cryptography {
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Runtime.InteropServices;
     using System.Security.Cryptography;
 
     /// <summary>
@@ -15,11 +14,8 @@ namespace Medo.Security.Cryptography {
         /// <summary>
         /// Create new instance with random 160-bit secret.
         /// </summary>
-        public OneTimePassword() {
-            _secretBuffer = GC.AllocateUninitializedArray<byte>(MaxSecretLength, pinned: true);
-            using (var rng = RandomNumberGenerator.Create()) {
-                rng.GetBytes(_secretBuffer);
-            }
+        public OneTimePassword()
+            : this(randomizeBuffer: true) {
             _secretLength = 20; //160 bits
             ProtectSecret();
         }
@@ -30,11 +26,11 @@ namespace Medo.Security.Cryptography {
         /// <param name="secret">Secret. It should not be shorter than 128 bits (16 bytes). Minimum of 160 bits (20 bytes) is strongly recommended.</param>
         /// <exception cref="ArgumentNullException">Secret cannot be null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Secret cannot be longer than 8192 bits (1024 bytes).</exception>
-        public OneTimePassword(byte[] secret) {
+        public OneTimePassword(byte[] secret)
+            : this(false) {
             if (secret == null) { throw new ArgumentNullException(nameof(secret), "Secret cannot be null."); }
             if (secret.Length > MaxSecretLength) { throw new ArgumentOutOfRangeException(nameof(secret), "Secret cannot be longer than 8192 bits (1024 bytes)."); }
 
-            _secretBuffer = GC.AllocateUninitializedArray<byte>(MaxSecretLength, pinned: true);
             Buffer.BlockCopy(secret, 0, _secretBuffer, 0, secret.Length);
             _secretLength = secret.Length;
 
@@ -47,10 +43,10 @@ namespace Medo.Security.Cryptography {
         /// <param name="secret">Secret in Base32 encoding. It should not be shorter than 128 bits (16 bytes). Minimum of 160 bits (20 bytes) is strongly recommended.</param>
         /// <exception cref="ArgumentNullException">Secret cannot be null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Secret is not a valid Base32 string. -or- Secret cannot be longer than 8192 bits (1024 bytes).</exception>
-        public OneTimePassword(string secret) {
+        public OneTimePassword(string secret)
+            : this(false) {
             if (secret == null) { throw new ArgumentNullException(nameof(secret), "Secret cannot be null."); }
 
-            _secretBuffer = GC.AllocateUninitializedArray<byte>(MaxSecretLength, pinned: true);
             try {
                 FromBase32(secret, _secretBuffer, out _secretLength);
             } catch (IndexOutOfRangeException) {
@@ -62,6 +58,17 @@ namespace Medo.Security.Cryptography {
             ProtectSecret();
         }
 
+        private OneTimePassword(bool randomizeBuffer) {
+            _secretBuffer = GC.AllocateUninitializedArray<byte>(MaxSecretLength, pinned: true);
+            using var rng = RandomNumberGenerator.Create();
+            if (randomizeBuffer) { rng.GetBytes(_secretBuffer); }
+
+            _randomIV = new byte[16];
+            RandomNumberGenerator.Create().GetBytes(_randomIV);
+
+            _randomKey = new byte[16];
+            RandomNumberGenerator.Create().GetBytes(_randomKey);
+        }
 
 
 
@@ -330,67 +337,35 @@ namespace Medo.Security.Cryptography {
 
         private const int MaxSecretLength = 1024;  // must be multiple of 8 for AES
         private readonly byte[] _secretBuffer;
-        private byte[]? _protectedSecretBuffer;
         private readonly int _secretLength;
 
-        private static readonly Lazy<byte[]> _lazyRandomIV = new(delegate {
-            var buffer = new byte[16];
-            RandomNumberGenerator.Create().GetBytes(buffer);
-            return buffer;
-        });
-
-        // on platforms other than Windows ProtectedData is not available so just
-        // encrypt secret not to make it too obvious in memory dump - not ideal :(
-        private static readonly Lazy<byte[]> _lazyRandomKey = new(delegate {
-            var buffer = new byte[16];
-            RandomNumberGenerator.Create().GetBytes(buffer);
-            return buffer;
-        });
-        private static readonly Lazy<Aes> _aes = new(delegate {
+        private readonly byte[] _randomIV;
+        private readonly byte[] _randomKey;
+        private readonly Lazy<Aes> _aesAlgorithm = new(delegate {
             var aes = Aes.Create();
             aes.Padding = PaddingMode.None;
             return aes;
         });
 
-        private void ProtectSecret() {
-            var iv = _lazyRandomIV.Value;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                if (_protectedSecretBuffer != null) { throw new InvalidOperationException("Buffer already protected."); }
-                _protectedSecretBuffer = ProtectedData.Protect(_secretBuffer, iv, DataProtectionScope.CurrentUser);
-                ClearSecret(_secretBuffer);
-            } else {
-                var key = _lazyRandomKey.Value;
-                var aes = _aes.Value;
-                using var ms = new MemoryStream();
-                using var encryptor = aes.CreateEncryptor(key, iv);
-                using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write)) {
-                    cs.Write(_secretBuffer, 0, _secretBuffer.Length);
-                }
-                Buffer.BlockCopy(ms.ToArray(), 0, _secretBuffer, 0, _secretBuffer.Length);
-            }
+        private void ProtectSecret() {  // essentially obfuscation as ProtectedData is not really portable
+            var aes = _aesAlgorithm.Value;
+
+            using var encryptor = aes.CreateEncryptor(_randomKey, _randomIV);
+            using var ms = new MemoryStream();
+            using var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
+
+            cs.Write(_secretBuffer, 0, _secretBuffer.Length);
+            Buffer.BlockCopy(ms.ToArray(), 0, _secretBuffer, 0, _secretBuffer.Length);
         }
 
         private void UnprotectSecret() {
-            var iv = _lazyRandomIV.Value;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                if (_protectedSecretBuffer == null) { throw new InvalidOperationException("Buffer already unprotected."); }
-                var unprotectedData = ProtectedData.Unprotect(_protectedSecretBuffer, iv, DataProtectionScope.CurrentUser);
-                for (int i = 0; i < _secretBuffer.Length; i++) {
-                    _secretBuffer[i] = unprotectedData[i];
-                }
-                ClearSecret(unprotectedData);
-                _protectedSecretBuffer = null;
-            } else {
-                var key = _lazyRandomKey.Value;
-                var aes = _aes.Value;
-                using var ms = new MemoryStream(_secretBuffer);
-                using var decryptor = aes.CreateDecryptor(key, iv);
-                using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
-                var decryptedBuffer = new byte[_secretBuffer.Length];
-                var decryptedLength = cs.Read(decryptedBuffer, 0, decryptedBuffer.Length);
-                Buffer.BlockCopy(decryptedBuffer, 0, _secretBuffer, 0, _secretBuffer.Length);
-                ClearSecret(decryptedBuffer);
-            }
+            var aes = _aesAlgorithm.Value;
+
+            using var decryptor = aes.CreateDecryptor(_randomKey, _randomIV);
+            using var ms = new MemoryStream(_secretBuffer);
+            using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+
+            cs.Read(_secretBuffer, 0, _secretBuffer.Length);
         }
 
         private static void ClearSecret(byte[] array) {
