@@ -9,7 +9,7 @@ namespace Medo.Security.Cryptography {
     /// <summary>
     /// Implementation of HOTP (RFC 4226) and TOTP (RFC 6238) one-time password algorithms.
     /// </summary>
-    public class OneTimePassword {
+    public class OneTimePassword : IDisposable {
 
         /// <summary>
         /// Create new instance with random 160-bit secret.
@@ -156,7 +156,7 @@ namespace Medo.Security.Cryptography {
             }
         }
 
-        #endregion
+        #endregion Setup
 
 
         #region Code
@@ -224,7 +224,7 @@ namespace Medo.Security.Cryptography {
 
         private static readonly int[] DigitsDivisor = new int[] { 0, 0, 0, 0, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
 
-        #endregion
+        #endregion Code
 
 
         #region Validate
@@ -289,7 +289,7 @@ namespace Medo.Security.Cryptography {
             return isValid;
         }
 
-        #endregion
+        #endregion Validate
 
 
         #region Secret buffer
@@ -374,7 +374,7 @@ namespace Medo.Security.Cryptography {
             }
         }
 
-        #endregion
+        #endregion Secret buffer
 
 
         #region Base32
@@ -479,7 +479,33 @@ namespace Medo.Security.Cryptography {
             return new string(chars);
         }
 
-        #endregion
+        #endregion Base32
+
+
+        #region IDispose
+
+        private bool disposedValue;
+
+        protected virtual void Dispose(bool disposing) {
+            if (!disposedValue) {
+                ClearSecret(_secretBuffer);  // not unmanaged resource, but we want to get rid of data as soon as possible
+
+                if (disposing) {
+                    ClearSecret(_randomKey);
+                    ClearSecret(_randomIV);
+                    if (_aesAlgorithm.IsValueCreated) { _aesAlgorithm.Value.Dispose(); }
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose() {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion IDispose
 
     }
 
