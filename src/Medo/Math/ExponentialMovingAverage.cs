@@ -7,7 +7,7 @@ namespace Medo.Math {
     /// <summary>
     /// Calculates exponential moving average for added items.
     /// </summary>
-    public class ExponentialMovingAverage {
+    public sealed class ExponentialMovingAverage {
 
         /// <summary>
         /// Creates new instance with smoothing factor for 10 items (18.18%).

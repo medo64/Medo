@@ -9,7 +9,7 @@ namespace Medo.Security.Cryptography {
     /// <summary>
     /// Implementation of HOTP (RFC 4226) and TOTP (RFC 6238) one-time password algorithms.
     /// </summary>
-    public class OneTimePassword : IDisposable {
+    public sealed class OneTimePassword : IDisposable {
 
         /// <summary>
         /// Create new instance with random 160-bit secret.
@@ -486,7 +486,7 @@ namespace Medo.Security.Cryptography {
 
         private bool disposedValue;
 
-        protected virtual void Dispose(bool disposing) {
+        private void Dispose(bool disposing) {
             if (!disposedValue) {
                 ClearSecret(_secretBuffer);  // not unmanaged resource, but we want to get rid of data as soon as possible
 

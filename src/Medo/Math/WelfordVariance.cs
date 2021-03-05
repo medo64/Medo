@@ -7,7 +7,7 @@ namespace Medo.Math {
     /// <summary>
     /// Calculating variance and standard deviation from the streaming data using Welford's online algorithm.
     /// </summary>
-    public class WelfordVariance {
+    public sealed class WelfordVariance {
 
         /// <summary>
         /// Creates a new instance.

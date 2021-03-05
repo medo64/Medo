@@ -15,7 +15,7 @@ namespace Medo.Security.Checksum {
     /// <remarks>
     /// https://en.wikipedia.org/wiki/Damm_algorithm
     /// </remarks>
-    public class Damm : HashAlgorithm {
+    public sealed class Damm : HashAlgorithm {
 
         /// <summary>
         /// Creates a new instance.

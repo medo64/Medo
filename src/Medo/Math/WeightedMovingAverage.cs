@@ -7,7 +7,7 @@ namespace Medo.Math {
     /// <summary>
     /// Calculates weighted moving average for the added items.
     /// </summary>
-    public class WeightedMovingAverage {
+    public sealed class WeightedMovingAverage {
 
         /// <summary>
         /// Creates new instance with a total of 10 items.
