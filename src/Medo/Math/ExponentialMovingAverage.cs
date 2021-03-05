@@ -7,9 +7,6 @@ namespace Medo.Math {
     /// <summary>
     /// Calculates exponential moving average for added items.
     /// </summary>
-    /// <remarks>
-    /// All calculations are done with floats in order to harvest maximum precision.
-    /// </remarks>
     public class ExponentialMovingAverage {
 
         /// <summary>
@@ -32,13 +29,13 @@ namespace Medo.Math {
         /// Creates new instance.
         /// </summary>
         /// <param name="count">Number of items to use for calculation of smoothing factor.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Count cannot be negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
         public ExponentialMovingAverage(int count) {
-            if (count < 0) { throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative."); }
-            if (count == int.MaxValue) {
-                smoothingFactor = 2.0 / (int.MaxValue);
+            if (count < 1) { throw new ArgumentOutOfRangeException(nameof(count), "Count must be larger than 0."); }
+            if (count < int.MaxValue) {
+                _smoothingFactor = 2.0 / (count + 1);
             } else {
-                smoothingFactor = 2.0 / (count + 1);
+                _smoothingFactor = 2.0 / int.MaxValue;
             }
         }
 
@@ -48,7 +45,7 @@ namespace Medo.Math {
         /// </summary>
         /// <param name="count">Number of items to use for calculation.</param>
         /// <param name="collection">Collection.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Count cannot be negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
         public ExponentialMovingAverage(int count, IEnumerable<double> collection)
             : this(count) {
             AddRange(collection);
@@ -61,7 +58,7 @@ namespace Medo.Math {
         /// <exception cref="ArgumentOutOfRangeException">Smoothing factor must be between 0 and 1 (inclusive).</exception>
         public ExponentialMovingAverage(double smoothingFactor) {
             if ((smoothingFactor < 0) || (smoothingFactor > 1)) { throw new ArgumentOutOfRangeException(nameof(smoothingFactor), "smoothingFactor", "Smoothing factor must be between 0 and 1."); }
-            this.smoothingFactor = smoothingFactor;
+            _smoothingFactor = smoothingFactor;
         }
 
         /// <summary>
@@ -100,20 +97,6 @@ namespace Medo.Math {
             }
         }
 
-        #region Algorithm
-
-        private readonly double smoothingFactor;
-        private double average = double.NaN;
-
-        private void AddOne(double value) {
-            if (!double.IsNaN(average)) {
-                average += smoothingFactor * (value - average);
-            } else {
-                average = value;
-            }
-        }
-
-        #endregion Algorithm
 
         /// <summary>
         /// Returns average or NaN if there is no data to calculate.
@@ -121,6 +104,22 @@ namespace Medo.Math {
         public double Average {
             get { return average; }
         }
+
+
+        #region Algorithm
+
+        private readonly double _smoothingFactor;
+        private double average = double.NaN;
+
+        private void AddOne(double value) {
+            if (!double.IsNaN(average)) {
+                average += _smoothingFactor * (value - average);
+            } else {
+                average = value;
+            }
+        }
+
+        #endregion Algorithm
 
     }
 }

@@ -357,5 +357,48 @@ namespace Medo.Tests.Math.ExponentialMovingAverage {
             });
         }
 
+        [Fact(DisplayName = "ExponentialMovingAverage: No null collection")]
+        public void NoNullCollection() {
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new ExponentialMovingAverage(null);
+            });
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new ExponentialMovingAverage(10, null);
+            });
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new ExponentialMovingAverage(0.0, null);
+            });
+            Assert.Throws<ArgumentNullException>(delegate {
+                var stats = new ExponentialMovingAverage();
+                stats.AddRange(null);
+            });
+        }
+
+        [Fact(DisplayName = "ExponentialMovingAverage: No count out of range")]
+        public void NoCountOutOfRange() {
+            Assert.Throws<ArgumentOutOfRangeException>(delegate {
+                var stats = new ExponentialMovingAverage(0);
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(delegate {
+                var stats = new ExponentialMovingAverage(0, new double[] { 0 });
+            });
+        }
+
+        [Fact(DisplayName = "ExponentialMovingAverage: No smoothing out of range")]
+        public void NoSmoothingOutOfRange() {
+            Assert.Throws<ArgumentOutOfRangeException>(delegate {
+                var stats = new ExponentialMovingAverage(0 - double.Epsilon);
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(delegate {
+                var stats = new ExponentialMovingAverage(1.001);
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(delegate {
+                var stats = new ExponentialMovingAverage(0 - double.Epsilon, new double[] { 0 });
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(delegate {
+                var stats = new ExponentialMovingAverage(1.001, new double[] { 0 });
+            });
+        }
+
     }
 }
