@@ -70,6 +70,7 @@ function debug() {
                     --output "$BASE_DIRECTORY/build/debug/" \
                     --verbosity "minimal" \
                     || return 1
+        echo
     done
     for FILE in $OUTPUT_FILES; do
         cp "$BASE_DIRECTORY/build/debug/$FILE" "$BASE_DIRECTORY/bin/$FILE" || return 1
@@ -90,6 +91,7 @@ function release() {
                     --output "$BASE_DIRECTORY/build/release/" \
                     --verbosity "minimal" \
                     || return 1
+        echo
     done
     for FILE in $OUTPUT_FILES; do
         cp "$BASE_DIRECTORY/build/release/$FILE" "$BASE_DIRECTORY/bin/$FILE" || return 1
@@ -106,6 +108,7 @@ function test() {
                     --output "$BASE_DIRECTORY/build/test/" \
                     --verbosity "minimal" \
                     || return 1
+        echo
     done
 }
 
