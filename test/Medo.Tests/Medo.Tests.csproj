@@ -29,4 +29,12 @@
     <ProjectReference Include="../../src/Medo/Medo.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_D_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_E_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_D_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_E_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_TBL.TXT" />
+  </ItemGroup>
+
 </Project>
