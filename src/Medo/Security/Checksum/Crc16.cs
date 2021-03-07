@@ -132,10 +132,9 @@ namespace Medo.Security.Checksum {
         /// <summary>
         /// Finalizes the hash computation.
         /// </summary>
-        /// <returns></returns>
         protected override byte[] HashFinal() {
             var digestBytes = BitConverter.GetBytes(HashAsInt16);
-            Array.Reverse(digestBytes);
+            if (BitConverter.IsLittleEndian) { Array.Reverse(digestBytes); }
             return digestBytes;
         }
 
