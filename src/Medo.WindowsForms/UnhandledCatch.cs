@@ -18,7 +18,7 @@ namespace Medo.Windows.Forms {
         /// </summary>
         public static event EventHandler<ThreadExceptionEventArgs>? ThreadException;
 
-        private static readonly object SyncRoot = new object();
+        private static readonly object SyncRoot = new();
 
         /// <summary>
         /// Initializes handlers for unhandled exception.
@@ -82,7 +82,7 @@ namespace Medo.Windows.Forms {
                 Environment.ExitCode = unchecked((int)0x8000FFFF); //E_UNEXPECTED(0x8000ffff)
 
                 if (exception != null) {
-                    Trace.TraceError(exception.ToString() + "  {Medo.Application.UnhandledCatch}");
+                    Trace.TraceError("[Medo UnhandledCatch] " + exception.ToString());
 
                     Application.ThreadException -= Application_ThreadException;
                     AppDomain.CurrentDomain.UnhandledException -= AppDomain_UnhandledException;
@@ -90,7 +90,7 @@ namespace Medo.Windows.Forms {
                     ThreadException?.Invoke(null, new ThreadExceptionEventArgs(exception));
                 }
 
-                Trace.TraceError("Exit(E_UNEXPECTED): Unhandled exception has occurred.  {Medo.Application.UnhandledCatch}");
+                Trace.TraceError("[Medo UnhandledCatch] Exit(E_UNEXPECTED): Unhandled exception has occurred.");
 
                 if (UseFailFast) {
                     Environment.FailFast(exception?.Message);
