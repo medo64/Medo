@@ -1,7 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
 namespace Medo.Security.Checksum {
-    using System;
     using System.Security.Cryptography;
 
     /// <summary>

@@ -6,7 +6,7 @@ namespace Medo.Security.Checksum {
     /// <summary>
     /// Computes checksum using Fletcher-16 algorithm.
     /// </summary>
-    public class Fletcher16 : HashAlgorithm {
+    public sealed class Fletcher16 : HashAlgorithm {
 
         /// <summary>
         /// Creates a new instance.
