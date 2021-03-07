@@ -35,5 +35,10 @@ namespace Medo.Windows.Forms.Samples {
             var y = (int)0.1;
             _ = x / y;
         }
+
+        private void btnAboutBox_Click(object sender, EventArgs e) {
+            AboutBox.ShowDialog(this, new Uri("https://medo64.com"));
+        }
+
     }
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -13,8 +13,20 @@
     <RootNamespace>Medo.Windows.Forms.Samples</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Product>Sample application</Product>
+    <Copyright>Copyright (c) 2021 Josip Medved &lt;jmedved@jmedved.com&gt;</Copyright>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../../src/Medo.WindowsForms/Medo.WindowsForms.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Readme.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

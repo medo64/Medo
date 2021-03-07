@@ -34,6 +34,7 @@ namespace Medo.Windows.Forms.Samples
             this.btnMessageBoxError = new System.Windows.Forms.Button();
             this.btnMessageBoxQuestion = new System.Windows.Forms.Button();
             this.btnUnhandledCatch = new System.Windows.Forms.Button();
+            this.btnAboutBox = new System.Windows.Forms.Button();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -44,6 +45,7 @@ namespace Medo.Windows.Forms.Samples
             this.flowLayoutPanel1.Controls.Add(this.btnMessageBoxError);
             this.flowLayoutPanel1.Controls.Add(this.btnMessageBoxQuestion);
             this.flowLayoutPanel1.Controls.Add(this.btnUnhandledCatch);
+            this.flowLayoutPanel1.Controls.Add(this.btnAboutBox);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -100,6 +102,16 @@ namespace Medo.Windows.Forms.Samples
             this.btnUnhandledCatch.UseVisualStyleBackColor = true;
             this.btnUnhandledCatch.Click += new System.EventHandler(this.btnUnhandledCatch_Click);
             // 
+            // btnAboutBox
+            // 
+            this.btnAboutBox.Location = new System.Drawing.Point(415, 38);
+            this.btnAboutBox.Name = "btnAboutBox";
+            this.btnAboutBox.Size = new System.Drawing.Size(200, 29);
+            this.btnAboutBox.TabIndex = 5;
+            this.btnAboutBox.Text = "About box";
+            this.btnAboutBox.UseVisualStyleBackColor = true;
+            this.btnAboutBox.Click += new System.EventHandler(this.btnAboutBox_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -121,6 +133,7 @@ namespace Medo.Windows.Forms.Samples
         private System.Windows.Forms.Button btnMessageBoxError;
         private System.Windows.Forms.Button btnMessageBoxQuestion;
         private System.Windows.Forms.Button btnUnhandledCatch;
+        private System.Windows.Forms.Button btnAboutBox;
     }
 }
 
