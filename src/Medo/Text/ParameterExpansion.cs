@@ -94,14 +94,8 @@ namespace Medo.Text {
         }
 
 
-        private void OnRetrieveParameter(string name, out string? value) {
-            var e = new ParameterExpansionEventArgs(name);
-            RetrieveParameter?.Invoke(this, e);
-            value = e.Value;
-        }
-
         /// <summary>
-        /// Evenr raised to gather parameter values.
+        /// Event raised to gather parameter values.
         /// </summary>
         public event EventHandler<ParameterExpansionEventArgs>? RetrieveParameter;
 
@@ -110,6 +104,17 @@ namespace Medo.Text {
 
         private enum State {
             Text, ParameterStart, SimpleParameter, ComplexParameter,
+        }
+
+        private Dictionary<string, string?> RetrievedParameters = new();
+
+        private void OnRetrieveParameter(string name, out string? value) {
+            if (!RetrievedParameters.TryGetValue(name, out value)) {
+                var e = new ParameterExpansionEventArgs(name);
+                RetrieveParameter?.Invoke(this, e);
+                value = e.Value;
+                RetrievedParameters.Add(name, value);
+            }
         }
 
         #endregion State

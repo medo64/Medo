@@ -98,6 +98,19 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("AYB", output);
         }
 
+        [Fact(DisplayName = "ParameterExpansion: Expand variable gets cached")]
+        public void ExpandVariableGetsCached() {
+            var retrieveCount = 0;
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name == "X") ? "Y" : null;
+                retrieveCount += 1;
+            };
+            var output = shell.Expand("A${X}${X}B");
+            Assert.Equal("AYYB", output);
+            Assert.Equal(1, retrieveCount);
+        }
+
         [Fact(DisplayName = "ParameterExpansion: Incomplete complex expand")]
         public void IncompleteComplexExpand() {
             var shell = new ParameterExpansion();
