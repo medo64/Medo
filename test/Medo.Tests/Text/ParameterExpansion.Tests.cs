@@ -121,6 +121,7 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("A", output);
         }
 
+
         [Fact(DisplayName = "ParameterExpansion: Complex expand default (1)")]
         public void ComplexExpandDefault1() {
             var shell = new ParameterExpansion();
@@ -197,6 +198,31 @@ namespace Medo.Tests.Text.ParameterExpansion {
             var output = shell.Expand("${VAR1:-${VAR2-3}X}");
             Assert.Equal("3X", output);
         }
+
+
+        [Fact(DisplayName = "ParameterExpansion: Complex expand default with set (1)")]
+        public void ComplexExpandDefaultWithSet1() {
+            var shell = new ParameterExpansion();
+            Assert.Equal("abc", shell.Expand("${var=abc}"));
+            Assert.Equal("abc", shell.Expand("${var=xyz}"));
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex expand default with set (2)")]
+        public void ComplexExpandDefaultWithSet2() {
+            var shell = new ParameterExpansion();
+            shell.Parameters.Add("var", "");
+            Assert.Equal("", shell.Expand("${var=abc}"));
+            Assert.Equal("", shell.Expand("${var=xyz}"));
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex expand default with set (3)")]
+        public void ComplexExpandDefaultWithSet3() {
+            var shell = new ParameterExpansion();
+            shell.Parameters.Add("var", "");
+            Assert.Equal("abc", shell.Expand("${var:=abc}"));
+            Assert.Equal("abc", shell.Expand("${var:=xyz}"));
+        }
+
 
         [Fact(DisplayName = "ParameterExpansion: Complex expand extra incomplete")]
         public void ComplexExpandUnfinishedExtra() {
