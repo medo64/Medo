@@ -171,6 +171,33 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("2", output);
         }
 
+        [Fact(DisplayName = "ParameterExpansion: Complex expand default (6)")]
+        public void ComplexExpandDefault6() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "VAR2" => "2",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${VAR1:-${VAR2}}");
+            Assert.Equal("2", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex expand default (7)")]
+        public void ComplexExpandDefault7() {
+            var shell = new ParameterExpansion();
+            var output = shell.Expand("${VAR1:-${VAR2-3}}");
+            Assert.Equal("3", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex expand default (8)")]
+        public void ComplexExpandDefault8() {
+            var shell = new ParameterExpansion();
+            var output = shell.Expand("${VAR1:-${VAR2-3}X}");
+            Assert.Equal("3X", output);
+        }
+
         [Fact(DisplayName = "ParameterExpansion: Complex expand extra incomplete")]
         public void ComplexExpandUnfinishedExtra() {
             var shell = new ParameterExpansion();

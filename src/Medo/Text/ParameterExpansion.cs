@@ -46,6 +46,7 @@ namespace Medo.Text {
             var sbOutput = new StringBuilder();
             var sbParameterName = new StringBuilder();
             var sbParameterInstructions = new StringBuilder();
+            var braceLevel = 0;
 
             var queue = new Queue<char?>();
             foreach (var ch in text) {
@@ -70,6 +71,7 @@ namespace Medo.Text {
                     case State.ParameterStart: {
                             if (ch == '{') {  // start complex parameter
                                 state = State.ComplexParameter;
+                                braceLevel = 1;
                             } else if (ch.HasValue && (char.IsLetterOrDigit(ch.Value) || (ch == '_'))) {  // normal variable
                                 sbParameterName.Append(ch);
                                 state = State.SimpleParameter;
@@ -109,7 +111,7 @@ namespace Medo.Text {
                         break;
 
                     case State.ComplexParameterWithInstructions: {
-                            if (ch == '}') {  // parameter done
+                            if ((ch == '}') && (braceLevel == 1)) {  // parameter done
                                 var expander = new ParameterExpansion(Parameters);
                                 expander.RetrieveParameter += delegate (object? sender, ParameterExpansionEventArgs e) {
                                     RetrieveParameter?.Invoke(this, e);
@@ -133,6 +135,11 @@ namespace Medo.Text {
                                 state = State.Text;
                             } else {
                                 sbParameterInstructions.Append(ch);
+                                if (ch == '{') {
+                                    braceLevel += 1;
+                                } else if (ch == '}') {
+                                    braceLevel -= 1;
+                                }
                             }
                         }
                         break;
