@@ -224,6 +224,34 @@ namespace Medo.Tests.Text.ParameterExpansion {
         }
 
 
+        [Fact(DisplayName = "ParameterExpansion: Complex expand alternate (1)")]
+        public void ComplexExpandAlternate1() {
+            var shell = new ParameterExpansion();
+            Assert.Equal("", shell.Expand("${var1+xyz}"));
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex expand alternate (2)")]
+        public void ComplexExpandAlternate2() {
+            var shell = new ParameterExpansion();
+            shell.Parameters.Add("var1", "XXX");
+            Assert.Equal("xyz", shell.Expand("${var1+xyz}"));
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex expand alternate (3)")]
+        public void ComplexExpandAlternate3() {
+            var shell = new ParameterExpansion();
+            shell.Parameters.Add("var1", "");
+            Assert.Equal("", shell.Expand("${var1:+xyz}"));
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex expand alternate (4)")]
+        public void ComplexExpandAlternate4() {
+            var shell = new ParameterExpansion();
+            shell.Parameters.Add("var1", "X");
+            Assert.Equal("xyz", shell.Expand("${var1:+xyz}"));
+        }
+
+
         [Fact(DisplayName = "ParameterExpansion: Complex expand extra incomplete")]
         public void ComplexExpandUnfinishedExtra() {
             var shell = new ParameterExpansion();
