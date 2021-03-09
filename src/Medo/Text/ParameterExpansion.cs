@@ -15,7 +15,23 @@ namespace Medo.Text {
         /// Creates a new instance.
         /// </summary>
         public ParameterExpansion() {
+            Parameters = new Dictionary<string, string?>();
         }
+
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Parameters cannot be null.</exception>
+        public ParameterExpansion(IDictionary<string, string?> parameters) {
+            if (parameters == null) { throw new ArgumentNullException(nameof(parameters), "Parameters cannot be null."); }
+            Parameters = parameters;
+        }
+
+
+        /// <summary>
+        /// Gets parameters dictionary.
+        /// </summary>
+        public IDictionary<string, string?> Parameters { get; init; }
 
 
         /// <summary>
@@ -94,11 +110,16 @@ namespace Medo.Text {
 
                     case State.ComplexParameterWithInstructions: {
                             if (ch == '}') {  // parameter done
-                                var instructions = sbParameterInstructions.ToString();
+                                var expander = new ParameterExpansion(Parameters);
+                                expander.RetrieveParameter += delegate (object? sender, ParameterExpansionEventArgs e) {
+                                    RetrieveParameter?.Invoke(this, e);
+                                };
+                                var instructions = expander.Expand(sbParameterInstructions.ToString());
+
                                 if (instructions.StartsWith(":-")) {
                                     var defaultValue = instructions[2..];
                                     OnRetrieveParameter(sbParameterName.ToString(), defaultValue, out var value);
-                                    if (string.IsNullOrEmpty(value)) { value = defaultValue; }
+                                    if (string.IsNullOrEmpty(value)) { value = defaultValue; }  // also replace if it's empty
                                     sbOutput.Append(value);
                                 } else if (instructions.StartsWith("-")) {
                                     var defaultValue = instructions[1..];
@@ -139,14 +160,12 @@ namespace Medo.Text {
             ComplexParameterWithInstructions
         }
 
-        private Dictionary<string, string?> RetrievedParameters = new();
-
         private void OnRetrieveParameter(string name, string? defaultValue, out string? value) {
-            if (!RetrievedParameters.TryGetValue(name, out value)) {
+            if (!Parameters.TryGetValue(name, out value)) {
                 var e = new ParameterExpansionEventArgs(name, defaultValue);
                 RetrieveParameter?.Invoke(this, e);
                 value = e.Value;
-                RetrievedParameters.Add(name, value);
+                Parameters.Add(name, value);
             }
         }
 
