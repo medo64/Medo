@@ -2,6 +2,7 @@ using System;
 using Xunit;
 
 namespace Medo.Tests.Timers.PerSecondLimiter {
+    using System.Diagnostics;
     using System.Threading;
     using Medo.Timers;
 
@@ -20,6 +21,30 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
             Assert.True(tps.IsReadyForNext());
             Assert.False(tps.IsReadyForNext());
         }
+
+        [Fact(DisplayName = "PerSecondLimiter: Wait")]
+        public void Wait() {
+            var tps = new PerSecondLimiter(1);
+            var sw = new Stopwatch();
+            sw.Start();
+            tps.WaitForNext();
+            tps.WaitForNext();
+            tps.WaitForNext();
+            Assert.True(sw.ElapsedMilliseconds > 1000);
+        }
+
+        [Fact(DisplayName = "PerSecondLimiter: Wait with timeout")]
+        public void WaitWithTimeout() {
+            var tps = new PerSecondLimiter(1);
+            var sw = new Stopwatch();
+            sw.Start();
+            tps.WaitForNext(500);
+            tps.WaitForNext();
+            tps.WaitForNext();
+            Assert.False(tps.WaitForNext(1));  // just wait for 1 ms to check if all is ok
+            Assert.True(sw.ElapsedMilliseconds > 1000);
+        }
+
 
         [Fact(DisplayName = "PerSecondLimiter: No limit")]
         public void NoLimit() {

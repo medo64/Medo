@@ -25,7 +25,7 @@ namespace Medo.Windows.Forms.Samples {
         }
 
         private void tmrConsume_Tick(object sender, EventArgs e) {
-            while (TpsLimiter.IsReadyForNext()) {
+            while (TpsLimiter.WaitForNext(10)) {
                 IncreasingValue += 1;
                 TpsCounter.Increment();
             }
