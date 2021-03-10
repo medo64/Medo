@@ -31,6 +31,7 @@ namespace Medo.Timers {
                 if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Per-second rate cannot be lower than 0."); }
                 lock (SyncRoot) {
                     _perSecondRate = value;
+                    PerSecondRateCarryOver = value / 20;  // 5%
                 }
             }
         }
@@ -67,17 +68,15 @@ namespace Medo.Timers {
                 return true;
             } else if (maximumWait == Timeout.Infinite) {  // loop until there's a slot
                 while (!IsNextAvailable()) {
-                    SignalSleep.WaitOne(Environment.TickCount % 30);  // wait a bit before checking it again (one or two 15ms intervals)
+                    SignalSleep.WaitOne(1 + Environment.TickCount % 90);  // wait a bit before checking it again (one to six 15ms intervals)
                 }
                 return true;
             } else if (maximumWait > 0) {  // check occasionally until timeout is reached
                 var sw = new Stopwatch();
                 sw.Start();
-                var sleepPeriod = Environment.TickCount % 128 + 1;  // assume "random" wait interval is between one and eight 15ms intervals
                 while (sw.ElapsedMilliseconds < maximumWait) {
                     if (IsNextAvailable()) { return true; }
-                    SignalSleep.WaitOne(sleepPeriod);  // wait a bit before checking it again
-                    if (sleepPeriod > 1) { sleepPeriod /= 2; }
+                    SignalSleep.WaitOne(1 + Environment.TickCount % 90);  // wait a bit before checking it again (one to six 15ms intervals)
                 }
             }
 
@@ -92,10 +91,21 @@ namespace Medo.Timers {
                 var ticks = DateTime.UtcNow.Ticks;
                 var tickSeconds = ticks / 10000000;
                 var fraction = (ticks / 10000) % 1000;
-                if (CurrTickSeconds != tickSeconds) {  // always allow when switching time intervals
+
+                if (tickSeconds == CurrTickSeconds + 1) {  // this is preceeding second
+                    CurrTickSeconds = tickSeconds;
+                    var leftover = (PerSecondRate - CurrAccumulator);
+                    if (leftover > PerSecondRateCarryOver) {
+                        leftover = PerSecondRateCarryOver;  // limit how much you can carry over
+                    } else if (leftover < 0) {
+                        leftover = 0;  // ignore leftover
+                    }
+                    CurrAccumulator = 1 - leftover;  // if any leftover, adjust accumulator
+                    return true;
+                } else if (CurrTickSeconds != tickSeconds) {  // previous action was more than 1 second ago
                     CurrTickSeconds = tickSeconds;
                     CurrAccumulator = 1;
-                    return true;
+                    return true;  // always allow when switching time intervals
                 }
 
                 var fractionRate = CurrAccumulator * 1000 / PerSecondRate;
@@ -116,6 +126,7 @@ namespace Medo.Timers {
         private readonly object SyncRoot = new();
         private readonly AutoResetEvent SignalSleep = new(false);
 
+        private long PerSecondRateCarryOver;
         private long CurrTickSeconds = 0;
         private long CurrAccumulator = 0;
 
