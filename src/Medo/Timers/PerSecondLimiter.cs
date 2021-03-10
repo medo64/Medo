@@ -13,9 +13,25 @@ namespace Medo.Timers {
         /// Creates a new instance.
         /// </summary>
         /// <param name="perSecondrate">Number of requests targeted per-second.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Per-second rate cannot be lower than 0.</exception>
         public PerSecondLimiter(long perSecondRate) {
-            if (perSecondRate < 0) { throw new ArgumentOutOfRangeException(nameof(perSecondRate), "Number of requests per second."); }
+            if (perSecondRate < 0) { throw new ArgumentOutOfRangeException(nameof(perSecondRate), "Per-second rate cannot be lower than 0."); }
             PerSecondRate = perSecondRate;
+        }
+
+
+        private long _perSecondRate;
+        /// <summary>
+        /// Gets/sets per-second rate.
+        /// </summary>
+        public long PerSecondRate {
+            get { return _perSecondRate; }
+            set {
+                if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Per-second rate cannot be lower than 0."); }
+                DataLock.WaitOne();
+                _perSecondRate = value;
+                DataLock.ReleaseMutex();
+            }
         }
 
 
@@ -60,7 +76,6 @@ namespace Medo.Timers {
         #region Variables
 
         private readonly Mutex DataLock = new();
-        private readonly long PerSecondRate;
 
         private long CurrTickSeconds = 0;
         private long CurrAccumulator = 0;

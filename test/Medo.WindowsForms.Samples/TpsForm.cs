@@ -32,7 +32,7 @@ namespace Medo.Windows.Forms.Samples {
         }
 
         private void btnSetTps_Click(object sender, EventArgs e) {
-            TpsLimiter = new PerSecondLimiter((int)nudTps.Value);
+            TpsLimiter.PerSecondRate = (int)nudTps.Value;
         }
     }
 }
