@@ -87,38 +87,43 @@ namespace Medo.Timers {
         #region Internal
 
         private bool IsNextAvailable() {
-            lock (SyncRoot) {
-                var ticks = DateTime.UtcNow.Ticks;
-                var tickSeconds = ticks / 10000000;
-                var fraction = (ticks / 10000) % 1000;
+            bool wakeAnother = false;
+            try {
+                lock (SyncRoot) {
+                    var ticks = DateTime.UtcNow.Ticks;
+                    var tickSeconds = ticks / 10000000;
+                    var fraction = (ticks / 10000) % 1000;
 
-                if (tickSeconds == CurrTickSeconds + 1) {  // this is preceeding second
-                    CurrTickSeconds = tickSeconds;
-                    var leftover = (PerSecondRate - CurrAccumulator);
-                    if (leftover > PerSecondRateCarryOver) {
-                        leftover = PerSecondRateCarryOver;  // limit how much you can carry over
-                    } else if (leftover < 0) {
-                        leftover = 0;  // ignore leftover
+                    if (tickSeconds == CurrTickSeconds + 1) {  // this is preceeding second
+                        CurrTickSeconds = tickSeconds;
+                        var leftover = (PerSecondRate - CurrAccumulator);
+                        if (leftover > PerSecondRateCarryOver) {
+                            leftover = PerSecondRateCarryOver;  // limit how much you can carry over
+                        } else if (leftover < 0) {
+                            leftover = 0;  // ignore leftover
+                        }
+                        if ((leftover > 0) || (PerSecondRate > 1000)) { wakeAnother = true; }  // chances are that another wait can be satisfied
+                        CurrAccumulator = 1 - leftover;  // if any leftover, adjust accumulator
+                        return true;
+                    } else if (CurrTickSeconds != tickSeconds) {  // previous action was more than 1 second ago
+                        CurrTickSeconds = tickSeconds;
+                        CurrAccumulator = 1;
+                        return true;  // always allow when switching time intervals
                     }
-                    CurrAccumulator = 1 - leftover;  // if any leftover, adjust accumulator
-                    return true;
-                } else if (CurrTickSeconds != tickSeconds) {  // previous action was more than 1 second ago
-                    CurrTickSeconds = tickSeconds;
-                    CurrAccumulator = 1;
-                    return true;  // always allow when switching time intervals
-                }
 
-                var fractionRate = CurrAccumulator * 1000 / PerSecondRate;
-                if (fractionRate <= fraction) {
-                    CurrAccumulator += 1;
-                    if (PerSecondRate > 50) {  // don't bother with signalling if rate is low
-                        var newFractionRate = CurrAccumulator * 1000 / PerSecondRate;  // check if rate allows for more TPS
-                        if (newFractionRate <= fraction) { SignalSleep.Set(); }  // wake someone early
+                    var fractionRate = CurrAccumulator * 1000 / PerSecondRate;
+                    if (fractionRate <= fraction) {
+                        CurrAccumulator += 1;
+                        if (PerSecondRate > 50) {  // don't bother with signalling if rate is low
+                            var newFractionRate = CurrAccumulator * 1000 / PerSecondRate;  // check if rate allows for more TPS
+                            if (newFractionRate <= fraction) { wakeAnother = true; }
+                        }
+                        return true;
                     }
-                    return true;
                 }
+            } finally {
+                if (wakeAnother) { SignalSleep.Set(); }  // wake someone early
             }
-
 
             return false;
         }
