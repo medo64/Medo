@@ -18,7 +18,6 @@ namespace Medo.Timers {
         public PerSecondLimiter(long perSecondRate) {
             if (perSecondRate < 0) { throw new ArgumentOutOfRangeException(nameof(perSecondRate), "Per-second rate cannot be lower than 0."); }
             PerSecondRate = perSecondRate;
-            Monitor.Enter(SyncBlocking);
         }
 
 
@@ -30,7 +29,7 @@ namespace Medo.Timers {
             get { return _perSecondRate; }
             set {
                 if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Per-second rate cannot be lower than 0."); }
-                lock (SyncData) {
+                lock (SyncRoot) {
                     _perSecondRate = value;
                 }
             }
@@ -68,15 +67,17 @@ namespace Medo.Timers {
                 return true;
             } else if (maximumWait == Timeout.Infinite) {  // loop until there's a slot
                 while (!IsNextAvailable()) {
-                    Monitor.Wait(SyncBlocking, 1);  // this monitor always fails - using it for timeout
+                    SignalSleep.WaitOne(Environment.TickCount % 30);  // wait a bit before checking it again (one or two 15ms intervals)
                 }
                 return true;
             } else if (maximumWait > 0) {  // check occasionally until timeout is reached
                 var sw = new Stopwatch();
                 sw.Start();
+                var sleepPeriod = Environment.TickCount % 128 + 1;  // assume "random" wait interval is between one and eight 15ms intervals
                 while (sw.ElapsedMilliseconds < maximumWait) {
-                    Monitor.Wait(SyncBlocking, 1);  // this monitor always fails - using it for timeout
                     if (IsNextAvailable()) { return true; }
+                    SignalSleep.WaitOne(sleepPeriod);  // wait a bit before checking it again
+                    if (sleepPeriod > 1) { sleepPeriod /= 2; }
                 }
             }
 
@@ -87,7 +88,7 @@ namespace Medo.Timers {
         #region Internal
 
         private bool IsNextAvailable() {
-            lock (SyncData) {
+            lock (SyncRoot) {
                 var ticks = DateTime.UtcNow.Ticks;
                 var tickSeconds = ticks / 10000000;
                 var fraction = (ticks / 10000) % 1000;
@@ -100,6 +101,10 @@ namespace Medo.Timers {
                 var fractionRate = CurrAccumulator * 1000 / PerSecondRate;
                 if (fractionRate <= fraction) {
                     CurrAccumulator += 1;
+                    if (PerSecondRate > 50) {  // don't bother with signalling if rate is low
+                        var newFractionRate = CurrAccumulator * 1000 / PerSecondRate;  // check if rate allows for more TPS
+                        if (newFractionRate <= fraction) { SignalSleep.Set(); }  // wake someone early
+                    }
                     return true;
                 }
             }
@@ -108,8 +113,8 @@ namespace Medo.Timers {
             return false;
         }
 
-        private readonly object SyncData = new();
-        private readonly object SyncBlocking = new();
+        private readonly object SyncRoot = new();
+        private readonly AutoResetEvent SignalSleep = new(false);
 
         private long CurrTickSeconds = 0;
         private long CurrAccumulator = 0;
