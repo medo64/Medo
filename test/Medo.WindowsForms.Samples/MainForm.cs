@@ -40,5 +40,9 @@ namespace Medo.Windows.Forms.Samples {
             AboutBox.ShowDialog(this, new Uri("https://medo64.com"));
         }
 
+        private void btnTps_Click(object sender, EventArgs e) {
+            using var frm = new TpsForm();
+            frm.ShowDialog(this);
+        }
     }
 }
