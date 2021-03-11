@@ -44,5 +44,10 @@ namespace Medo.Windows.Forms.Samples {
             using var frm = new TpsForm();
             frm.ShowDialog(this);
         }
+
+        private void btnTimerResolution_Click(object sender, EventArgs e) {
+            using var frm = new TimerResolutionForm();
+            frm.ShowDialog(this);
+        }
     }
 }

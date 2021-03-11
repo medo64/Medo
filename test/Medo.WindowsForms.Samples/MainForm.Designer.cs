@@ -36,6 +36,7 @@ namespace Medo.Windows.Forms.Samples
             this.btnUnhandledCatch = new System.Windows.Forms.Button();
             this.btnAboutBox = new System.Windows.Forms.Button();
             this.btnTps = new System.Windows.Forms.Button();
+            this.btnTimerResolution = new System.Windows.Forms.Button();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -48,6 +49,7 @@ namespace Medo.Windows.Forms.Samples
             this.flowLayoutPanel1.Controls.Add(this.btnUnhandledCatch);
             this.flowLayoutPanel1.Controls.Add(this.btnAboutBox);
             this.flowLayoutPanel1.Controls.Add(this.btnTps);
+            this.flowLayoutPanel1.Controls.Add(this.btnTimerResolution);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -124,6 +126,16 @@ namespace Medo.Windows.Forms.Samples
             this.btnTps.UseVisualStyleBackColor = true;
             this.btnTps.Click += new System.EventHandler(this.btnTps_Click);
             // 
+            // btnTimerResolution
+            // 
+            this.btnTimerResolution.Location = new System.Drawing.Point(209, 73);
+            this.btnTimerResolution.Name = "btnTimerResolution";
+            this.btnTimerResolution.Size = new System.Drawing.Size(200, 29);
+            this.btnTimerResolution.TabIndex = 7;
+            this.btnTimerResolution.Text = "Timer resolution";
+            this.btnTimerResolution.UseVisualStyleBackColor = true;
+            this.btnTimerResolution.Click += new System.EventHandler(this.btnTimerResolution_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -147,6 +159,7 @@ namespace Medo.Windows.Forms.Samples
         private System.Windows.Forms.Button btnUnhandledCatch;
         private System.Windows.Forms.Button btnAboutBox;
         private System.Windows.Forms.Button btnTps;
+        private System.Windows.Forms.Button btnTimerResolution;
     }
 }
 
