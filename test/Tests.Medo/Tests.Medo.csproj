@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
-    <RootNamespace>Medo.WindowsForms.Tests</RootNamespace>
-    <AssemblyName>Medo.WindowsForms.Tests</AssemblyName>
+    <RootNamespace>Tests.Medo</RootNamespace>
+    <AssemblyName>Tests.Medo</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +26,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Medo.WindowsForms\Medo.WindowsForms.csproj" />
+    <ProjectReference Include="../../src/Medo/Medo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_D_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_E_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_D_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_E_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_TBL.TXT" />
   </ItemGroup>
 
 </Project>

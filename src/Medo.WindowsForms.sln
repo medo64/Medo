@@ -1,16 +1,17 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.6.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.WindowsForms", "Medo.WindowsForms\Medo.WindowsForms.csproj", "{3B63C35E-BF15-4127-8F72-F81686072056}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.WindowsForms", "Medo.WindowsForms\Medo.WindowsForms.csproj", "{3B63C35E-BF15-4127-8F72-F81686072056}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.WindowsForms.Samples", "..\test\Medo.WindowsForms.Samples\Medo.WindowsForms.Samples.csproj", "{9760BEDC-8614-4C2E-9A9D-621AD427F9CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.WindowsForms.Samples", "..\test\Medo.WindowsForms.Samples\Medo.WindowsForms.Samples.csproj", "{9760BEDC-8614-4C2E-9A9D-621AD427F9CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo", "Medo\Medo.csproj", "{B2DB86D2-45BC-4CD1-A4B5-21CF38D317EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo", "Medo\Medo.csproj", "{B2DB86D2-45BC-4CD1-A4B5-21CF38D317EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.Tests", "..\test\Medo.Tests\Medo.Tests.csproj", "{B52770FE-1E94-4AF8-A961-7D957EB3D65E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo", "..\test\Tests.Medo\Tests.Medo.csproj", "{B52770FE-1E94-4AF8-A961-7D957EB3D65E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.WindowsForms.Tests", "..\test\Medo.WindowsForms.Tests\Medo.WindowsForms.Tests.csproj", "{8E75A117-6D39-4825-92B0-C553B614C15F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.WindowsForms", "..\test\Tests.Medo.WindowsForms\Tests.Medo.WindowsForms.csproj", "{8E75A117-6D39-4825-92B0-C553B614C15F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,9 +21,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3B63C35E-BF15-4127-8F72-F81686072056}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -85,5 +83,11 @@ Global
 		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|x64.Build.0 = Release|Any CPU
 		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|x86.ActiveCfg = Release|Any CPU
 		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {14F12047-581B-42E9-BF27-EC1D6068F33D}
 	EndGlobalSection
 EndGlobal

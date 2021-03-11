@@ -4,7 +4,7 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo", "Medo\Medo.csproj", "{0B3C7417-C99B-4707-AC44-C28F57AE0407}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.Tests", "..\test\Medo.Tests\Medo.Tests.csproj", "{96FBD446-80CF-4474-A4A4-08F317C1F891}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Medo", "..\test\Tests.Medo\Tests.Medo.csproj", "{96FBD446-80CF-4474-A4A4-08F317C1F891}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

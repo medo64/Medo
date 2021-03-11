@@ -41,7 +41,7 @@ namespace Medo.Windows.Forms {
 
         #region IDispose
 
-        private void Dispose(bool disposing) {
+        private void DisposeInternal() {
             if (Successful) {
                 try {
                     _ = NativeMethods.TimeEndPeriod((uint)DesiredResolutionInMilliseconds);
@@ -51,11 +51,11 @@ namespace Medo.Windows.Forms {
         }
 
         ~TimerResolution() {
-            Dispose(disposing: false);
+            DisposeInternal();
         }
 
         public void Dispose() {
-            Dispose(disposing: true);
+            DisposeInternal();
             GC.SuppressFinalize(this);
         }
 
