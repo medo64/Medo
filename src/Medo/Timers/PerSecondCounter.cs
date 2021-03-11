@@ -38,9 +38,8 @@ namespace Medo.Timers {
         /// </summary>
         /// <param name="value">Value to increment by.</param>
         public void Increment(long value) {
-            try {
+            lock (SyncRoot) {
                 var time = Environment.TickCount / TimebaseDivisor;
-                DataLock.EnterWriteLock();
                 if (CurrTime == time) {  // just increase value
                     CurrAccumulator += value;
                 } else {  // move current value to past
@@ -49,8 +48,6 @@ namespace Medo.Timers {
                     CurrTime = time;
                     CurrAccumulator = value;
                 }
-            } finally {
-                DataLock.ExitWriteLock();
             }
         }
 
@@ -60,9 +57,8 @@ namespace Medo.Timers {
         /// </summary>
         public long Value {
             get {
-                try {
+                lock (SyncRoot) {
                     var time = Environment.TickCount / TimebaseDivisor - 1;  // always return for previous interval
-                    DataLock.EnterReadLock();
                     if (PastTime == time) {
                         return PastAccumulator;
                     } else if (CurrTime == time) {  // if tick didn't move this to past yet
@@ -70,8 +66,6 @@ namespace Medo.Timers {
                     } else {  // no tps for last two intervals
                         return 0;
                     }
-                } finally {
-                    DataLock.ExitReadLock();
                 }
             }
         }
@@ -89,7 +83,7 @@ namespace Medo.Timers {
 
         #region Variables
 
-        private readonly ReaderWriterLockSlim DataLock = new();
+        private readonly object SyncRoot = new();
         private readonly int TimebaseDivisor;
 
         private int CurrTime = 0, PastTime = 0;
