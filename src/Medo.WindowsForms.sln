@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo", "Medo\Medo.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.Tests", "..\test\Medo.Tests\Medo.Tests.csproj", "{B52770FE-1E94-4AF8-A961-7D957EB3D65E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Medo.WindowsForms.Tests", "..\test\Medo.WindowsForms.Tests\Medo.WindowsForms.Tests.csproj", "{8E75A117-6D39-4825-92B0-C553B614C15F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,5 +73,17 @@ Global
 		{B52770FE-1E94-4AF8-A961-7D957EB3D65E}.Release|x64.Build.0 = Release|Any CPU
 		{B52770FE-1E94-4AF8-A961-7D957EB3D65E}.Release|x86.ActiveCfg = Release|Any CPU
 		{B52770FE-1E94-4AF8-A961-7D957EB3D65E}.Release|x86.Build.0 = Release|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Debug|x64.Build.0 = Debug|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Debug|x86.Build.0 = Debug|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|x64.ActiveCfg = Release|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|x64.Build.0 = Release|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|x86.ActiveCfg = Release|Any CPU
+		{8E75A117-6D39-4825-92B0-C553B614C15F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
