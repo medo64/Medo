@@ -262,5 +262,31 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("test", output);
         }
 
+        [Fact(DisplayName = "ParameterExpansion: Environment variable")]
+        public void EnvironmentVariable() {
+            var shell = new ParameterExpansion();
+            var output = shell.Expand("$USERNAME");
+            Assert.Equal(Environment.UserName, output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Environment variable overwrite")]
+        public void EnvironmentVariableOverwrite() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name == "USERNAME") ? "--" : null;
+            };
+            var output = shell.Expand("$USERNAME");
+            Assert.Equal("--", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Environment variable disable")]
+        public void EnvironmentVariableDisable() {
+            var shell = new ParameterExpansion() {
+                UseEnvironmentVariables = false
+            };
+            var output = shell.Expand("$USERNAME");
+            Assert.Equal("", output);
+        }
+
     }
 }

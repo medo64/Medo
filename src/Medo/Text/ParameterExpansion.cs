@@ -33,6 +33,12 @@ namespace Medo.Text {
         /// </summary>
         public IDictionary<string, string?> Parameters { get; init; }
 
+        /// <summary>
+        /// Gets/sets if environment variables are used automatically.
+        /// Event RetrieveParameter will still be queried but value will be prefilled and used in absence of change.
+        /// </summary>
+        public bool UseEnvironmentVariables { get; set; } = true;
+
 
         /// <summary>
         /// Returns expanded text.
@@ -193,6 +199,12 @@ namespace Medo.Text {
 
         private void OnRetrieveParameter(string name, string? defaultValue, out string? value) {
             if (!Parameters.TryGetValue(name, out value)) {
+                if (UseEnvironmentVariables) {
+                    var envValue = Environment.GetEnvironmentVariable(name);
+                    if (envValue != null) {
+                        defaultValue = envValue;
+                    }
+                }
                 var e = new ParameterExpansionEventArgs(name, defaultValue);
                 RetrieveParameter?.Invoke(this, e);
                 value = e.Value;
