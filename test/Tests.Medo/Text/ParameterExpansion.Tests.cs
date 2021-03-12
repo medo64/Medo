@@ -385,5 +385,175 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("value", output);
         }
 
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (1)")]
+        public void Substring1() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string:7}");
+            Assert.Equal("7890abcdefgh", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (2)")]
+        public void Substring2() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string:7:0}");
+            Assert.Equal("", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (3)")]
+        public void Substring3() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string:7:2}");
+            Assert.Equal("78", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (4)")]
+        public void Substring4() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string:7:-2}");
+            Assert.Equal("7890abcdef", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (5)")]
+        public void Substring5() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string: -7}");
+            Assert.Equal("bcdefgh", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (6)")]
+        public void Substring6() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string: -7:0}");
+            Assert.Equal("", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (7)")]
+        public void Substring7() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string: -7:2}");
+            Assert.Equal("bc", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (8)")]
+        public void Substring8() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string: -7:-2}");
+            Assert.Equal("bcdef", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring (9)")]
+        public void Substring9() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "01234567890abcdefgh",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string:18}");
+            Assert.Equal("h", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring out of range (1)")]
+        public void SubstringOutOfRange1() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string:1}");
+            Assert.Equal("", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring out of range (2)")]
+        public void SubstringOutOfRange2() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string: -1}");
+            Assert.Equal("", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring out of range (3)")]
+        public void SubstringOutOfRange3() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "AB",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string:0:-3}");
+            Assert.Equal("", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Substring out of range (4)")]
+        public void SubstringOutOfRange4() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "string" => "AB",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${string:0:3}");
+            Assert.Equal("AB", output);
+        }
+
     }
 }

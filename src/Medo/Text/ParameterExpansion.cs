@@ -23,6 +23,8 @@ namespace Medo.Text {
         ///     ${parameter:-word}
         ///     ${parameter:=word}
         ///     ${parameter:+word}
+        ///     ${parameter:offset}
+        ///     ${parameter:offset:length}
         ///     ${!parameter}
         ///     ${#parameter}
         ///     ${parameter@U}
@@ -188,7 +190,13 @@ namespace Medo.Text {
                                     OnRetrieveParameter(parameterName, defaultValue, out var value);
                                     sbOutput.Append(value);
                                     Parameters[parameterName] = value;
-                                } else if (instructions.StartsWith("@")) {  // ${parameter=operator} perform modifications
+                                } else if (instructions.StartsWith(":")) {  // ${parameter:offset:length} substring
+                                    OnRetrieveParameter(parameterName, null, out var value);
+                                    if (value != null) {
+                                        var newValue = GetSubstring(value, instructions[1..]);
+                                        if (newValue != null) { sbOutput.Append(newValue); }
+                                    }
+                                } else if (instructions.StartsWith("@")) {  // ${parameter@operator} perform modifications
                                     var oper = instructions[1..];
                                     OnRetrieveParameter(parameterName, null, out var value);
                                     if (value != null) {
@@ -221,6 +229,31 @@ namespace Medo.Text {
             }
 
             return sbOutput.ToString();
+        }
+
+
+        private static string? GetSubstring(string value, string arguments) {
+            var parts = arguments.Split(':', StringSplitOptions.None);
+            string? startText = (parts.Length >= 1) && (parts[0].Length > 0) ? parts[0] : null;
+            string? lengthText = (parts.Length >= 2) && (parts[1].Length > 0) ? parts[1] : null;
+
+            int start, length;
+            if (startText == null) {  // output whole thing
+                return value;
+            } else {
+                if (!int.TryParse(startText, NumberStyles.Integer, CultureInfo.InvariantCulture, out start)) { return null; }
+                if (start < 0) { start = value.Length + start; }
+                if ((start < 0) || (start > value.Length)) { return null; }
+                if (lengthText == null) {
+                    length = value.Length - start;
+                } else {
+                    if (!int.TryParse(lengthText, NumberStyles.Integer, CultureInfo.InvariantCulture, out length)) { return null; }
+                    if (length < 0) { length = value.Length - start + length; }
+                    if (length < 0) { return null; }
+                    if (start + length > value.Length) { length = value.Length - start; }
+                }
+                return value.Substring(start, length);
+            }
         }
 
 
