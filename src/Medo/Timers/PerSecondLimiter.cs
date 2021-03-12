@@ -104,7 +104,7 @@ namespace Medo.Timers {
         private void Heartbeat(object? state) {
             lock (SyncTimer) {
                 var now = Environment.TickCount;
-                var msLastElapsed = unchecked(now - PeriodLastStart);
+                var msLastElapsed = unchecked(now - PeriodLastStart) & 0x7FFFFFFF;  // positive result even if TickCount is negative at the start
                 if (msLastElapsed == 0) { return; }  // less than 1ms has elapsed - can happen sometime
 
                 try {
@@ -116,7 +116,7 @@ namespace Medo.Timers {
                     if (rate == 0) { return; }  // special case when semaphore is not used
 
                     var allowanceRemaining = Tickets.CurrentCount;
-                    var msTotalElapsed = unchecked(now - PeriodTotalStart);
+                    var msTotalElapsed = unchecked(now - PeriodTotalStart) & 0x7FFFFFFF;  // positive result even if TickCount is negative at the start
 
                     if (msTotalElapsed >= 2000) {  // it's been long enough to forget all about counting
                         //System.Diagnostics.Debug.WriteLine($"[Medo PerSecondLimiter] Init");
