@@ -3,6 +3,7 @@
 namespace Medo.Windows.Forms {
     using System;
     using System.ComponentModel;
+    using System.Runtime.ConstrainedExecution;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
 
@@ -11,7 +12,7 @@ namespace Medo.Windows.Forms {
     /// Works only under Windows.
     /// </summary>
     [SupportedOSPlatform("windows")]
-    public sealed class TimerResolution : IDisposable {
+    public sealed class TimerResolution : CriticalFinalizerObject, IDisposable {
 
         /// <summary>
         /// Tries to set resolution using multimedia API.
@@ -46,7 +47,7 @@ namespace Medo.Windows.Forms {
         private void DisposeInternal() {
             if (Successful) {
                 try {
-                    _ = NativeMethods.TimeEndPeriod((uint)DesiredResolutionInMilliseconds);
+                    _ = NativeMethods.TimeEndPeriod((uint)DesiredResolutionInMilliseconds);  // must call when finished using timer services
                 } catch (Win32Exception) { }
                 Successful = false;
             }
