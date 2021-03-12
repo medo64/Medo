@@ -288,5 +288,32 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("", output);
         }
 
+        [Fact(DisplayName = "ParameterExpansion: Indirection")]
+        public void Indirection() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "IND" => "VAR",
+                    "VAR" => "VALUE",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${!IND}");
+            Assert.Equal("VALUE", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Indirection not found")]
+        public void IndirectionNotFound() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "IND" => "VAR",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${!IND}");
+            Assert.Equal("", output);
+        }
+
     }
 }

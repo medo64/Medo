@@ -106,7 +106,11 @@ namespace Medo.Text {
                                 OnRetrieveParameter(sbParameterName.ToString(), null, out var value);
                                 sbOutput.Append(value);
                                 state = State.Text;
-                            } else if ((ch == ':') || (ch == '-') || (ch == '=') || (ch == '+')) {
+                            } else if ((sbParameterName.Length == 0) && (ch == '!')) { //indirection must be the first character
+                                sbParameterInstructions.Clear();
+                                sbParameterInstructions.Append(ch);
+                                state = State.ComplexParameterWithInstructions;
+                            } else if ((ch == '+') || (ch == '-') || (ch == ':') || (ch == '=')) {
                                 sbParameterInstructions.Clear();
                                 sbParameterInstructions.Append(ch);
                                 state = State.ComplexParameterWithInstructions;
@@ -125,7 +129,14 @@ namespace Medo.Text {
                                 var instructions = expander.Expand(sbParameterInstructions.ToString());
                                 var parameterName = sbParameterName.ToString();
 
-                                if (instructions.StartsWith(":-")) {  // use default even if empty
+                                if (instructions.StartsWith("!")) {  // indirect
+                                    var parameterNameQuery = instructions[1..];
+                                    OnRetrieveParameter(parameterNameQuery, null, out var indirectParameterName);
+                                    if (!string.IsNullOrEmpty(indirectParameterName)) {
+                                        OnRetrieveParameter(indirectParameterName, null, out var value);
+                                        sbOutput.Append(value);
+                                    }
+                                } else if (instructions.StartsWith(":-")) {  // use default even if empty
                                     var defaultValue = instructions[2..];
                                     OnRetrieveParameter(parameterName, defaultValue, out var value);
                                     if (string.IsNullOrEmpty(value)) { value = defaultValue; }  // also replace if it's empty
