@@ -3,6 +3,7 @@
 namespace Medo.Text {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Text;
 
     /// <summary>
@@ -106,7 +107,7 @@ namespace Medo.Text {
                                 OnRetrieveParameter(sbParameterName.ToString(), null, out var value);
                                 sbOutput.Append(value);
                                 state = State.Text;
-                            } else if ((sbParameterName.Length == 0) && (ch == '!')) { //indirection must be the first character
+                            } else if ((sbParameterName.Length == 0) && ((ch == '!') || (ch == '#'))) { //indirection must be the first character
                                 sbParameterInstructions.Clear();
                                 sbParameterInstructions.Append(ch);
                                 state = State.ComplexParameterWithInstructions;
@@ -129,13 +130,18 @@ namespace Medo.Text {
                                 var instructions = expander.Expand(sbParameterInstructions.ToString());
                                 var parameterName = sbParameterName.ToString();
 
-                                if (instructions.StartsWith("!")) {  // indirect
+                                if (string.IsNullOrEmpty(parameterName) && instructions.StartsWith("!")) {  // indirect
                                     var parameterNameQuery = instructions[1..];
                                     OnRetrieveParameter(parameterNameQuery, null, out var indirectParameterName);
                                     if (!string.IsNullOrEmpty(indirectParameterName)) {
                                         OnRetrieveParameter(indirectParameterName, null, out var value);
                                         sbOutput.Append(value);
                                     }
+                                } else if (string.IsNullOrEmpty(parameterName) && instructions.StartsWith("#")) {  // parameter length
+                                    var innerParameterName = instructions[1..];
+                                    OnRetrieveParameter(innerParameterName, null, out var value);
+                                    if (string.IsNullOrEmpty(value)) { value = ""; }
+                                    sbOutput.Append(value.Length.ToString(CultureInfo.InvariantCulture));
                                 } else if (instructions.StartsWith(":+")) {  // use alternate value even if empty
                                     var alternateValue = instructions[2..];
                                     OnRetrieveParameter(parameterName, null, out var value);

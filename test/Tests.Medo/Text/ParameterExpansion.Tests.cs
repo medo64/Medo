@@ -315,5 +315,32 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("", output);
         }
 
+        [Fact(DisplayName = "ParameterExpansion: Parameter length")]
+        public void ParameterLength() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "VAR" => "Value",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${#VAR}");
+            Assert.Equal("5", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Parameter length expanded")]
+        public void ParameterLengthExpanded() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "X" => "VAR",
+                    "VAR" => "Value",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${#$X}");
+            Assert.Equal("5", output);
+        }
+
     }
 }
