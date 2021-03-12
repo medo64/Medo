@@ -18,7 +18,7 @@ namespace Medo.Timers {
         public PerSecondLimiter(int perSecondRate) {
             if (perSecondRate < 0) { throw new ArgumentOutOfRangeException(nameof(perSecondRate), "Per-second rate cannot be lower than 0."); }
             PerSecondRate = perSecondRate;
-            HeartbeatTimer = new Timer(Heartbeat, null, 0, 1);
+            HeartbeatTimer = new Timer(Heartbeat, null, 0, 8);  // ends up as 15.6ms on Windows
         }
 
 
