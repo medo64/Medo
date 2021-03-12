@@ -136,6 +136,18 @@ namespace Medo.Text {
                                         OnRetrieveParameter(indirectParameterName, null, out var value);
                                         sbOutput.Append(value);
                                     }
+                                } else if (instructions.StartsWith(":+")) {  // use alternate value even if empty
+                                    var alternateValue = instructions[2..];
+                                    OnRetrieveParameter(parameterName, null, out var value);
+                                    if (!string.IsNullOrEmpty(value)) {
+                                        sbOutput.Append(alternateValue);
+                                    }
+                                } else if (instructions.StartsWith("+")) {  // use alternate value
+                                    var alternateValue = instructions[1..];
+                                    OnRetrieveParameter(parameterName, null, out var value);
+                                    if (value != null) {
+                                        sbOutput.Append(alternateValue);
+                                    }
                                 } else if (instructions.StartsWith(":-")) {  // use default even if empty
                                     var defaultValue = instructions[2..];
                                     OnRetrieveParameter(parameterName, defaultValue, out var value);
@@ -156,18 +168,6 @@ namespace Medo.Text {
                                     OnRetrieveParameter(parameterName, defaultValue, out var value);
                                     sbOutput.Append(value);
                                     Parameters[parameterName] = value;
-                                } else if (instructions.StartsWith(":+")) {  // use alternate value even if empty
-                                    var alternateValue = instructions[2..];
-                                    OnRetrieveParameter(parameterName, null, out var value);
-                                    if (!string.IsNullOrEmpty(value)) {
-                                        sbOutput.Append(alternateValue);
-                                    }
-                                } else if (instructions.StartsWith("+")) {  // use alternate value
-                                    var alternateValue = instructions[1..];
-                                    OnRetrieveParameter(parameterName, null, out var value);
-                                    if (value != null) {
-                                        sbOutput.Append(alternateValue);
-                                    }
                                 } else {
                                     OnRetrieveParameter(parameterName, null, out var value);
                                     sbOutput.Append(value);
