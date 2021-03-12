@@ -1,11 +1,13 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
 namespace Medo.Windows.Forms {
+    using System.Runtime.Versioning;
     using System.Windows.Forms;
 
     /// <summary>
     /// Displays a message box that can contain text, buttons, and symbols that inform and instruct the user.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public static class MessageBox {
 
         /// <summary>

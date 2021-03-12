@@ -4,11 +4,13 @@ namespace Medo.Windows.Forms {
     using System;
     using System.ComponentModel;
     using System.Runtime.InteropServices;
+    using System.Runtime.Versioning;
 
     /// <summary>
     /// Controls resolution of periodic timers.
     /// Works only under Windows.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public sealed class TimerResolution : IDisposable {
 
         /// <summary>

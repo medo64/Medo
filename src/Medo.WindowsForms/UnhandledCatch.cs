@@ -3,6 +3,7 @@
 namespace Medo.Windows.Forms {
     using System;
     using System.Diagnostics;
+    using System.Runtime.Versioning;
     using System.Threading;
     using System.Windows.Forms;
 
@@ -10,6 +11,7 @@ namespace Medo.Windows.Forms {
     /// Handling of unhandled errors.
     /// This class is thread-safe.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public static class UnhandledCatch {
 
         /// <summary>

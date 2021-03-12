@@ -9,6 +9,7 @@ namespace Medo.Windows.Forms {
     using System.IO;
     using System.Reflection;
     using System.Runtime.InteropServices;
+    using System.Runtime.Versioning;
     using System.Text;
     using System.Windows.Forms;
     using System.Windows.Forms.VisualStyles;
@@ -16,6 +17,7 @@ namespace Medo.Windows.Forms {
     /// <summary>
     /// Simple about form.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public static class AboutBox {
 
         /// <summary>
