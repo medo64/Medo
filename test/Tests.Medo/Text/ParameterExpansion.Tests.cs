@@ -262,6 +262,7 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("test", output);
         }
 
+
         [Fact(DisplayName = "ParameterExpansion: Environment variable")]
         public void EnvironmentVariable() {
             var shell = new ParameterExpansion();
@@ -287,6 +288,7 @@ namespace Medo.Tests.Text.ParameterExpansion {
             var output = shell.Expand("$USERNAME");
             Assert.Equal("", output);
         }
+
 
         [Fact(DisplayName = "ParameterExpansion: Indirection")]
         public void Indirection() {
@@ -315,6 +317,7 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("", output);
         }
 
+
         [Fact(DisplayName = "ParameterExpansion: Parameter length")]
         public void ParameterLength() {
             var shell = new ParameterExpansion();
@@ -340,6 +343,46 @@ namespace Medo.Tests.Text.ParameterExpansion {
             };
             var output = shell.Expand("${#$X}");
             Assert.Equal("5", output);
+        }
+
+
+        [Fact(DisplayName = "ParameterExpansion: Operator uppercase")]
+        public void OperatorUppercase() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "X" => "valuE",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X@U}");
+            Assert.Equal("VALUE", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Operator titlecase")]
+        public void OperatorTitlecase() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "X" => "valuE",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X@u}");
+            Assert.Equal("ValuE", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Operator lowercase")]
+        public void OperatorLowercase() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "X" => "valuE",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X@L}");
+            Assert.Equal("value", output);
         }
 
     }

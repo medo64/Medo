@@ -15,6 +15,20 @@ namespace Medo.Text {
         /// <summary>
         /// Creates a new instance.
         /// </summary>
+        /// <remarks>
+        /// The following substitutions are supported:
+        ///     ${parameter-word}
+        ///     ${parameter=word}
+        ///     ${parameter+word}
+        ///     ${parameter:-word}
+        ///     ${parameter:=word}
+        ///     ${parameter:+word}
+        ///     ${!parameter}
+        ///     ${#parameter}
+        ///     ${parameter@U}
+        ///     ${parameter@u}
+        ///     ${parameter@L}
+        /// </remarks>
         public ParameterExpansion() {
             Parameters = new Dictionary<string, string?>();
         }
@@ -111,7 +125,7 @@ namespace Medo.Text {
                                 sbParameterInstructions.Clear();
                                 sbParameterInstructions.Append(ch);
                                 state = State.ComplexParameterWithInstructions;
-                            } else if ((ch == '+') || (ch == '-') || (ch == ':') || (ch == '=')) {
+                            } else if ((ch == '+') || (ch == '-') || (ch == ':') || (ch == '=') || (ch == '@')) {
                                 sbParameterInstructions.Clear();
                                 sbParameterInstructions.Append(ch);
                                 state = State.ComplexParameterWithInstructions;
@@ -130,50 +144,62 @@ namespace Medo.Text {
                                 var instructions = expander.Expand(sbParameterInstructions.ToString());
                                 var parameterName = sbParameterName.ToString();
 
-                                if (string.IsNullOrEmpty(parameterName) && instructions.StartsWith("!")) {  // indirect
+                                if (string.IsNullOrEmpty(parameterName) && instructions.StartsWith("!")) {  // ${!parameter} indirect
                                     var parameterNameQuery = instructions[1..];
                                     OnRetrieveParameter(parameterNameQuery, null, out var indirectParameterName);
                                     if (!string.IsNullOrEmpty(indirectParameterName)) {
                                         OnRetrieveParameter(indirectParameterName, null, out var value);
                                         sbOutput.Append(value);
                                     }
-                                } else if (string.IsNullOrEmpty(parameterName) && instructions.StartsWith("#")) {  // parameter length
+                                } else if (string.IsNullOrEmpty(parameterName) && instructions.StartsWith("#")) {  // ${#parameter} parameter length
                                     var innerParameterName = instructions[1..];
                                     OnRetrieveParameter(innerParameterName, null, out var value);
                                     if (string.IsNullOrEmpty(value)) { value = ""; }
                                     sbOutput.Append(value.Length.ToString(CultureInfo.InvariantCulture));
-                                } else if (instructions.StartsWith(":+")) {  // use alternate value even if empty
+                                } else if (instructions.StartsWith(":+")) {  // ${parameter:+word} use alternate value even if empty
                                     var alternateValue = instructions[2..];
                                     OnRetrieveParameter(parameterName, null, out var value);
                                     if (!string.IsNullOrEmpty(value)) {
                                         sbOutput.Append(alternateValue);
                                     }
-                                } else if (instructions.StartsWith("+")) {  // use alternate value
+                                } else if (instructions.StartsWith("+")) {  // ${parameter+word} use alternate value
                                     var alternateValue = instructions[1..];
                                     OnRetrieveParameter(parameterName, null, out var value);
                                     if (value != null) {
                                         sbOutput.Append(alternateValue);
                                     }
-                                } else if (instructions.StartsWith(":-")) {  // use default even if empty
+                                } else if (instructions.StartsWith(":-")) {  // ${parameter:-word} use default even if empty
                                     var defaultValue = instructions[2..];
                                     OnRetrieveParameter(parameterName, defaultValue, out var value);
                                     if (string.IsNullOrEmpty(value)) { value = defaultValue; }  // also replace if it's empty
                                     sbOutput.Append(value);
-                                } else if (instructions.StartsWith("-")) {  // use default
+                                } else if (instructions.StartsWith("-")) {  // ${parameter-word} use default
                                     var defaultValue = instructions[1..];
                                     OnRetrieveParameter(parameterName, defaultValue, out var value);
                                     sbOutput.Append(value);
-                                } else if (instructions.StartsWith(":=")) {  // use default and set variable even if empty
+                                } else if (instructions.StartsWith(":=")) {  // ${parameter:=word} use default and set variable even if empty
                                     var defaultValue = instructions[2..];
                                     OnRetrieveParameter(parameterName, defaultValue, out var value);
                                     if (string.IsNullOrEmpty(value)) { value = defaultValue; }  // also replace if it's empty
                                     sbOutput.Append(value);
                                     Parameters[parameterName] = value;
-                                } else if (instructions.StartsWith("=")) {  // use default and set variable
+                                } else if (instructions.StartsWith("=")) {  // ${parameter=word} use default and set variable
                                     var defaultValue = instructions[1..];
                                     OnRetrieveParameter(parameterName, defaultValue, out var value);
                                     sbOutput.Append(value);
                                     Parameters[parameterName] = value;
+                                } else if (instructions.StartsWith("@")) {  // ${parameter=operator} perform modifications
+                                    var oper = instructions[1..];
+                                    OnRetrieveParameter(parameterName, null, out var value);
+                                    if (value != null) {
+                                        var newValue = (oper) switch {
+                                            "U" => value.ToUpperInvariant(),
+                                            "u" => value[0..1].ToUpperInvariant() + value[1..],
+                                            "L" => value.ToLowerInvariant(),
+                                            _ => value,
+                                        };
+                                        sbOutput.Append(newValue);
+                                    }
                                 } else {
                                     OnRetrieveParameter(parameterName, null, out var value);
                                     sbOutput.Append(value);
