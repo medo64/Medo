@@ -127,7 +127,7 @@ namespace Medo.Text {
                                 sbParameterInstructions.Clear();
                                 sbParameterInstructions.Append(ch);
                                 state = State.ComplexParameterWithInstructions;
-                            } else if ((ch == '+') || (ch == '-') || (ch == ':') || (ch == '=') || (ch == '@')) {
+                            } else if ((ch == '+') || (ch == '-') || (ch == ':') || (ch == '=') || (ch == '@') || (ch == ',') || (ch == '^')) {
                                 sbParameterInstructions.Clear();
                                 sbParameterInstructions.Append(ch);
                                 state = State.ComplexParameterWithInstructions;
@@ -207,6 +207,26 @@ namespace Medo.Text {
                                             _ => value,
                                         };
                                         sbOutput.Append(newValue);
+                                    }
+                                } else if (instructions == "^^") {  // ${parameter^^} uppercase
+                                    OnRetrieveParameter(parameterName, null, out var value);
+                                    if (value != null) {
+                                        sbOutput.Append(value.ToUpperInvariant());
+                                    }
+                                } else if (instructions=="^") {  // ${parameter^} uppercase first letter
+                                    OnRetrieveParameter(parameterName, null, out var value);
+                                    if (value != null) {
+                                        sbOutput.Append(value[0..1].ToUpperInvariant() + value[1..]);
+                                    }
+                                } else if (instructions == ",,") {  // ${parameter,,} lowercase
+                                    OnRetrieveParameter(parameterName, null, out var value);
+                                    if (value != null) {
+                                        sbOutput.Append(value.ToLowerInvariant());
+                                    }
+                                } else if (instructions == ",") {  // ${parameter,} lowercase first letter
+                                    OnRetrieveParameter(parameterName, null, out var value);
+                                    if (value != null) {
+                                        sbOutput.Append(value[0..1].ToLowerInvariant() + value[1..]);
                                     }
                                 } else {
                                     OnRetrieveParameter(parameterName, null, out var value);

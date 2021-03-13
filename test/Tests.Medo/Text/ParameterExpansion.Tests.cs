@@ -555,5 +555,59 @@ namespace Medo.Tests.Text.ParameterExpansion {
             Assert.Equal("AB", output);
         }
 
+
+        [Fact(DisplayName = "ParameterExpansion: Uppercase (1)")]
+        public void Uppercase1() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "X" => "testing",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X^}");
+            Assert.Equal("Testing", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Uppercase (2)")]
+        public void Uppercase2() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "X" => "testing",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X^^}");
+            Assert.Equal("TESTING", output);
+        }
+
+
+        [Fact(DisplayName = "ParameterExpansion: Lowercase (1)")]
+        public void Lowercase1() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "X" => "TESTING",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X,}");
+            Assert.Equal("tESTING", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Lowercase (2)")]
+        public void Lowercase2() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = (e.Name) switch {
+                    "X" => "TESTING",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X,,}");
+            Assert.Equal("testing", output);
+        }
+
     }
 }
