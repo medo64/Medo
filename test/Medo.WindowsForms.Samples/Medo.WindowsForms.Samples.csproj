@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Medo.WindowsForms/Medo.WindowsForms.csproj" />
+    <ProjectReference Include="../../src/Medo/Medo.csproj" />
   </ItemGroup>
 
   <ItemGroup>

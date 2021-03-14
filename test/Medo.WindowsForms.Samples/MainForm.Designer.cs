@@ -34,9 +34,12 @@ namespace Medo.Windows.Forms.Samples
             this.btnMessageBoxError = new System.Windows.Forms.Button();
             this.btnMessageBoxQuestion = new System.Windows.Forms.Button();
             this.btnUnhandledCatch = new System.Windows.Forms.Button();
+            this.btnUnhandledCatchTask = new System.Windows.Forms.Button();
+            this.btnUnhandledCatchWorker = new System.Windows.Forms.Button();
             this.btnAboutBox = new System.Windows.Forms.Button();
             this.btnTps = new System.Windows.Forms.Button();
             this.btnTimerResolution = new System.Windows.Forms.Button();
+            this.bwUnhandledCatchBackground = new System.ComponentModel.BackgroundWorker();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -47,6 +50,8 @@ namespace Medo.Windows.Forms.Samples
             this.flowLayoutPanel1.Controls.Add(this.btnMessageBoxError);
             this.flowLayoutPanel1.Controls.Add(this.btnMessageBoxQuestion);
             this.flowLayoutPanel1.Controls.Add(this.btnUnhandledCatch);
+            this.flowLayoutPanel1.Controls.Add(this.btnUnhandledCatchTask);
+            this.flowLayoutPanel1.Controls.Add(this.btnUnhandledCatchWorker);
             this.flowLayoutPanel1.Controls.Add(this.btnAboutBox);
             this.flowLayoutPanel1.Controls.Add(this.btnTps);
             this.flowLayoutPanel1.Controls.Add(this.btnTimerResolution);
@@ -106,9 +111,29 @@ namespace Medo.Windows.Forms.Samples
             this.btnUnhandledCatch.UseVisualStyleBackColor = true;
             this.btnUnhandledCatch.Click += new System.EventHandler(this.btnUnhandledCatch_Click);
             // 
+            // btnUnhandledCatchTask
+            // 
+            this.btnUnhandledCatchTask.Location = new System.Drawing.Point(415, 38);
+            this.btnUnhandledCatchTask.Name = "btnUnhandledCatchTask";
+            this.btnUnhandledCatchTask.Size = new System.Drawing.Size(200, 29);
+            this.btnUnhandledCatchTask.TabIndex = 9;
+            this.btnUnhandledCatchTask.Text = "Unhandled catch (task)";
+            this.btnUnhandledCatchTask.UseVisualStyleBackColor = true;
+            this.btnUnhandledCatchTask.Click += new System.EventHandler(this.btnUnhandledCatchTask_Click);
+            // 
+            // btnUnhandledCatchWorker
+            // 
+            this.btnUnhandledCatchWorker.Location = new System.Drawing.Point(3, 73);
+            this.btnUnhandledCatchWorker.Name = "btnUnhandledCatchWorker";
+            this.btnUnhandledCatchWorker.Size = new System.Drawing.Size(200, 29);
+            this.btnUnhandledCatchWorker.TabIndex = 8;
+            this.btnUnhandledCatchWorker.Text = "Unhandled catch (thread)";
+            this.btnUnhandledCatchWorker.UseVisualStyleBackColor = true;
+            this.btnUnhandledCatchWorker.Click += new System.EventHandler(this.btnUnhandledCatchBackground_Click);
+            // 
             // btnAboutBox
             // 
-            this.btnAboutBox.Location = new System.Drawing.Point(415, 38);
+            this.btnAboutBox.Location = new System.Drawing.Point(209, 73);
             this.btnAboutBox.Name = "btnAboutBox";
             this.btnAboutBox.Size = new System.Drawing.Size(200, 29);
             this.btnAboutBox.TabIndex = 5;
@@ -118,7 +143,7 @@ namespace Medo.Windows.Forms.Samples
             // 
             // btnTps
             // 
-            this.btnTps.Location = new System.Drawing.Point(3, 73);
+            this.btnTps.Location = new System.Drawing.Point(415, 73);
             this.btnTps.Name = "btnTps";
             this.btnTps.Size = new System.Drawing.Size(200, 29);
             this.btnTps.TabIndex = 6;
@@ -128,13 +153,18 @@ namespace Medo.Windows.Forms.Samples
             // 
             // btnTimerResolution
             // 
-            this.btnTimerResolution.Location = new System.Drawing.Point(209, 73);
+            this.btnTimerResolution.Location = new System.Drawing.Point(3, 108);
             this.btnTimerResolution.Name = "btnTimerResolution";
             this.btnTimerResolution.Size = new System.Drawing.Size(200, 29);
             this.btnTimerResolution.TabIndex = 7;
             this.btnTimerResolution.Text = "Timer resolution";
             this.btnTimerResolution.UseVisualStyleBackColor = true;
             this.btnTimerResolution.Click += new System.EventHandler(this.btnTimerResolution_Click);
+            // 
+            // bwUnhandledCatchBackground
+            // 
+            this.bwUnhandledCatchBackground.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwUnhandledCatchWorker_DoWork);
+            this.bwUnhandledCatchBackground.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwUnhandledCatchBackground_RunWorkerCompleted);
             // 
             // MainForm
             // 
@@ -160,6 +190,9 @@ namespace Medo.Windows.Forms.Samples
         private System.Windows.Forms.Button btnAboutBox;
         private System.Windows.Forms.Button btnTps;
         private System.Windows.Forms.Button btnTimerResolution;
+        private System.Windows.Forms.Button btnUnhandledCatchWorker;
+        private System.ComponentModel.BackgroundWorker bwUnhandledCatchBackground;
+        private System.Windows.Forms.Button btnUnhandledCatchTask;
     }
 }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Medo.Windows.Forms.Samples {
@@ -36,6 +37,28 @@ namespace Medo.Windows.Forms.Samples {
             _ = x / y;
         }
 
+        private void btnUnhandledCatchBackground_Click(object sender, EventArgs e) {
+            bwUnhandledCatchBackground.RunWorkerAsync();
+        }
+
+        private void btnUnhandledCatchTask_Click(object sender, EventArgs e) {
+            Task.Run(() => {
+                var x = 0;
+                var y = (int)0.1;
+                _ = x / y;
+            }).Wait();
+        }
+
+        private void bwUnhandledCatchWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e) {
+            var x = 0;
+            var y = (int)0.1;
+            _ = x / y;
+        }
+
+        private void bwUnhandledCatchBackground_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e) {
+            _ = e.Result;
+        }
+
         private void btnAboutBox_Click(object sender, EventArgs e) {
             AboutBox.ShowDialog(this, new Uri("https://medo64.com"));
         }
@@ -49,5 +72,6 @@ namespace Medo.Windows.Forms.Samples {
             using var frm = new TimerResolutionForm();
             frm.ShowDialog(this);
         }
+
     }
 }

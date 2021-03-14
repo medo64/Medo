@@ -1,6 +1,6 @@
 using System;
-using System.Threading;
 using System.Windows.Forms;
+using Medo.Diagnostics;
 
 namespace Medo.Windows.Forms.Samples {
     static class App {
@@ -10,7 +10,7 @@ namespace Medo.Windows.Forms.Samples {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            UnhandledCatch.ThreadException += delegate (object sender, ThreadExceptionEventArgs e) {
+            UnhandledCatch.UnhandledException += (sender, e) => {
                 MessageBox.ShowError(null, e.Exception.Message, "Unhandled!");
             };
             UnhandledCatch.Attach();
