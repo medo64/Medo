@@ -23,6 +23,9 @@ namespace Medo.Timers {
         public PerSecondCounter(int resolution) {
             if ((resolution < 100) || (resolution > 10000)) { throw new ArgumentOutOfRangeException(nameof(resolution), "Resolution must be between 100 and 10000 ms."); }
             TimebaseDivisor = resolution;
+            HeartbeatTimer = new Timer(
+                delegate { Tick?.Invoke(null, EventArgs.Empty); }, null,
+                resolution, resolution);
         }
 
 
@@ -81,6 +84,12 @@ namespace Medo.Timers {
         }
 
 
+        /// <summary>
+        /// Regular beat every second.
+        /// </summary>
+        public EventHandler<EventArgs>? Tick;
+
+
         #region Variables
 
         private readonly object SyncRoot = new();
@@ -88,6 +97,10 @@ namespace Medo.Timers {
 
         private int CurrTime = 0, PastTime = 0;
         private long CurrAccumulator = 0, PastAccumulator = 0;
+
+#pragma warning disable IDE0052 // Remove unread private members
+        private readonly Timer HeartbeatTimer;
+#pragma warning restore IDE0052 // Remove unread private members
 
         #endregion Variables
 

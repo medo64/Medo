@@ -14,15 +14,15 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
             var tps = new PerSecondLimiter(1);
             tps.TicketsAvailable += delegate { Interlocked.Increment(ref count); };
 
-            while (DateTime.Now.Millisecond > 100) { Thread.Sleep(1); }  // just wait to get more of a second
+            while (DateTime.Now.Millisecond > 10) { Thread.Sleep(1); }  // just wait to get more of a second
 
-            Assert.True(tps.IsReadyForNext());
-            Assert.False(tps.IsReadyForNext());
+            Assert.True(tps.IsReadyForNext(), "Should be ready (1)");
+            Assert.False(tps.IsReadyForNext(), "Should be not ready (1)");
 
             Thread.Sleep(1000);
 
-            Assert.True(tps.IsReadyForNext());
-            Assert.False(tps.IsReadyForNext());
+            Assert.True(tps.IsReadyForNext(), "Should be ready (2)");
+            Assert.False(tps.IsReadyForNext(), "Should be not ready (2)");
 
             Assert.True(count >= 2, $"Count {count} too small.");
         }
