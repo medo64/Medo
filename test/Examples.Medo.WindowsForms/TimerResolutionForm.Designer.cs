@@ -1,5 +1,5 @@
 ﻿
-namespace Medo.Windows.Forms.Samples {
+namespace Medo.Windows.Forms.Examples {
     partial class TimerResolutionForm {
         /// <summary>
         /// Required designer variable.

@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <RootNamespace>Tests.Medo.WindowsForms</RootNamespace>
-    <AssemblyName>Tests.Medo.WindowsForms</AssemblyName>
+    <AssemblyName>Medo.WindowsForms.Tests</AssemblyName>
+    <RootNamespace>Medo.Windows.Forms.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

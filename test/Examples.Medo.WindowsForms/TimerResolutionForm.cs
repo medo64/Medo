@@ -1,7 +1,7 @@
 using System.Text;
 using System.Windows.Forms;
 
-namespace Medo.Windows.Forms.Samples {
+namespace Medo.Windows.Forms.Examples {
     internal partial class TimerResolutionForm : Form {
         public TimerResolutionForm() {
             InitializeComponent();

@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <RootNamespace>Tests.Medo</RootNamespace>
-    <AssemblyName>Tests.Medo</AssemblyName>
+    <AssemblyName>Medo.Tests</AssemblyName>
+    <RootNamespace>Medo.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

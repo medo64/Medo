@@ -1,4 +1,4 @@
-namespace Medo.Windows.Forms.Samples
+namespace Medo.Windows.Forms.Examples
 {
     partial class MainForm
     {

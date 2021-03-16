@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Medo.Windows.Forms.Samples {
+namespace Medo.Windows.Forms.Examples {
     internal partial class MainForm : Form {
         public MainForm() {
             InitializeComponent();

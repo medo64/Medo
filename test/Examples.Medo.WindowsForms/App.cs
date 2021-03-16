@@ -2,7 +2,7 @@ using System;
 using System.Windows.Forms;
 using Medo.Diagnostics;
 
-namespace Medo.Windows.Forms.Samples {
+namespace Medo.Windows.Forms.Examples {
     static class App {
         [STAThread]
         static void Main() {
