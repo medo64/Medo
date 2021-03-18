@@ -1,16 +1,16 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Medo.Tests.Security.Cryptography.TwofishManaged {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Reflection;
-    using System.Security.Cryptography;
     using Medo.Security.Cryptography;
-    using Xunit.Abstractions;
 
     public class Tests {
 
