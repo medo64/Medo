@@ -13,6 +13,7 @@ namespace Medo.Tests.Math.MovingAverage {
             stats.Add(7);
             stats.Add(13);
             stats.Add(16);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(10, stats.Average, 15);
         }
 
@@ -23,6 +24,7 @@ namespace Medo.Tests.Math.MovingAverage {
             stats.Add(100000007);
             stats.Add(100000013);
             stats.Add(100000016);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(100000010, stats.Average, 15);
         }
 
@@ -33,6 +35,7 @@ namespace Medo.Tests.Math.MovingAverage {
             stats.Add(1000000007);
             stats.Add(1000000013);
             stats.Add(1000000016);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(1000000010, stats.Average, 15);
         }
 
@@ -43,12 +46,14 @@ namespace Medo.Tests.Math.MovingAverage {
             stats.Add(2);
             stats.Add(3);
             stats.Add(1);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(3, stats.Average, 15);
         }
 
         [Fact(DisplayName = "MovingAverage: Example (5)")]
         public void Example5() {
             var stats = new MovingAverage(new double[] { 2, 2, 5, 7 });
+            Assert.Equal(4, stats.Count);
             Assert.Equal(4, stats.Average, 15);
         }
 
@@ -56,6 +61,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example6() {
             var stats = new MovingAverage();
             stats.AddRange(new double[] { 2, 4, 4, 4, 5, 5, 7, 9 });
+            Assert.Equal(8, stats.Count);
             Assert.Equal(5, stats.Average, 15);
         }
 
@@ -63,6 +69,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example7() {
             var stats = new MovingAverage();
             stats.AddRange(new double[] { 9, 2, 5, 4, 12, 7, 8, 11, 9, 3, 7, 4, 12, 5, 4, 10, 9, 6, 9, 4 });
+            Assert.Equal(20, stats.Count);
             Assert.Equal(7, stats.Average, 15);
         }
 
@@ -70,6 +77,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example8() {
             var stats = new MovingAverage();
             stats.AddRange(new double[] { 51.3, 55.6, 49.9, 52.0 });
+            Assert.Equal(4, stats.Count);
             Assert.Equal(52.2, stats.Average, 15);
         }
 
@@ -77,6 +85,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example9() {
             var stats = new MovingAverage();
             stats.AddRange(new double[] { -5, -3, -1, 1, 3 });
+            Assert.Equal(5, stats.Count);
             Assert.Equal(-1, stats.Average, 15);
         }
 
@@ -84,6 +93,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example10() {
             var stats = new MovingAverage();
             stats.AddRange(new double[] { -1, 0, 1 });
+            Assert.Equal(3, stats.Count);
             Assert.Equal(0, stats.Average, 15);
         }
 
@@ -94,6 +104,7 @@ namespace Medo.Tests.Math.MovingAverage {
             stats.Add(7);
             stats.Add(13);
             stats.Add(16);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(12, stats.Average, 15);
         }
 
@@ -104,6 +115,7 @@ namespace Medo.Tests.Math.MovingAverage {
             stats.Add(100000007);
             stats.Add(100000013);
             stats.Add(100000016);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(100000012, stats.Average, 15);
         }
 
@@ -114,6 +126,7 @@ namespace Medo.Tests.Math.MovingAverage {
             stats.Add(1000000007);
             stats.Add(1000000013);
             stats.Add(1000000016);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(1000000012, stats.Average, 15);
         }
 
@@ -124,12 +137,14 @@ namespace Medo.Tests.Math.MovingAverage {
             stats.Add(2);
             stats.Add(3);
             stats.Add(1);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(2, stats.Average, 15);
         }
 
         [Fact(DisplayName = "MovingAverage: Example (15)")]
         public void Example15() {
             var stats = new MovingAverage(3, new double[] { 2, 2, 5, 7 });
+            Assert.Equal(4, stats.Count);
             Assert.Equal(4.666666666666667, stats.Average, 15);
         }
 
@@ -137,6 +152,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example16() {
             var stats = new MovingAverage(3);
             stats.AddRange(new double[] { 2, 4, 4, 4, 5, 5, 7, 9 });
+            Assert.Equal(8, stats.Count);
             Assert.Equal(7, stats.Average, 15);
         }
 
@@ -144,6 +160,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example17() {
             var stats = new MovingAverage(3);
             stats.AddRange(new double[] { 9, 2, 5, 4, 12, 7, 8, 11, 9, 3, 7, 4, 12, 5, 4, 10, 9, 6, 9, 4 });
+            Assert.Equal(20, stats.Count);
             Assert.Equal(6.333333333333333, stats.Average, 15);
         }
 
@@ -151,6 +168,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example18() {
             var stats = new MovingAverage(3);
             stats.AddRange(new double[] { 51.3, 55.6, 49.9, 52.0 });
+            Assert.Equal(4, stats.Count);
             Assert.Equal(52.5, stats.Average, 15);
         }
 
@@ -158,6 +176,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example19() {
             var stats = new MovingAverage(3);
             stats.AddRange(new double[] { -5, -3, -1, 1, 3 });
+            Assert.Equal(5, stats.Count);
             Assert.Equal(1, stats.Average, 15);
         }
 
@@ -165,12 +184,14 @@ namespace Medo.Tests.Math.MovingAverage {
         public void Example20() {
             var stats = new MovingAverage(3);
             stats.AddRange(new double[] { -1, 0, 1 });
+            Assert.Equal(3, stats.Count);
             Assert.Equal(0, stats.Average, 15);
         }
 
         [Fact(DisplayName = "MovingAverage: No values")]
         public void NoValue() {
             var stats = new MovingAverage();
+            Assert.Equal(0, stats.Count);
             Assert.Equal(double.NaN, stats.Average);
         }
 
@@ -178,6 +199,7 @@ namespace Medo.Tests.Math.MovingAverage {
         public void OneValue() {
             var stats = new MovingAverage();
             stats.Add(1);
+            Assert.Equal(1, stats.Count);
             Assert.Equal(1, stats.Average);
         }
 

@@ -29,23 +29,23 @@ namespace Medo.Math {
         /// <summary>
         /// Creates new instance.
         /// </summary>
-        /// <param name="count">Number of items to use for calculation.</param>
+        /// <param name="subsetSize">Number of items to use for calculation.</param>
         /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
-        public MovingAverage(int count) {
-            if (count < 1) { throw new ArgumentOutOfRangeException(nameof(count), "Count must be larger than 0."); }
-            _count = count;
+        public MovingAverage(int subsetSize) {
+            if (subsetSize < 1) { throw new ArgumentOutOfRangeException(nameof(subsetSize), "Count must be larger than 0."); }
+            _subsetSize = subsetSize;
         }
 
         /// <summary>
         /// Creates a new instance.
         /// Only finite numbers from collection are added.
         /// </summary>
-        /// <param name="count">Number of items to use for calculation.</param>
+        /// <param name="subsetSize">Number of items to use for calculation.</param>
         /// <param name="collection">Collection.</param>
         /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
         /// <exception cref="ArgumentNullException">Collection cannot be null.</exception>
-        public MovingAverage(int count, IEnumerable<double> collection)
-            : this(count) {
+        public MovingAverage(int subsetSize, IEnumerable<double> collection)
+            : this(subsetSize) {
             AddRange(collection);
         }
 
@@ -75,6 +75,13 @@ namespace Medo.Math {
 
 
         /// <summary>
+        /// Gets current count.
+        /// </summary>
+        public long Count {
+            get { return _count; }
+        }
+
+        /// <summary>
         /// Returns average or NaN if there is no data to calculate.
         /// </summary>
         public double Average {
@@ -95,14 +102,16 @@ namespace Medo.Math {
 
         #region Algorithm
 
+        private long _count;
         private readonly Queue<double> _items = new();
-        private readonly int _count;
+        private readonly int _subsetSize;
 
         private void AddOne(double value) {
             _items.Enqueue(value);
-            while (_items.Count > _count) {
+            while (_items.Count > _subsetSize) {
                 _items.Dequeue();
             }
+            _count += 1;
         }
 
         #endregion Algorithm
