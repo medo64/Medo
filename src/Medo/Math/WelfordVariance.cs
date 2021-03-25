@@ -51,6 +51,13 @@ namespace Medo.Math {
 
 
         /// <summary>
+        /// Gets current count.
+        /// </summary>
+        public long Count {
+            get { return _count; }
+        }
+
+        /// <summary>
         /// Gets current mean.
         /// Double.NaN if less than two values are present.
         /// </summary>

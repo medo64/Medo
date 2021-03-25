@@ -13,6 +13,7 @@ namespace Medo.Tests.Math.WelfordVariance {
             stats.Add(7);
             stats.Add(13);
             stats.Add(16);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(10, stats.Mean, 15);
             Assert.Equal(22.5, stats.Variance, 15);
             Assert.Equal(30, stats.SampleVariance, 15);
@@ -28,6 +29,7 @@ namespace Medo.Tests.Math.WelfordVariance {
             stats.Add(100000007);
             stats.Add(100000013);
             stats.Add(100000016);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(100000010, stats.Mean, 15);
             Assert.Equal(22.5, stats.Variance, 15);
             Assert.Equal(30, stats.SampleVariance, 15);
@@ -43,6 +45,7 @@ namespace Medo.Tests.Math.WelfordVariance {
             stats.Add(1000000007);
             stats.Add(1000000013);
             stats.Add(1000000016);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(1000000010, stats.Mean, 15);
             Assert.Equal(22.5, stats.Variance, 15);
             Assert.Equal(30, stats.SampleVariance, 15);
@@ -58,6 +61,7 @@ namespace Medo.Tests.Math.WelfordVariance {
             stats.Add(2);
             stats.Add(3);
             stats.Add(1);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(3, stats.Mean, 15);
             Assert.Equal(3.5, stats.Variance, 15);
             Assert.Equal(4.666666666666667, stats.SampleVariance, 15);
@@ -69,6 +73,7 @@ namespace Medo.Tests.Math.WelfordVariance {
         [Fact(DisplayName = "WelfordVariance: Example (5)")]
         public void Example5() {
             var stats = new WelfordVariance(new double[] { 2, 2, 5, 7 });
+            Assert.Equal(4, stats.Count);
             Assert.Equal(4, stats.Mean, 15);
             Assert.Equal(4.5, stats.Variance, 15);
             Assert.Equal(6, stats.SampleVariance, 15);
@@ -81,6 +86,7 @@ namespace Medo.Tests.Math.WelfordVariance {
         public void Example6() {
             var stats = new WelfordVariance();
             stats.AddRange(new double[] { 2, 4, 4, 4, 5, 5, 7, 9 });
+            Assert.Equal(8, stats.Count);
             Assert.Equal(5, stats.Mean, 15);
             Assert.Equal(4, stats.Variance, 15);
             Assert.Equal(4.571428571428571, stats.SampleVariance, 15);
@@ -93,6 +99,7 @@ namespace Medo.Tests.Math.WelfordVariance {
         public void Example7() {
             var stats = new WelfordVariance();
             stats.AddRange(new double[] { 9, 2, 5, 4, 12, 7, 8, 11, 9, 3, 7, 4, 12, 5, 4, 10, 9, 6, 9, 4 });
+            Assert.Equal(20, stats.Count);
             Assert.Equal(7, stats.Mean, 15);
             Assert.Equal(8.9, stats.Variance, 15);
             Assert.Equal(9.368421052631579, stats.SampleVariance, 15);
@@ -105,6 +112,7 @@ namespace Medo.Tests.Math.WelfordVariance {
         public void Example8() {
             var stats = new WelfordVariance();
             stats.AddRange(new double[] { 51.3, 55.6, 49.9, 52.0 });
+            Assert.Equal(4, stats.Count);
             Assert.Equal(52.2, stats.Mean, 15);
             Assert.Equal(4.425000000000004, stats.Variance, 15);
             Assert.Equal(5.900000000000006, stats.SampleVariance, 15);
@@ -117,6 +125,7 @@ namespace Medo.Tests.Math.WelfordVariance {
         public void Example9() {
             var stats = new WelfordVariance();
             stats.AddRange(new double[] { -5, -3, -1, 1, 3 });
+            Assert.Equal(5, stats.Count);
             Assert.Equal(-1, stats.Mean, 15);
             Assert.Equal(8, stats.Variance, 15);
             Assert.Equal(10, stats.SampleVariance, 15);
@@ -129,6 +138,7 @@ namespace Medo.Tests.Math.WelfordVariance {
         public void Example10() {
             var stats = new WelfordVariance();
             stats.AddRange(new double[] { -1, 0, 1 });
+            Assert.Equal(3, stats.Count);
             Assert.Equal(0, stats.Mean, 15);
             Assert.Equal(0.666666666666667, stats.Variance, 15);
             Assert.Equal(1, stats.SampleVariance, 15);
@@ -140,6 +150,7 @@ namespace Medo.Tests.Math.WelfordVariance {
         [Fact(DisplayName = "WelfordVariance: No values")]
         public void NoValue() {
             var stats = new WelfordVariance();
+            Assert.Equal(0, stats.Count);
             Assert.Equal(double.NaN, stats.Mean);
             Assert.Equal(double.NaN, stats.Variance);
             Assert.Equal(double.NaN, stats.SampleVariance);
@@ -152,6 +163,7 @@ namespace Medo.Tests.Math.WelfordVariance {
         public void OneValue() {
             var stats = new WelfordVariance();
             stats.Add(1);
+            Assert.Equal(1, stats.Count);
             Assert.Equal(double.NaN, stats.Mean);
             Assert.Equal(double.NaN, stats.Variance);
             Assert.Equal(double.NaN, stats.SampleVariance);
@@ -165,6 +177,7 @@ namespace Medo.Tests.Math.WelfordVariance {
             var stats = new WelfordVariance();
             stats.Add(1);
             stats.Add(2);
+            Assert.Equal(2, stats.Count);
             Assert.Equal(1.5, stats.Mean, 15);
             Assert.Equal(0.25, stats.Variance, 15);
             Assert.Equal(0.5, stats.SampleVariance, 15);
