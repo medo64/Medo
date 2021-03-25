@@ -28,12 +28,12 @@ namespace Medo.Math {
         /// <summary>
         /// Creates new instance.
         /// </summary>
-        /// <param name="count">Number of items to use for calculation of smoothing factor.</param>
+        /// <param name="smoothingFactorCount">Number of items to use for calculation of smoothing factor.</param>
         /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
-        public ExponentialMovingAverage(int count) {
-            if (count < 1) { throw new ArgumentOutOfRangeException(nameof(count), "Count must be larger than 0."); }
-            if (count < int.MaxValue) {
-                _smoothingFactor = 2.0 / (count + 1);
+        public ExponentialMovingAverage(int smoothingFactorCount) {
+            if (smoothingFactorCount < 1) { throw new ArgumentOutOfRangeException(nameof(smoothingFactorCount), "Count must be larger than 0."); }
+            if (smoothingFactorCount < int.MaxValue) {
+                _smoothingFactor = 2.0 / (smoothingFactorCount + 1);
             } else {
                 _smoothingFactor = 2.0 / int.MaxValue;
             }
@@ -43,11 +43,11 @@ namespace Medo.Math {
         /// Creates a new instance.
         /// Only finite numbers from collection are added.
         /// </summary>
-        /// <param name="count">Number of items to use for calculation.</param>
+        /// <param name="smoothingFactorCount">Number of items to use for calculation.</param>
         /// <param name="collection">Collection.</param>
         /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
-        public ExponentialMovingAverage(int count, IEnumerable<double> collection)
-            : this(count) {
+        public ExponentialMovingAverage(int smoothingFactorCount, IEnumerable<double> collection)
+            : this(smoothingFactorCount) {
             AddRange(collection);
         }
 
@@ -99,6 +99,13 @@ namespace Medo.Math {
 
 
         /// <summary>
+        /// Gets current count.
+        /// </summary>
+        public long Count {
+            get { return _count; }
+        }
+
+        /// <summary>
         /// Returns average or NaN if there is no data to calculate.
         /// </summary>
         public double Average {
@@ -108,6 +115,7 @@ namespace Medo.Math {
 
         #region Algorithm
 
+        private long _count;
         private readonly double _smoothingFactor;
         private double average = double.NaN;
 
@@ -117,6 +125,7 @@ namespace Medo.Math {
             } else {
                 average = value;
             }
+            _count += 1;
         }
 
         #endregion Algorithm
