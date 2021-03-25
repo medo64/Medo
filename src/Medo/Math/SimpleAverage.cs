@@ -52,23 +52,30 @@ namespace Medo.Math {
 
 
         /// <summary>
+        /// Gets current count.
+        /// </summary>
+        public long Count {
+            get { return _count; }
+        }
+
+        /// <summary>
         /// Returns average or NaN if there is no data to calculate.
         /// </summary>
 		public double Average {
             get {
-                return (ItemsCount > 0) ? ItemsSum / ItemsCount : double.NaN;
+                return (_count > 0) ? _sum / _count : double.NaN;
             }
         }
 
 
         #region Algorithm
 
-        private double ItemsSum;
-        private int ItemsCount;
+        private long _count;
+        private double _sum;
 
         private void AddOne(double value) {
-            ItemsSum += value;
-            ItemsCount += 1;
+            _sum += value;
+            _count += 1;
         }
 
         #endregion Algorithm

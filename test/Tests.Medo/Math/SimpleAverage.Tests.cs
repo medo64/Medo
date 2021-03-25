@@ -13,6 +13,7 @@ namespace Medo.Tests.Math.SimpleAverage {
             stats.Add(7);
             stats.Add(13);
             stats.Add(16);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(10, stats.Average, 15);
         }
 
@@ -23,6 +24,7 @@ namespace Medo.Tests.Math.SimpleAverage {
             stats.Add(100000007);
             stats.Add(100000013);
             stats.Add(100000016);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(100000010, stats.Average, 15);
         }
 
@@ -33,6 +35,7 @@ namespace Medo.Tests.Math.SimpleAverage {
             stats.Add(1000000007);
             stats.Add(1000000013);
             stats.Add(1000000016);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(1000000010, stats.Average, 15);
         }
 
@@ -43,12 +46,14 @@ namespace Medo.Tests.Math.SimpleAverage {
             stats.Add(2);
             stats.Add(3);
             stats.Add(1);
+            Assert.Equal(4, stats.Count);
             Assert.Equal(3, stats.Average, 15);
         }
 
         [Fact(DisplayName = "SimpleAverage: Example (5)")]
         public void Example5() {
             var stats = new SimpleAverage(new double[] { 2, 2, 5, 7 });
+            Assert.Equal(4, stats.Count);
             Assert.Equal(4, stats.Average, 15);
         }
 
@@ -56,6 +61,7 @@ namespace Medo.Tests.Math.SimpleAverage {
         public void Example6() {
             var stats = new SimpleAverage();
             stats.AddRange(new double[] { 2, 4, 4, 4, 5, 5, 7, 9 });
+            Assert.Equal(8, stats.Count);
             Assert.Equal(5, stats.Average, 15);
         }
 
@@ -63,6 +69,7 @@ namespace Medo.Tests.Math.SimpleAverage {
         public void Example7() {
             var stats = new SimpleAverage();
             stats.AddRange(new double[] { 9, 2, 5, 4, 12, 7, 8, 11, 9, 3, 7, 4, 12, 5, 4, 10, 9, 6, 9, 4 });
+            Assert.Equal(20, stats.Count);
             Assert.Equal(7, stats.Average, 15);
         }
 
@@ -70,6 +77,7 @@ namespace Medo.Tests.Math.SimpleAverage {
         public void Example8() {
             var stats = new SimpleAverage();
             stats.AddRange(new double[] { 51.3, 55.6, 49.9, 52.0 });
+            Assert.Equal(4, stats.Count);
             Assert.Equal(52.2, stats.Average, 15);
         }
 
@@ -77,6 +85,7 @@ namespace Medo.Tests.Math.SimpleAverage {
         public void Example9() {
             var stats = new SimpleAverage();
             stats.AddRange(new double[] { -5, -3, -1, 1, 3 });
+            Assert.Equal(5, stats.Count);
             Assert.Equal(-1, stats.Average, 15);
         }
 
@@ -84,12 +93,14 @@ namespace Medo.Tests.Math.SimpleAverage {
         public void Example10() {
             var stats = new SimpleAverage();
             stats.AddRange(new double[] { -1, 0, 1 });
+            Assert.Equal(3, stats.Count);
             Assert.Equal(0, stats.Average, 15);
         }
 
         [Fact(DisplayName = "SimpleAverage: No values")]
         public void NoValue() {
             var stats = new SimpleAverage();
+            Assert.Equal(0, stats.Count);
             Assert.Equal(double.NaN, stats.Average);
         }
 
@@ -97,6 +108,7 @@ namespace Medo.Tests.Math.SimpleAverage {
         public void OneValue() {
             var stats = new SimpleAverage();
             stats.Add(1);
+            Assert.Equal(1, stats.Count);
             Assert.Equal(1, stats.Average);
         }
 
