@@ -109,9 +109,9 @@ namespace Medo.Math {
 
         #region Algorithm
 
-        long _count;
-        double _mean;
-        double _m2;
+        private long _count;
+        private double _mean;
+        private double _m2;
 
         private void AddOne(double value) {
             _count += 1;

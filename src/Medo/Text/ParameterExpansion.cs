@@ -257,11 +257,11 @@ namespace Medo.Text {
             string? startText = (parts.Length >= 1) && (parts[0].Length > 0) ? parts[0] : null;
             string? lengthText = (parts.Length >= 2) && (parts[1].Length > 0) ? parts[1] : null;
 
-            int start, length;
+            int length;
             if (startText == null) {  // output whole thing
                 return value;
             } else {
-                if (!int.TryParse(startText, NumberStyles.Integer, CultureInfo.InvariantCulture, out start)) { return null; }
+                if (!int.TryParse(startText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var start)) { return null; }
                 if (start < 0) { start = value.Length + start; }
                 if ((start < 0) || (start > value.Length)) { return null; }
                 if (lengthText == null) {
