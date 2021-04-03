@@ -40,6 +40,7 @@ namespace Medo.Windows.Forms.Examples
             this.btnTps = new System.Windows.Forms.Button();
             this.btnTimerResolution = new System.Windows.Forms.Button();
             this.bwUnhandledCatchBackground = new System.ComponentModel.BackgroundWorker();
+            this.btnWaitCursor = new System.Windows.Forms.Button();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -55,6 +56,7 @@ namespace Medo.Windows.Forms.Examples
             this.flowLayoutPanel1.Controls.Add(this.btnAboutBox);
             this.flowLayoutPanel1.Controls.Add(this.btnTps);
             this.flowLayoutPanel1.Controls.Add(this.btnTimerResolution);
+            this.flowLayoutPanel1.Controls.Add(this.btnWaitCursor);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -166,6 +168,16 @@ namespace Medo.Windows.Forms.Examples
             this.bwUnhandledCatchBackground.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwUnhandledCatchWorker_DoWork);
             this.bwUnhandledCatchBackground.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwUnhandledCatchBackground_RunWorkerCompleted);
             // 
+            // btnWaitCursor
+            // 
+            this.btnWaitCursor.Location = new System.Drawing.Point(209, 108);
+            this.btnWaitCursor.Name = "btnWaitCursor";
+            this.btnWaitCursor.Size = new System.Drawing.Size(200, 29);
+            this.btnWaitCursor.TabIndex = 10;
+            this.btnWaitCursor.Text = "Wait Cursor";
+            this.btnWaitCursor.UseVisualStyleBackColor = true;
+            this.btnWaitCursor.Click += new System.EventHandler(this.btnWaitCursor_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -193,6 +205,7 @@ namespace Medo.Windows.Forms.Examples
         private System.Windows.Forms.Button btnUnhandledCatchWorker;
         private System.ComponentModel.BackgroundWorker bwUnhandledCatchBackground;
         private System.Windows.Forms.Button btnUnhandledCatchTask;
+        private System.Windows.Forms.Button btnWaitCursor;
     }
 }
 

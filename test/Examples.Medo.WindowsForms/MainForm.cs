@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -73,5 +74,9 @@ namespace Medo.Windows.Forms.Examples {
             frm.ShowDialog(this);
         }
 
+        private void btnWaitCursor_Click(object sender, EventArgs e) {
+            using var x = new WaitCursor(this);
+            Thread.Sleep(1000);
+        }
     }
 }
