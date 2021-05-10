@@ -39,13 +39,6 @@ namespace Medo.Timers {
             }
         }
 
-        /// <summary>
-        /// Gets number of tickets available at this time.
-        /// </summary>
-        public int TicketCount {
-            get { return Tickets.CurrentCount; }
-        }
-
 
         /// <summary>
         /// Returns true once the next action can be executed.
