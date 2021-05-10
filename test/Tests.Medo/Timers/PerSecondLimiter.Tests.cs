@@ -16,13 +16,13 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
 
             while (DateTime.Now.Millisecond > 10) { Thread.Sleep(1); }  // just wait to get more of a second
 
-            Assert.True(tps.IsReadyForNext(), "Should be ready (1)");
-            Assert.False(tps.IsReadyForNext(), "Should be not ready (1)");
+            Assert.True(tps.WaitForNext(0), "Should be ready (1)");
+            Assert.False(tps.WaitForNext(0), "Should be not ready (1)");
 
             Thread.Sleep(1000);
 
-            Assert.True(tps.IsReadyForNext(), "Should be ready (2)");
-            Assert.False(tps.IsReadyForNext(), "Should be not ready (2)");
+            Assert.True(tps.WaitForNext(0), "Should be ready (2)");
+            Assert.False(tps.WaitForNext(0), "Should be not ready (2)");
 
             Assert.True(count >= 2, $"Count {count} too small.");
         }
@@ -68,7 +68,7 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
             tps.TicketsAvailable += delegate { Interlocked.Increment(ref count); };
 
             for (var i = 0; i < 100; i++) {
-                Assert.True(tps.IsReadyForNext());
+                Assert.True(tps.WaitForNext(0));
             }
 
             Assert.Equal(0, count);  // no tickets when unlimited

@@ -48,15 +48,6 @@ namespace Medo.Timers {
 
 
         /// <summary>
-        /// Returns true if the next action can be executed.
-        /// Once true is returned, it will be assumed action is taken.
-        /// </summary>
-        public bool IsReadyForNext() {
-            return WaitForNext(0);
-        }
-
-
-        /// <summary>
         /// Returns true once the next action can be executed.
         /// Once true is returned, it will be assumed action is taken.
         /// </summary>
