@@ -27,6 +27,7 @@ namespace Medo.Timers {
         /// <summary>
         /// Gets/sets per-second rate.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Per-second rate cannot be lower than 0.</exception>
         public int PerSecondRate {
             get { return _perSecondRate; }
             set {
@@ -78,15 +79,54 @@ namespace Medo.Timers {
         /// <summary>
         /// Returns true once the next action can be executed.
         /// Once true is returned, it will be assumed action is taken.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token to observe.</param>
+        public bool WaitForNext(CancellationToken cancellationToken) {
+            return WaitForNext(Timeout.Infinite, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns true once the next action can be executed.
+        /// Once true is returned, it will be assumed action is taken.
         /// Timeout of 0 will exit immediatelly if the next action cannot be executed.
         /// </summary>
         /// <param name="millisecondTimeout">How many milliseconds to wait or Timeout.Infinite to wait forever.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid timeout.</exception>
         public bool WaitForNext(int millisecondTimeout) {
             if (millisecondTimeout < -1) { throw new ArgumentOutOfRangeException(nameof(millisecondTimeout), "Invalid timeout."); }
+
             if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
+
             try {
                 return Tickets.Wait(millisecondTimeout, TicketWaitCancel.Token);
             } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited
+                lock (SyncDispose) {
+                    return !IsDisposing;  // reject wait if currently disposing
+                }
+            } catch (ObjectDisposedException) {  // deal with race condition in Dispose
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true once the next action can be executed.
+        /// Once true is returned, it will be assumed action is taken.
+        /// Timeout of 0 will exit immediatelly if the next action cannot be executed.
+        /// If task is cancelled, false will be returned
+        /// </summary>
+        /// <param name="millisecondTimeout">How many milliseconds to wait or Timeout.Infinite to wait forever.</param>
+        /// <param name="cancellationToken">Cancellation token to observe.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid timeout.</exception>
+        public bool WaitForNext(int millisecondTimeout, CancellationToken cancellationToken) {
+            if (millisecondTimeout < -1) { throw new ArgumentOutOfRangeException(nameof(millisecondTimeout), "Invalid timeout."); }
+
+            if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
+
+            try {
+                using var combinedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(TicketWaitCancel.Token, cancellationToken);
+                return Tickets.Wait(millisecondTimeout, combinedCancellationSource.Token);
+            } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited or by user token
+                if (cancellationToken.IsCancellationRequested) { return false; }  // cancelled by user
                 lock (SyncDispose) {
                     return !IsDisposing;  // reject wait if currently disposing
                 }
@@ -107,12 +147,24 @@ namespace Medo.Timers {
         /// <summary>
         /// Returns true once the next action can be executed.
         /// Once true is returned, it will be assumed action is taken.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token to observe.</param>
+        public async Task<bool> WaitForNextAsync(CancellationToken cancellationToken) {
+            return await WaitForNextAsync(Timeout.Infinite, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns true once the next action can be executed.
+        /// Once true is returned, it will be assumed action is taken.
         /// Timeout of 0 will exit immediatelly if the next action cannot be executed.
         /// </summary>
         /// <param name="millisecondTimeout">How many milliseconds to wait or Timeout.Infinite to wait forever.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid timeout.</exception>
         public async Task<bool> WaitForNextAsync(int millisecondTimeout) {
             if (millisecondTimeout < -1) { throw new ArgumentOutOfRangeException(nameof(millisecondTimeout), "Invalid timeout."); }
+
             if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
+
             try {
                 return await Tickets.WaitAsync(millisecondTimeout, TicketWaitCancel.Token);
             } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited
@@ -124,15 +176,39 @@ namespace Medo.Timers {
             }
         }
 
+        /// <summary>
+        /// Returns true once the next action can be executed.
+        /// Once true is returned, it will be assumed action is taken.
+        /// Timeout of 0 will exit immediatelly if the next action cannot be executed.
+        /// </summary>
+        /// <param name="millisecondTimeout">How many milliseconds to wait or Timeout.Infinite to wait forever.</param>
+        /// <param name="cancellationToken">Cancellation token to observe.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid timeout.</exception>
+        public async Task<bool> WaitForNextAsync(int millisecondTimeout, CancellationToken cancellationToken) {
+            if (millisecondTimeout < -1) { throw new ArgumentOutOfRangeException(nameof(millisecondTimeout), "Invalid timeout."); }
+
+            if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
+
+            try {
+                using var combinedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(TicketWaitCancel.Token, cancellationToken);
+                return await Tickets.WaitAsync(millisecondTimeout, combinedCancellationSource.Token);
+            } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited or by user token
+                if (cancellationToken.IsCancellationRequested) { return false; }  // cancelled by user
+                lock (SyncDispose) {
+                    return !IsDisposing;  // reject wait if currently disposing
+                }
+            } catch (ObjectDisposedException) {  // deal with race condition in Dispose
+                return false;
+            }
+        }
+
 
         #region Timer
 
-#pragma warning disable IDE0052 // Remove unread private members
         private readonly Timer HeartbeatTimer;
-#pragma warning restore IDE0052 // Remove unread private members
-
         private readonly AutoResetEvent HeartbeatMonitor = new(initialState: true);
         private readonly Stopwatch HeartbeatStopwatch = Stopwatch.StartNew();
+
         private readonly SemaphoreSlim Tickets = new(0);
         private CancellationTokenSource TicketWaitCancel = new();
 
