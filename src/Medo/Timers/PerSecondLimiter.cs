@@ -18,8 +18,8 @@ namespace Medo.Timers {
         /// <exception cref="ArgumentOutOfRangeException">Per-second rate cannot be lower than 0.</exception>
         public PerSecondLimiter(int perSecondRate) {
             if (perSecondRate < 0) { throw new ArgumentOutOfRangeException(nameof(perSecondRate), "Per-second rate cannot be lower than 0."); }
+            HeartbeatTimer = new Timer(Heartbeat, null, Timeout.Infinite, Timeout.Infinite);  // just create timer - will adjust times in PerSecondRate property
             PerSecondRate = perSecondRate;
-            HeartbeatTimer = new Timer(Heartbeat, null, 0, 8);  // ends up as 15.6ms on Windows
         }
 
 
@@ -48,6 +48,17 @@ namespace Medo.Timers {
                             if (--remaining == 0) { break; }
                         }
                     }
+
+                    if (value == 0) {  // disable timer
+                        HeartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                        TicketWaitCancel.Cancel();
+                        TicketWaitCancel = new();  // setup another cancellation source for later
+                        while (Tickets.CurrentCount > 0) { Tickets.Wait(0); }  // use up remaining slices
+                    } else {
+                        var timerPeriod = 500 / value;  // get ballpark interval
+                        timerPeriod = (timerPeriod == 0) ? 1 : (timerPeriod > 15) ? 15 : timerPeriod;  // keep period between 1-15 ms - ends up as 15.6 ms on Windows unless timer resolution is increased (SystemTimerResolution on Windows)
+                        HeartbeatTimer.Change(1, timerPeriod);  // restart timer
+                    }
                 } finally {
                     HeartbeatMonitor.Set();  // allow timer again
                 }
@@ -71,8 +82,12 @@ namespace Medo.Timers {
         /// <param name="millisecondTimeout">How many milliseconds to wait or Timeout.Infinite to wait forever.</param>
         public bool WaitForNext(int millisecondTimeout) {
             if (millisecondTimeout < -1) { throw new ArgumentOutOfRangeException(nameof(millisecondTimeout), "Invalid timeout."); }
-            if (PerSecondRate == 0) { return true; }  // skip calculations if unlimited
-            return Tickets.Wait(millisecondTimeout);
+            if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
+            try {
+                return Tickets.Wait(millisecondTimeout, TicketWaitCancel.Token);
+            } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited - return true here too
+                return true;
+            }
         }
 
 
@@ -80,8 +95,8 @@ namespace Medo.Timers {
         /// Returns true once the next action can be executed.
         /// Once true is returned, it will be assumed action is taken.
         /// </summary>
-        public Task<bool> WaitForNextAsync() {
-            return WaitForNextAsync(Timeout.Infinite);
+        public async Task<bool> WaitForNextAsync() {
+            return await WaitForNextAsync(Timeout.Infinite);
         }
 
         /// <summary>
@@ -92,8 +107,12 @@ namespace Medo.Timers {
         /// <param name="millisecondTimeout">How many milliseconds to wait or Timeout.Infinite to wait forever.</param>
         public async Task<bool> WaitForNextAsync(int millisecondTimeout) {
             if (millisecondTimeout < -1) { throw new ArgumentOutOfRangeException(nameof(millisecondTimeout), "Invalid timeout."); }
-            if (PerSecondRate == 0) { return true; }  // skip calculations if unlimited
-            return await Tickets.WaitAsync(Timeout.Infinite);
+            if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
+            try {
+                return await Tickets.WaitAsync(millisecondTimeout, TicketWaitCancel.Token);
+            } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited - return true here too
+                return true;
+            }
         }
 
 
@@ -106,6 +125,7 @@ namespace Medo.Timers {
         private readonly AutoResetEvent HeartbeatMonitor = new(initialState: true);
         private readonly Stopwatch HeartbeatStopwatch = Stopwatch.StartNew();
         private readonly SemaphoreSlim Tickets = new(0);
+        private CancellationTokenSource TicketWaitCancel = new();
 
         private readonly long[] RateSlices = new long[1000];
         private int RateSliceIndex = 0;
