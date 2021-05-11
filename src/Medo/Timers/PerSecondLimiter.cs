@@ -82,12 +82,6 @@ namespace Medo.Timers {
         }
 
 
-        /// <summary>
-        /// Raised whenever new tickets are added.
-        /// </summary>
-        public event EventHandler<EventArgs>? TicketsAvailable;
-
-
         #region Timer
 
 #pragma warning disable IDE0052 // Remove unread private members
@@ -133,7 +127,6 @@ namespace Medo.Timers {
                         if (unused > 0) {
                             PeriodTotalAllowanceUsed += unused;
                             Tickets.Release((int)unused);
-                            TicketsAvailable?.Invoke(this, EventArgs.Empty);                            //System.Diagnostics.Debug.WriteLine($"[Medo PerSecondLimiter] Tick: Allowed {unused} for {PeriodTotalAllowanceUsed}/{rate} at {msTotalElapsed}ms ({msLastElapsed}ms) {{{now}}})");
                         }
 
                         if (msTotalElapsed >= 1000) {  // move sliding window to the current second
