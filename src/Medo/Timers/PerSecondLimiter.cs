@@ -31,7 +31,10 @@ namespace Medo.Timers {
             set {
                 if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Per-second rate cannot be lower than 0."); }
                 _perSecondRate = value;
-                lock (SyncRate) {  // setup rate slices
+
+                try {
+                    HeartbeatMonitor.WaitOne(Timeout.Infinite);  // temporarily suspend timer
+
                     var thousandth = value / 1000;
                     var remaining = value % 1000;
                     for (var i = 0; i < 1000; i++) {
@@ -41,10 +44,11 @@ namespace Medo.Timers {
                         var skipCount = 1000 / remaining;
                         for (var i = 0; i < 1000; i += skipCount) {
                             RateSlices[i] += 1;
-                            remaining--;
-                            if (remaining == 0) { break; }
+                            if (--remaining == 0) { break; }
                         }
                     }
+                } finally {
+                    HeartbeatMonitor.Set();  // allow timer again
                 }
             }
         }
@@ -101,7 +105,6 @@ namespace Medo.Timers {
         private readonly AutoResetEvent HeartbeatMonitor = new(initialState: true);
         private readonly SemaphoreSlim Tickets = new(0);
 
-        private readonly object SyncRate = new();
         private readonly long[] RateSlices = new long[1000];
         private int RateSliceIndex = 0;
 
@@ -116,17 +119,13 @@ namespace Medo.Timers {
 
                 long maxToAdd;
                 if ((msElapsed == 1) || (msElapsed >= 100)) {  // add only single slice if waiting more than 100ms (or if only single slice is needed)
-                    lock (SyncRate) {
-                        maxToAdd = RateSlices[RateSliceIndex++];
-                        if (RateSliceIndex >= 1000) { RateSliceIndex = 0; }
-                    }
+                    maxToAdd = RateSlices[RateSliceIndex++];
+                    if (RateSliceIndex >= 1000) { RateSliceIndex = 0; }
                 } else {
                     maxToAdd = 0;
-                    lock (SyncRate) {
-                        for (var i = 0; i < msElapsed; i++) {  // add each missed bucket
-                            maxToAdd += RateSlices[RateSliceIndex++];
-                            if (RateSliceIndex >= 1000) { RateSliceIndex = 0; }
-                        }
+                    for (var i = 0; i < msElapsed; i++) {  // add each missed bucket
+                        maxToAdd += RateSlices[RateSliceIndex++];
+                        if (RateSliceIndex >= 1000) { RateSliceIndex = 0; }
                     }
                 }
                 if (maxToAdd > 0) {
