@@ -32,7 +32,7 @@ namespace Medo.Windows.Forms.Examples {
             this.txtMeasured = new System.Windows.Forms.TextBox();
             this.lblIncrementing = new System.Windows.Forms.Label();
             this.tmrUpdateDisplay = new System.Windows.Forms.Timer(this.components);
-            this.tmrConsume = new System.Windows.Forms.Timer(this.components);
+            this.bwGenerator = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.nudTps)).BeginInit();
             this.SuspendLayout();
             // 
@@ -62,7 +62,7 @@ namespace Medo.Windows.Forms.Examples {
             | System.Windows.Forms.AnchorStyles.Right)));
             this.nudTps.Location = new System.Drawing.Point(90, 12);
             this.nudTps.Maximum = new decimal(new int[] {
-            2000,
+            10000,
             0,
             0,
             0});
@@ -113,11 +113,10 @@ namespace Medo.Windows.Forms.Examples {
             this.tmrUpdateDisplay.Interval = 200;
             this.tmrUpdateDisplay.Tick += new System.EventHandler(this.tmrUpdateDisplay_Tick);
             // 
-            // tmrConsume
+            // bwGenerator
             // 
-            this.tmrConsume.Enabled = true;
-            this.tmrConsume.Interval = 1;
-            this.tmrConsume.Tick += new System.EventHandler(this.tmrConsume_Tick);
+            this.bwGenerator.WorkerSupportsCancellation = true;
+            this.bwGenerator.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwGenerator_DoWork);
             // 
             // TpsForm
             // 
@@ -135,6 +134,7 @@ namespace Medo.Windows.Forms.Examples {
             this.MinimizeBox = false;
             this.Name = "TpsForm";
             this.Text = "TPS";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form_FormClosed);
             ((System.ComponentModel.ISupportInitialize)(this.nudTps)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -150,6 +150,6 @@ namespace Medo.Windows.Forms.Examples {
         private System.Windows.Forms.TextBox txtMeasured;
         private System.Windows.Forms.Label lblIncrementing;
         private System.Windows.Forms.Timer tmrUpdateDisplay;
-        private System.Windows.Forms.Timer tmrConsume;
+        private System.ComponentModel.BackgroundWorker bwGenerator;
     }
 }

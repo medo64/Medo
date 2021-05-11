@@ -1,11 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using Medo.Timers;
 
@@ -13,26 +8,37 @@ namespace Medo.Windows.Forms.Examples {
     public partial class TpsForm : Form {
         public TpsForm() {
             InitializeComponent();
+            bwGenerator.RunWorkerAsync(CancelSource.Token);
         }
 
         public PerSecondCounter TpsCounter = new();
         public PerSecondLimiter TpsLimiter = new(10);
+        public CancellationTokenSource CancelSource = new();
         public long IncreasingValue = 0;
+
+        private void Form_FormClosed(object sender, FormClosedEventArgs e) {
+            CancelSource.Cancel();
+        }
+
 
         private void tmrUpdateDisplay_Tick(object sender, EventArgs e) {
             txtMeasured.Text = TpsCounter.ValuePerSecond.ToString();
-            lblIncrementing.Text = IncreasingValue.ToString();
+            lblIncrementing.Text = Interlocked.Read(ref IncreasingValue).ToString();
         }
 
-        private void tmrConsume_Tick(object sender, EventArgs e) {
-            while (TpsLimiter.IsReadyForNext()) {
-                IncreasingValue += 1;
-                TpsCounter.Increment();
+        private void bwGenerator_DoWork(object sender, DoWorkEventArgs e) {
+            var cancelToken = (CancellationToken)e.Argument;
+            while (!cancelToken.IsCancellationRequested) {
+                if (TpsLimiter.WaitForNext(cancelToken)) {
+                    TpsCounter.Increment(1);
+                    Interlocked.Increment(ref IncreasingValue);
+                }
             }
         }
 
         private void btnSetTps_Click(object sender, EventArgs e) {
             TpsLimiter.PerSecondRate = (int)nudTps.Value;
         }
+
     }
 }
