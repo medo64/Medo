@@ -9,7 +9,7 @@ namespace Medo.Timers {
     /// <summary>
     /// Limits per-second throughput.
     /// </summary>
-    public class PerSecondLimiter {
+    public sealed class PerSecondLimiter : IDisposable {
 
         /// <summary>
         /// Creates a new instance.
@@ -85,8 +85,12 @@ namespace Medo.Timers {
             if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
             try {
                 return Tickets.Wait(millisecondTimeout, TicketWaitCancel.Token);
-            } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited - return true here too
-                return true;
+            } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited
+                lock (SyncDispose) {
+                    return !IsDisposing;  // reject wait if currently disposing
+                }
+            } catch (ObjectDisposedException) {  // deal with race condition in Dispose
+                return false;
             }
         }
 
@@ -110,8 +114,12 @@ namespace Medo.Timers {
             if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
             try {
                 return await Tickets.WaitAsync(millisecondTimeout, TicketWaitCancel.Token);
-            } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited - return true here too
-                return true;
+            } catch (OperationCanceledException) {  // token will be cancelled if rate is set to unlimited
+                lock (SyncDispose) {
+                    return !IsDisposing;  // reject wait if disposing
+                }
+            } catch (ObjectDisposedException) {  // deal with race condition in Dispose
+                return false;
             }
         }
 
@@ -165,6 +173,34 @@ namespace Medo.Timers {
         private long LastTimestamp;
 
         #endregion Timer
+
+
+        #region IDisposable
+
+        private bool IsDisposing;  // just keep track if we started disposing
+        private readonly object SyncDispose = new();
+
+        public void Dispose() {
+            lock (SyncDispose) {
+                if (IsDisposing) { return; }  // don't dispose twice
+                IsDisposing = true;
+            }
+
+            HeartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);  // disable timer
+            HeartbeatMonitor.WaitOne(Timeout.Infinite);  // suspend timer and never release it
+            TicketWaitCancel.Cancel();  // cancel pending tickets
+
+            while (Tickets.CurrentCount > 0) { Tickets.Wait(0); }  // use up remaining slices
+            Thread.Yield();
+
+            TicketWaitCancel.Dispose();  // dispose cancellation token
+            HeartbeatTimer.Dispose();  // dispose timer
+            Tickets.Dispose();  // dispose ticket dispersing semaphore
+
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion IDisposable
 
     }
 }
