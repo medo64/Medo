@@ -30,11 +30,21 @@ namespace Medo.Timers {
             get { return _perSecondRate; }
             set {
                 if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Per-second rate cannot be lower than 0."); }
-                lock (SyncTimer) {
-                    lock (SyncProperties) {
-                        _perSecondRate = value;
+                _perSecondRate = value;
+                lock (SyncRate) {  // setup rate slices
+                    var thousandth = value / 1000;
+                    var remaining = value % 1000;
+                    for (var i = 0; i < 1000; i++) {
+                        RateSlices[i] = thousandth;
                     }
-                    while (Tickets.CurrentCount > 0) { Tickets.Wait(0); }  // use up remaining allowance
+                    if (remaining > 0) {  // equaly distribute remaining TPS
+                        var skipCount = 1000 / remaining;
+                        for (var i = 0; i < 1000; i += skipCount) {
+                            RateSlices[i] += 1;
+                            remaining--;
+                            if (remaining == 0) { break; }
+                        }
+                    }
                 }
             }
         }
@@ -88,62 +98,50 @@ namespace Medo.Timers {
         private readonly Timer HeartbeatTimer;
 #pragma warning restore IDE0052 // Remove unread private members
 
-        private readonly object SyncProperties = new();
-        private readonly object SyncTimer = new();
+        private readonly AutoResetEvent HeartbeatMonitor = new(initialState: true);
         private readonly SemaphoreSlim Tickets = new(0);
 
+        private readonly object SyncRate = new();
+        private readonly long[] RateSlices = new long[1000];
+        private int RateSliceIndex = 0;
+
         private void Heartbeat(object? state) {
-            lock (SyncTimer) {
-                var now = Environment.TickCount;
-                var msLastElapsed = unchecked(now - PeriodLastStart) & 0x7FFFFFFF;  // positive result even if TickCount is negative at the start
-                if (msLastElapsed == 0) { return; }  // less than 1ms has elapsed - can happen sometime
+            if (!HeartbeatMonitor.WaitOne(0)) { return; }  // immediatelly exit if you cannot get the monitor; you'll catch up on the next go
 
-                try {
-                    long rate;
-                    lock (SyncProperties) {
-                        rate = PerSecondRate;
+            var currentTimestamp = Environment.TickCount;
+            var msElapsed = unchecked(currentTimestamp - LastTimestamp) & 0x7FFFFFFF;  // positive result even if TickCount is negative at the start
+
+            try {
+                if (msElapsed <= 0) { return; }  // less than 1ms has elapsed - can happen sometime
+
+                long maxToAdd;
+                if ((msElapsed == 1) || (msElapsed >= 100)) {  // add only single slice if waiting more than 100ms (or if only single slice is needed)
+                    lock (SyncRate) {
+                        maxToAdd = RateSlices[RateSliceIndex++];
+                        if (RateSliceIndex >= 1000) { RateSliceIndex = 0; }
                     }
-
-                    if (rate == 0) { return; }  // special case when semaphore is not used
-
-                    var allowanceRemaining = Tickets.CurrentCount;
-                    var msTotalElapsed = unchecked(now - PeriodTotalStart) & 0x7FFFFFFF;  // positive result even if TickCount is negative at the start
-
-                    if (msTotalElapsed >= 2000) {  // it's been long enough to forget all about counting
-                        //System.Diagnostics.Debug.WriteLine($"[Medo PerSecondLimiter] Init");
-                        PeriodTotalStart = now;
-                        PeriodTotalAllowanceUsed = 0;
-                    } else {  // try to distribute quota bit by bit
-                        //System.Diagnostics.Debug.WriteLine($"[Medo PerSecondLimiter] Tick");
-                        if (allowanceRemaining > 0) { return; }  // if there is unused allowance, don't give it more
-
-                        var expectedLastUsage = (rate + 1) * msLastElapsed / 1000 + 1;
-                        var expectedTotalUsage = rate * msTotalElapsed / 1000 + 1;
-
-                        var rateMaxUnused = rate / 16;  // limit unused counter to about 6.25% at a time
-                        if (rateMaxUnused == 0) { rateMaxUnused = 1; }  // always allow at least one
-                        var unused = expectedTotalUsage - PeriodTotalAllowanceUsed;
-                        if (unused > rateMaxUnused) { unused = rateMaxUnused; }
-                        if (unused > 0) {
-                            PeriodTotalAllowanceUsed += unused;
-                            Tickets.Release((int)unused);
-                        }
-
-                        if (msTotalElapsed >= 1000) {  // move sliding window to the current second
-                            PeriodTotalStart += 1000;
-                            PeriodTotalAllowanceUsed -= rate;
-                            if (PeriodTotalAllowanceUsed < 0) { PeriodTotalAllowanceUsed = 0; }  // forget about missed
+                } else {
+                    maxToAdd = 0;
+                    lock (SyncRate) {
+                        for (var i = 0; i < msElapsed; i++) {  // add each missed bucket
+                            maxToAdd += RateSlices[RateSliceIndex++];
+                            if (RateSliceIndex >= 1000) { RateSliceIndex = 0; }
                         }
                     }
-                } finally {
-                    PeriodLastStart = now;
                 }
+                if (maxToAdd > 0) {
+                    if (maxToAdd > Int32.MaxValue) { maxToAdd = Int32.MaxValue; }
+                    if (maxToAdd > Tickets.CurrentCount) {  // add new tickets only if not too many tickets are already available - CurrentCount is not precise but it's good enough
+                        Tickets.Release((int)maxToAdd);
+                    }
+                }
+            } finally {
+                LastTimestamp = currentTimestamp;
+                HeartbeatMonitor.Set();
             }
         }
 
-        private long PeriodLastStart;
-        private long PeriodTotalStart;
-        private long PeriodTotalAllowanceUsed;
+        private long LastTimestamp;
 
         #endregion Timer
 
