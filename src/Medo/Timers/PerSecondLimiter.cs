@@ -2,6 +2,7 @@
 
 namespace Medo.Timers {
     using System;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -103,6 +104,7 @@ namespace Medo.Timers {
 #pragma warning restore IDE0052 // Remove unread private members
 
         private readonly AutoResetEvent HeartbeatMonitor = new(initialState: true);
+        private readonly Stopwatch HeartbeatStopwatch = Stopwatch.StartNew();
         private readonly SemaphoreSlim Tickets = new(0);
 
         private readonly long[] RateSlices = new long[1000];
@@ -111,8 +113,8 @@ namespace Medo.Timers {
         private void Heartbeat(object? state) {
             if (!HeartbeatMonitor.WaitOne(0)) { return; }  // immediatelly exit if you cannot get the monitor; you'll catch up on the next go
 
-            var currentTimestamp = Environment.TickCount;
-            var msElapsed = unchecked(currentTimestamp - LastTimestamp) & 0x7FFFFFFF;  // positive result even if TickCount is negative at the start
+            var currentTimestamp = HeartbeatStopwatch.ElapsedMilliseconds;
+            var msElapsed = currentTimestamp - LastTimestamp;
 
             try {
                 if (msElapsed <= 0) { return; }  // less than 1ms has elapsed - can happen sometime
