@@ -42,10 +42,11 @@ namespace Medo.Timers {
                         RateSlices[i] = thousandth;
                     }
                     if (remaining > 0) {  // equaly distribute remaining TPS
-                        var skipCount = 1000 / remaining;
-                        for (var i = 0; i < 1000; i += skipCount) {
-                            RateSlices[i] += 1;
-                            if (--remaining == 0) { break; }
+                        var skipCount = (remaining <= 100) ? 1000 / remaining : 101;  // linearly up to 100 TPS - otherwise use prime to "randomize" distribution a bit
+                        var index = 0;
+                        while (remaining-- > 0) {
+                            RateSlices[index] += 1;
+                            index = (index + skipCount) % 1000;
                         }
                     }
 
