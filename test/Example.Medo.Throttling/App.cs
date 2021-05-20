@@ -12,7 +12,7 @@ namespace Medo.Example.Throttling {
 
             var limiter = new PerSecondLimiter(13);
             while (true) {
-                limiter.WaitForNext();
+                limiter.Wait();
                 counter.Increment();
             }
 

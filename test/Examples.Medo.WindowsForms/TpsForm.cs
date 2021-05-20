@@ -29,7 +29,7 @@ namespace Medo.Windows.Forms.Examples {
         private void bwGenerator_DoWork(object sender, DoWorkEventArgs e) {
             var cancelToken = (CancellationToken)e.Argument;
             while (!cancelToken.IsCancellationRequested) {
-                if (TpsLimiter.WaitForNext(cancelToken)) {
+                if (TpsLimiter.Wait(cancelToken)) {
                     TpsCounter.Increment(1);
                     Interlocked.Increment(ref IncreasingValue);
                 }

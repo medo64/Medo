@@ -14,13 +14,13 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
 
             while (DateTime.Now.Millisecond > 10) { Thread.Sleep(1); }  // just wait to get more of a second
 
-            Assert.True(tps.WaitForNext(0), "Should be ready (1)");
-            Assert.False(tps.WaitForNext(0), "Should be not ready (1)");
+            Assert.True(tps.Wait(0), "Should be ready (1)");
+            Assert.False(tps.Wait(0), "Should be not ready (1)");
 
             Thread.Sleep(1000);
 
-            Assert.True(tps.WaitForNext(0), "Should be ready (2)");
-            Assert.False(tps.WaitForNext(0), "Should be not ready (2)");
+            Assert.True(tps.Wait(0), "Should be ready (2)");
+            Assert.False(tps.Wait(0), "Should be not ready (2)");
         }
 
         [Fact(DisplayName = "PerSecondLimiter: Wait")]
@@ -29,9 +29,9 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
 
             var sw = new Stopwatch();
             sw.Start();
-            tps.WaitForNext();
-            tps.WaitForNext();
-            tps.WaitForNext();
+            tps.Wait();
+            tps.Wait();
+            tps.Wait();
             Assert.True(sw.ElapsedMilliseconds > 1000);
         }
 
@@ -41,10 +41,10 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
 
             var sw = new Stopwatch();
             sw.Start();
-            tps.WaitForNext(500);
-            tps.WaitForNext();
-            tps.WaitForNext();
-            Assert.False(tps.WaitForNext(1));  // just wait for 1 ms to check if all is ok
+            tps.Wait(500);
+            tps.Wait();
+            tps.Wait();
+            Assert.False(tps.Wait(1));  // just wait for 1 ms to check if all is ok
             Assert.True(sw.ElapsedMilliseconds > 1000);
         }
 
@@ -54,7 +54,7 @@ namespace Medo.Tests.Timers.PerSecondLimiter {
             var tps = new PerSecondLimiter(0);
 
             for (var i = 0; i < 100; i++) {
-                Assert.True(tps.WaitForNext(0));
+                Assert.True(tps.Wait(0));
             }
         }
 

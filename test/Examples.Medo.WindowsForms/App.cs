@@ -3,9 +3,9 @@ using System.Windows.Forms;
 using Medo.Diagnostics;
 
 namespace Medo.Windows.Forms.Examples {
-    static class App {
+    internal static class App {
         [STAThread]
-        static void Main() {
+        private static void Main() {
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
