@@ -25,6 +25,7 @@ namespace Medo.Timers {
         }
 
 
+        private readonly object PerSecondRateLock = new();
         private int _perSecondRate;
         /// <summary>
         /// Gets/sets per-second rate.
@@ -36,21 +37,19 @@ namespace Medo.Timers {
             }
             set {
                 if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Per-second rate cannot be lower than 0."); }
-                Interlocked.Exchange(ref _perSecondRate, value);
-
-                try {
-                    HeartbeatWaitHandle.WaitOne(Timeout.Infinite);  // temporarily suspend timer
+                lock (PerSecondRateLock) {  // just to avoid setting in two threads
+                    Interlocked.Exchange(ref _perSecondRate, value);
 
                     var thousandth = value / 1000;
                     var remaining = value % 1000;
                     for (var i = 0; i < 1000; i++) {
-                        RateSlices[i] = thousandth;
+                        Interlocked.Exchange(ref RateSlices[i], thousandth);
                     }
                     if (remaining > 0) {  // equaly distribute remaining TPS
                         var skipCount = (remaining <= 100) ? 1000 / remaining : 101;  // linearly up to 100 TPS - otherwise use prime to "randomize" distribution a bit
                         var index = 0;
                         while (remaining-- > 0) {
-                            RateSlices[index] += 1;
+                            Interlocked.Increment(ref RateSlices[index]);
                             index = (index + skipCount) % 1000;
                         }
                     }
@@ -58,7 +57,7 @@ namespace Medo.Timers {
                     if (value == 0) {  // disable timer
                         HeartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);
                         lock (TicketsLock) {
-                            TicketsAvailable = 0;  // use up remaining slices
+                            if (TicketsAvailable > 0) { TicketsAvailable = 0; }  // use up remaining tickets
                         }
                         TicketsAvailableWaitHandle.Set();  // wake next waiting as there's no need to wait now
                     } else {
@@ -66,8 +65,6 @@ namespace Medo.Timers {
                         timerPeriod = (timerPeriod == 0) ? 1 : (timerPeriod > 15) ? 15 : timerPeriod;  // keep period between 1-15 ms - ends up as 15.6 ms on Windows unless timer resolution is increased (SystemTimerResolution on Windows)
                         HeartbeatTimer.Change(1, timerPeriod);  // restart timer
                     }
-                } finally {
-                    HeartbeatWaitHandle.Set();  // allow timer again
                 }
             }
         }
@@ -125,14 +122,12 @@ namespace Medo.Timers {
             while (true) {
                 if (PerSecondRate == 0) { return true; }  // skip wait if unlimited
 
-                var gotTicket = false;
-                var moreTickets = false;
+                bool gotTicket;
+                bool moreTickets;
                 lock (TicketsLock) {
-                    if (TicketsAvailable > 0) {
-                        TicketsAvailable--;
-                        gotTicket = true;
-                        moreTickets = (TicketsAvailable > 0);
-                    }
+                    gotTicket = (TicketsAvailable > 0);
+                    moreTickets = (TicketsAvailable > 1);
+                    if (gotTicket) { TicketsAvailable--; }
                 }
                 if (gotTicket) {
                     if (moreTickets) { TicketsAvailableWaitHandle.Set(); }
@@ -215,49 +210,42 @@ namespace Medo.Timers {
         #region Timer
 
         private readonly Timer HeartbeatTimer;
-        private readonly AutoResetEvent HeartbeatWaitHandle = new(initialState: true);
         private readonly Stopwatch HeartbeatStopwatch = Stopwatch.StartNew();
 
         private readonly object TicketsLock = new();
         private long TicketsAvailable = 0;  // protected by TicketsLock
         private readonly AutoResetEvent TicketsAvailableWaitHandle = new(initialState: false);
 
-        private readonly long[] RateSlices = new long[1000];
-        private int RateSliceIndex = 0;
+        private readonly long[] RateSlices = new long[1000];  // interlocked
+        private int RateSliceIndex = 0;  // interlocked
 
         private void Heartbeat(object? state) {
-            if (!HeartbeatWaitHandle.WaitOne(0)) { return; }  // immediatelly exit if you cannot get the monitor; you'll catch up on the next go
-
             var currentTimestamp = HeartbeatStopwatch.ElapsedMilliseconds;
-            var msElapsed = currentTimestamp - LastTimestamp;
+            var msElapsed = currentTimestamp - Interlocked.Read(ref LastTimestamp);
+            if (msElapsed <= 0) { return; }  // less than 1ms has elapsed - can happen sometime
+            Interlocked.Exchange(ref LastTimestamp, currentTimestamp);
 
-            try {
-                if (msElapsed <= 0) { return; }  // less than 1ms has elapsed - can happen sometime
-
-                long maxToAdd;
-                if ((msElapsed == 1) || (msElapsed >= 100)) {  // add only single slice if waiting more than 100ms (or if only single slice is needed)
-                    maxToAdd = RateSlices[RateSliceIndex++];
-                    if (RateSliceIndex >= 1000) { RateSliceIndex = 0; }
-                } else {
-                    maxToAdd = 0;
-                    for (var i = 0; i < msElapsed; i++) {  // add each missed bucket
-                        maxToAdd += RateSlices[RateSliceIndex++];
-                        if (RateSliceIndex >= 1000) { RateSliceIndex = 0; }
-                    }
+            long maxToAdd;
+            if ((msElapsed == 1) || (msElapsed >= 100)) {  // add only single slice if waiting more than 100ms (or if only single slice is needed)
+                var index = Interlocked.Increment(ref RateSliceIndex) % 1000;
+                maxToAdd = Interlocked.Read(ref RateSlices[index]);
+            } else {
+                maxToAdd = 0;
+                for (var i = 0; i < msElapsed; i++) {  // add each missed bucket
+                    var index = Interlocked.Increment(ref RateSliceIndex) % 1000;
+                    maxToAdd += Interlocked.Read(ref RateSlices[index]);
                 }
-                if (maxToAdd > 0) {
-                    if (maxToAdd > Int32.MaxValue) { maxToAdd = Int32.MaxValue; }
-                    lock (TicketsLock) {
-                        if (maxToAdd > TicketsAvailable) {  // add new tickets only if not too many tickets are already available - CurrentCount is not precise but it's good enough
-                            TicketsAvailable += maxToAdd;
-                        }
+            }
+            if (maxToAdd > 0) {
+                if (maxToAdd > Int32.MaxValue) { maxToAdd = Int32.MaxValue; }
+                bool anyTickets = false;
+                lock (TicketsLock) {
+                    if (maxToAdd > TicketsAvailable) {  // add new tickets only if not too many tickets are already available - CurrentCount is not precise but it's good enough
+                        TicketsAvailable += maxToAdd;
                     }
-                    TicketsAvailableWaitHandle.Set();
+                    anyTickets = (TicketsAvailable > 0);  // can be negative if disposing
                 }
-
-                LastTimestamp = currentTimestamp;
-            } finally {
-                HeartbeatWaitHandle.Set();
+                if (anyTickets) { TicketsAvailableWaitHandle.Set(); }
             }
         }
 
@@ -277,10 +265,9 @@ namespace Medo.Timers {
                 IsDisposing = true;
             }
 
-            HeartbeatWaitHandle.WaitOne(Timeout.Infinite);  // suspend timer and never release it
             HeartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);  // disable timer
             lock (TicketsLock) {
-                TicketsAvailable = 0;
+                TicketsAvailable = long.MinValue;
             }
             Thread.Yield();
 
