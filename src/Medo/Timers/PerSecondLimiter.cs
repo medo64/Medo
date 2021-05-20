@@ -25,7 +25,6 @@ namespace Medo.Timers {
         }
 
 
-        private readonly object PerSecondRateLock = new();
         private int _perSecondRate;
         /// <summary>
         /// Gets/sets per-second rate.
@@ -33,15 +32,11 @@ namespace Medo.Timers {
         /// <exception cref="ArgumentOutOfRangeException">Per-second rate cannot be lower than 0.</exception>
         public int PerSecondRate {
             get {
-                lock (PerSecondRateLock) {
-                    return _perSecondRate;
-                }
+                return Interlocked.CompareExchange(ref _perSecondRate, 0, 0);
             }
             set {
                 if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Per-second rate cannot be lower than 0."); }
-                lock (PerSecondRateLock) {
-                    _perSecondRate = value;
-                }
+                Interlocked.Exchange(ref _perSecondRate, value);
 
                 try {
                     HeartbeatWaitHandle.WaitOne(Timeout.Infinite);  // temporarily suspend timer
