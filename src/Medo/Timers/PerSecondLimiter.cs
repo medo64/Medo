@@ -158,55 +158,6 @@ namespace Medo.Timers {
         }
 
 
-        /// <summary>
-        /// Returns true once the next action can be executed.
-        /// Once true is returned, it will be assumed action is taken.
-        /// </summary>
-        public async Task<bool> WaitAsync() {
-            return await Task.Factory.StartNew(() =>
-                WaitInternal(Timeout.Infinite, null));
-        }
-
-        /// <summary>
-        /// Returns true once the next action can be executed.
-        /// Once true is returned, it will be assumed action is taken.
-        /// </summary>
-        /// <param name="cancellationToken">Cancellation token to observe.</param>
-        public async Task<bool> WaitAsync(CancellationToken cancellationToken) {
-            return await Task.Factory.StartNew(() =>
-                WaitInternal(Timeout.Infinite, cancellationToken));
-        }
-
-        /// <summary>
-        /// Returns true once the next action can be executed.
-        /// Once true is returned, it will be assumed action is taken.
-        /// Timeout of 0 will exit immediatelly if the next action cannot be executed.
-        /// </summary>
-        /// <param name="millisecondTimeout">How many milliseconds to wait or Timeout.Infinite to wait forever.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Invalid timeout.</exception>
-        public async Task<bool> WaitAsync(int millisecondTimeout) {
-            if (millisecondTimeout < -1) { throw new ArgumentOutOfRangeException(nameof(millisecondTimeout), "Invalid timeout."); }
-
-            return await Task.Factory.StartNew(() =>
-                WaitInternal(millisecondTimeout, null));
-        }
-
-        /// <summary>
-        /// Returns true once the next action can be executed.
-        /// Once true is returned, it will be assumed action is taken.
-        /// Timeout of 0 will exit immediatelly if the next action cannot be executed.
-        /// </summary>
-        /// <param name="millisecondTimeout">How many milliseconds to wait or Timeout.Infinite to wait forever.</param>
-        /// <param name="cancellationToken">Cancellation token to observe.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Invalid timeout.</exception>
-        public async Task<bool> WaitAsync(int millisecondTimeout, CancellationToken cancellationToken) {
-            if (millisecondTimeout < -1) { throw new ArgumentOutOfRangeException(nameof(millisecondTimeout), "Invalid timeout."); }
-
-            return await Task.Factory.StartNew(() =>
-                WaitInternal(millisecondTimeout, cancellationToken));
-        }
-
-
         #region Timer
 
         private readonly Timer HeartbeatTimer;
