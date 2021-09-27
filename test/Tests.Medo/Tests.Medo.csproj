@@ -50,6 +50,21 @@
     <None Remove="_Resources\Configuration\Config\WriteSameSeparatorEquals.Good.cfg" />
     <None Remove="_Resources\Configuration\Config\WriteSameSeparatorSpace.cfg" />
     <None Remove="_Resources\Configuration\Config\WriteSameSeparatorSpace.Good.cfg" />
+    <None Remove="_Resources\Configuration\IniFile\Comment.ini" />
+    <None Remove="_Resources\Configuration\IniFile\Conversions.ini" />
+    <None Remove="_Resources\Configuration\IniFile\DoubleQuote.ini" />
+    <None Remove="_Resources\Configuration\IniFile\Empty.ini" />
+    <None Remove="_Resources\Configuration\IniFile\EmptyKey.ini" />
+    <None Remove="_Resources\Configuration\IniFile\IgnoreEmptySections.ini" />
+    <None Remove="_Resources\Configuration\IniFile\IgnoreIncompleteProperties.ini" />
+    <None Remove="_Resources\Configuration\IniFile\MergeSections.ini" />
+    <None Remove="_Resources\Configuration\IniFile\Mixed.ini" />
+    <None Remove="_Resources\Configuration\IniFile\SectionCharactersAfterEnd.ini" />
+    <None Remove="_Resources\Configuration\IniFile\SectionIgnoresInnerBrackets.ini" />
+    <None Remove="_Resources\Configuration\IniFile\SectionImplicitEnd.ini" />
+    <None Remove="_Resources\Configuration\IniFile\SingleQuote.ini" />
+    <None Remove="_Resources\Configuration\IniFile\WhitespaceAtEnd.ini" />
+    <None Remove="_Resources\Configuration\IniFile\WhitespaceAtStart.ini" />
   </ItemGroup>
 
   <ItemGroup>
@@ -107,6 +122,21 @@
     <EmbeddedResource Include="_Resources\Configuration\Config\WriteSameSeparatorEquals.Good.cfg" />
     <EmbeddedResource Include="_Resources\Configuration\Config\WriteSameSeparatorSpace.cfg" />
     <EmbeddedResource Include="_Resources\Configuration\Config\WriteSameSeparatorSpace.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\IgnoreIncompleteProperties.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\Mixed.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\SectionIgnoresInnerBrackets.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\DoubleQuote.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\WhitespaceAtEnd.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\WhitespaceAtStart.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\SingleQuote.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\Conversions.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\IgnoreEmptySections.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\MergeSections.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\SectionCharactersAfterEnd.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\EmptyKey.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\SectionImplicitEnd.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\Comment.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\Empty.ini" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_D_M.TXT" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_E_M.TXT" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_D_M.TXT" />
