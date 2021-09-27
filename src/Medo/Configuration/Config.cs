@@ -436,7 +436,7 @@ namespace Medo.Configuration {
 
             var company = companyValue ?? "";
             var application = productValue ?? titleValue ?? assembly.GetName().Name ?? "application";
-            var executablePath = assembly.Location;
+            var executablePath = (Environment.Version.Major >= 5) ? AppContext.BaseDirectory : assembly.Location;
 
             var baseFileName = IsOSWindows
                 ? application + ".cfg"
