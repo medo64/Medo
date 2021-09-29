@@ -14,6 +14,13 @@ namespace Medo.Configuration {
     public class IniFile {
 
         /// <summary>
+        /// Creates a new empty instance.
+        /// </summary>
+        public IniFile() {
+            ParserObject = new Parser("");
+        }
+
+        /// <summary>
         /// Creates a new instance.
         /// </summary>
         /// <param name="path">File path.</param>

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Xunit;
@@ -8,6 +7,12 @@ namespace Medo.Tests.Configuration.IniFile {
     using Medo.Configuration;
 
     public class Tests {
+
+        [Fact(DisplayName = "IniFile: Empty")]
+        public void Empty() {
+            var ini = new IniFile();
+            Assert.Equal(0, ini.Count);
+        }
 
         [Fact(DisplayName = "IniFile: Null file name")]
         public void NullFile() {
@@ -31,7 +36,7 @@ namespace Medo.Tests.Configuration.IniFile {
         }
 
         [Fact(DisplayName = "IniFile: Empty file")]
-        public void Empty() {
+        public void EmptyFile() {
             var ini = new IniFile(GetResourceStream("Empty.ini"));
             Assert.Equal(0, ini.Count);
         }
