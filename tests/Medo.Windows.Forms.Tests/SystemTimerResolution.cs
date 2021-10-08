@@ -1,9 +1,11 @@
 using System;
+using System.Runtime.Versioning;
 using Xunit;
 
 namespace Medo.Windows.Forms.Tests.SystemTimerResolution {
     using Medo.Windows.Forms;
 
+    [SupportedOSPlatform("windows")]
     public class Tests {
 
         [Fact(DisplayName = "SystemTimerResolution: Query values")]

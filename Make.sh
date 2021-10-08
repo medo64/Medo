@@ -47,8 +47,8 @@ SOLUTION_FILES="Medo.sln"
 OUTPUT_FILES="Medo.dll Medo.pdb"
 
 if [[ `uname -o` == "Msys" ]]; then  # assume Windows
-    SOLUTION_FILES="$SOLUTION_FILES Medo.WindowsForms.sln"
-    OUTPUT_FILES="$OUTPUT_FILES Medo.WinForms.dll Medo.WinForms.pdb"
+    SOLUTION_FILES="$SOLUTION_FILES Medo.Windows.Forms.sln"
+    OUTPUT_FILES="$OUTPUT_FILES Medo.Windows.Forms.dll Medo.Windows.Forms.pdb"
 fi
 
 
@@ -101,11 +101,11 @@ function release() {
 
 function test() {
     echo ".NET `dotnet --version`"
-    mkdir -p "$BASE_DIRECTORY/build/test/"
+    mkdir -p "$BASE_DIRECTORY/build/tests/"
     for SOLUTION_FILE in $SOLUTION_FILES; do
         dotnet test "$BASE_DIRECTORY/src/$SOLUTION_FILE" \
                     --configuration "Debug" \
-                    --output "$BASE_DIRECTORY/build/test/" \
+                    --output "$BASE_DIRECTORY/build/tests/" \
                     --verbosity "minimal" \
                     || return 1
         echo

@@ -1,8 +1,8 @@
 ﻿using System;
 
-// dotnet publish "test/Check.Args" --force -c Release -o build/args/ -p:Deterministic=true -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -r linux-x64
+// dotnet publish "tools/Check.Args" --force -c Release -o build/args/ -p:Deterministic=true -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -r linux-x64
 //   build/args/Check.Args
-// dotnet publish "test/Check.Args" --force -c Release -o build/args/ -p:Deterministic=true -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -r win-x64
+// dotnet publish "tools/Check.Args" --force -c Release -o build/args/ -p:Deterministic=true -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -r win-x64
 //   build/args/Check.Args.exe
 namespace Check.Args {
     internal class App {

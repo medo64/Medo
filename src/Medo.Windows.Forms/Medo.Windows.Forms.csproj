@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>Medo.WinForms</AssemblyName>
+    <AssemblyName>Medo.Windows.Forms</AssemblyName>
     <RootNamespace>Medo.Windows.Forms</RootNamespace>
   </PropertyGroup>
 
@@ -24,9 +24,5 @@
     <Authors>Josip Medved</Authors>
     <Copyright>Copyright (c) 2004 Josip Medved</Copyright>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Medo\Medo.csproj" />
-  </ItemGroup>
 
 </Project>

@@ -8,8 +8,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>Example.Medo.Throttling</AssemblyName>
-    <RootNamespace>Medo.Example.Throttling</RootNamespace>
+    <AssemblyName>Medo.Examples</AssemblyName>
+    <RootNamespace>Medo.Examples</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>0.0.1</Version>
+    <AssemblyVersion>0.0.0.1</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

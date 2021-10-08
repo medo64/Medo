@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Medo.WindowsForms/Medo.WindowsForms.csproj" />
+    <ProjectReference Include="../../src/Medo.Windows.Forms/Medo.Windows.Forms.csproj" />
     <ProjectReference Include="../../src/Medo/Medo.csproj" />
   </ItemGroup>
 

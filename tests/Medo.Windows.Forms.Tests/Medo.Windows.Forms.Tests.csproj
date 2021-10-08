@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>Medo.WindowsForms.Tests</AssemblyName>
+    <AssemblyName>Medo.Windows.Forms.Tests</AssemblyName>
     <RootNamespace>Medo.Windows.Forms.Tests</RootNamespace>
   </PropertyGroup>
 
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Medo.WindowsForms/Medo.WindowsForms.csproj" />
+    <ProjectReference Include="../../src/Medo.Windows.Forms/Medo.Windows.Forms.csproj" />
   </ItemGroup>
 
 </Project>
