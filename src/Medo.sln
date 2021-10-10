@@ -1,19 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31727.386
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31717.71
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo", "Medo\Medo.csproj", "{B2DB86D2-45BC-4CD1-A4B5-21CF38D317EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.Tests", "..\tests\Medo.Tests\Medo.Tests.csproj", "{B52770FE-1E94-4AF8-A961-7D957EB3D65E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo", "..\tests\Tests.Medo\Tests.Medo.csproj", "{B52770FE-1E94-4AF8-A961-7D957EB3D65E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.Examples", "..\examples\Medo.Examples\Medo.Examples.csproj", "{4576F08B-1800-4D8B-9663-1D45C9DEDD80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Medo", "..\examples\Examples.Medo\Examples.Medo.csproj", "{4576F08B-1800-4D8B-9663-1D45C9DEDD80}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.Windows.Forms", "Medo.Windows.Forms\Medo.Windows.Forms.csproj", "{3B63C35E-BF15-4127-8F72-F81686072056}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.Windows.Forms.Tests", "..\tests\Medo.Windows.Forms.Tests\Medo.Windows.Forms.Tests.csproj", "{8E75A117-6D39-4825-92B0-C553B614C15F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.Windows.Forms", "..\tests\Tests.Medo.Windows.Forms\Tests.Medo.Windows.Forms.csproj", "{8E75A117-6D39-4825-92B0-C553B614C15F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.Windows.Forms.Examples", "..\examples\Medo.Windows.Forms.Examples\Medo.Windows.Forms.Examples.csproj", "{3804DE5A-683B-44EB-A27E-3B73692E83C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Medo.Windows.Forms", "..\examples\Examples.Medo.Windows.Forms\Examples.Medo.Windows.Forms.csproj", "{3804DE5A-683B-44EB-A27E-3B73692E83C0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.Device", "Medo.Device\Medo.Device.csproj", "{EBA56511-0493-4CF5-AFBD-98F11124ED9B}"
 EndProject
@@ -21,7 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{4F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{0F17F621-E6C6-4D80-839F-000B9D5BC5FC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.Device.Tests", "..\tests\Medo.Device.Tests\Medo.Device.Tests.csproj", "{5B43895E-CBF6-44B0-AC62-C0E6EB787625}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.Device", "..\tests\Tests.Medo.Device\Tests.Medo.Device.csproj", "{5B43895E-CBF6-44B0-AC62-C0E6EB787625}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,0 +1,189 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>Tests.Medo</AssemblyName>
+    <RootNamespace>Tests.Medo</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="_Resources\Configuration\Config\CommentsOnly.cfg" />
+    <None Remove="_Resources\Configuration\Config\CommentsOnly.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\CommentsWithValues.cfg" />
+    <None Remove="_Resources\Configuration\Config\Empty.cfg" />
+    <None Remove="_Resources\Configuration\Config\EmptyLinesCR.cfg" />
+    <None Remove="_Resources\Configuration\Config\EmptyLinesCRLF.cfg" />
+    <None Remove="_Resources\Configuration\Config\EmptyLinesLF.cfg" />
+    <None Remove="_Resources\Configuration\Config\EmptyLinesMixed.cfg" />
+    <None Remove="_Resources\Configuration\Config\EmptyLinesMixed.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\KeyWhitespace.cfg" />
+    <None Remove="_Resources\Configuration\Config\KeyWhitespace.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\Remove.cfg" />
+    <None Remove="_Resources\Configuration\Config\Remove.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\RemoveMulti.cfg" />
+    <None Remove="_Resources\Configuration\Config\RemoveMulti.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\Replace.cfg" />
+    <None Remove="_Resources\Configuration\Config\Replace.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\ReplaceOnlyLast.cfg" />
+    <None Remove="_Resources\Configuration\Config\ReplaceOnlyLast.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\SpacingCorrections.cfg" />
+    <None Remove="_Resources\Configuration\Config\SpacingCorrections.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\SpacingEscape.cfg" />
+    <None Remove="_Resources\Configuration\Config\SpacingEscape.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\SpacingPreserved.cfg" />
+    <None Remove="_Resources\Configuration\Config\SpacingPreserved.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\SpacingPreservedOnAdd.cfg" />
+    <None Remove="_Resources\Configuration\Config\SpacingPreservedOnAdd.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteBasic.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteConverted.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteMulti.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteMulti.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteNoEmptyLine.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteNoEmptyLine.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteSameSeparatorEquals.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteSameSeparatorEquals.Good.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteSameSeparatorSpace.cfg" />
+    <None Remove="_Resources\Configuration\Config\WriteSameSeparatorSpace.Good.cfg" />
+    <None Remove="_Resources\Configuration\IniFile\Comment.ini" />
+    <None Remove="_Resources\Configuration\IniFile\Conversions.ini" />
+    <None Remove="_Resources\Configuration\IniFile\DoubleQuote.ini" />
+    <None Remove="_Resources\Configuration\IniFile\Empty.ini" />
+    <None Remove="_Resources\Configuration\IniFile\EmptyKey.ini" />
+    <None Remove="_Resources\Configuration\IniFile\IgnoreEmptySections.ini" />
+    <None Remove="_Resources\Configuration\IniFile\IgnoreIncompleteProperties.ini" />
+    <None Remove="_Resources\Configuration\IniFile\MergeSections.ini" />
+    <None Remove="_Resources\Configuration\IniFile\Mixed.ini" />
+    <None Remove="_Resources\Configuration\IniFile\SectionCharactersAfterEnd.ini" />
+    <None Remove="_Resources\Configuration\IniFile\SectionIgnoresInnerBrackets.ini" />
+    <None Remove="_Resources\Configuration\IniFile\SectionImplicitEnd.ini" />
+    <None Remove="_Resources\Configuration\IniFile\SingleQuote.ini" />
+    <None Remove="_Resources\Configuration\IniFile\WhitespaceAtEnd.ini" />
+    <None Remove="_Resources\Configuration\IniFile\WhitespaceAtStart.ini" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="1.3.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Medo/Medo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="_Resources\Configuration\Config\CommentsOnly.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\CommentsOnly.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\CommentsWithValues.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\Empty.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\EmptyLinesCR.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\EmptyLinesCRLF.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\EmptyLinesLF.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\EmptyLinesMixed.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\EmptyLinesMixed.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\KeyWhitespace.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\KeyWhitespace.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\Remove.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\Remove.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\RemoveMulti.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\RemoveMulti.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\Replace.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\Replace.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\ReplaceOnlyLast.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\ReplaceOnlyLast.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\SpacingCorrections.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\SpacingCorrections.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\SpacingEscape.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\SpacingEscape.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\SpacingPreserved.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\SpacingPreserved.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\SpacingPreservedOnAdd.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\SpacingPreservedOnAdd.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteBasic.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteConverted.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteMulti.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteMulti.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteNoEmptyLine.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteNoEmptyLine.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteSameSeparatorEquals.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteSameSeparatorEquals.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteSameSeparatorSpace.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\Config\WriteSameSeparatorSpace.Good.cfg" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\IgnoreIncompleteProperties.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\Mixed.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\SectionIgnoresInnerBrackets.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\DoubleQuote.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\WhitespaceAtEnd.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\WhitespaceAtStart.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\SingleQuote.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\Conversions.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\IgnoreEmptySections.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\MergeSections.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\SectionCharactersAfterEnd.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\EmptyKey.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\SectionImplicitEnd.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\Comment.ini" />
+    <EmbeddedResource Include="_Resources\Configuration\IniFile\Empty.ini" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_D_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_E_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_D_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_E_M.TXT" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_TBL.TXT" />
+    <EmbeddedResource Include="_Resources\Text\CsvTextOutput\Basic.csv" />
+    <EmbeddedResource Include="_Resources\Text\CsvTextOutput\Escaping.csv" />
+    <EmbeddedResource Include="_Resources\Text\CsvTextOutput\Incomplete.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="_Resources\Configuration\Config\CommentsOnly.cfg" />
+    <Resource Include="_Resources\Configuration\Config\CommentsWithValues.cfg" />
+    <Resource Include="_Resources\Configuration\Config\Empty.cfg" />
+    <Resource Include="_Resources\Configuration\Config\EmptyLinesCR.cfg" />
+    <Resource Include="_Resources\Configuration\Config\EmptyLinesCRLF.cfg" />
+    <Resource Include="_Resources\Configuration\Config\EmptyLinesLF.cfg" />
+    <Resource Include="_Resources\Configuration\Config\EmptyLinesMixed.cfg" />
+    <Resource Include="_Resources\Configuration\Config\EmptyLinesMixed.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\KeyWhitespace.cfg" />
+    <Resource Include="_Resources\Configuration\Config\KeyWhitespace.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\Remove.cfg" />
+    <Resource Include="_Resources\Configuration\Config\Remove.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\RemoveMulti.cfg" />
+    <Resource Include="_Resources\Configuration\Config\RemoveMulti.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\Replace.cfg" />
+    <Resource Include="_Resources\Configuration\Config\Replace.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\ReplaceOnlyLast.cfg" />
+    <Resource Include="_Resources\Configuration\Config\ReplaceOnlyLast.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\SpacingCorrections.cfg" />
+    <Resource Include="_Resources\Configuration\Config\SpacingCorrections.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\SpacingEscape.cfg" />
+    <Resource Include="_Resources\Configuration\Config\SpacingEscape.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\SpacingPreserved.cfg" />
+    <Resource Include="_Resources\Configuration\Config\SpacingPreserved.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\SpacingPreservedOnAdd.cfg" />
+    <Resource Include="_Resources\Configuration\Config\SpacingPreservedOnAdd.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteBasic.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteConverted.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteMulti.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteMulti.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteNoEmptyLine.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteNoEmptyLine.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteSameSeparatorEquals.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteSameSeparatorEquals.Good.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteSameSeparatorSpace.cfg" />
+    <Resource Include="_Resources\Configuration\Config\WriteSameSeparatorSpace.Good.cfg" />
+  </ItemGroup>
+
+</Project>

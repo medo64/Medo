@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>Examples.Medo.Windows.Forms</AssemblyName>
+    <RootNamespace>Medo.Windows.Forms.Examples</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Product>Sample application</Product>
+    <Copyright>Copyright (c) 2021 Josip Medved &lt;jmedved@jmedved.com&gt;</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Medo.Windows.Forms/Medo.Windows.Forms.csproj" />
+    <ProjectReference Include="../../src/Medo/Medo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Readme.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
