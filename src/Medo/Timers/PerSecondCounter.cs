@@ -7,7 +7,7 @@ namespace Medo.Timers {
     /// <summary>
     /// Measures throughput per second.
     /// </summary>
-    public class PerSecondCounter {
+    public sealed class PerSecondCounter : IDisposable {
 
         /// <summary>
         /// Creates a new instance with 1-second resolution.
@@ -90,6 +90,12 @@ namespace Medo.Timers {
         public EventHandler<EventArgs>? Tick;
 
 
+        /// <inheritdoc/>
+        public void Dispose() {
+            HeartbeatTimer.Dispose();
+        }
+
+
         #region Variables
 
         private readonly object SyncRoot = new();
@@ -98,9 +104,7 @@ namespace Medo.Timers {
         private int CurrTime = 0, PastTime = 0;
         private long CurrAccumulator = 0, PastAccumulator = 0;
 
-#pragma warning disable IDE0052 // Remove unread private members
         private readonly Timer HeartbeatTimer;
-#pragma warning restore IDE0052 // Remove unread private members
 
         #endregion Variables
 
