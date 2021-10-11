@@ -1,14 +1,15 @@
 using System;
+using Medo.IO;
 using Medo.Timers;
 
 namespace Medo.Examples {
-    internal static class Throttling {
+    internal static class ThrottlingExample {
 
         public static void Run() {
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Throttling");
-            Console.ResetColor();
+            var terminal = Terminal.Console;
+            terminal.Clear();
+            terminal.WriteLine(" Terminal ", ConsoleColor.Yellow, ConsoleColor.DarkGray);
+            terminal.WriteLine();
 
             using var counter = new PerSecondCounter();
             counter.Tick = delegate {
@@ -18,8 +19,8 @@ namespace Medo.Examples {
             var limiter = new PerSecondLimiter(13);
 
             while (true) {
-                while (Console.KeyAvailable) {
-                    switch (Console.ReadKey(intercept: true).Key) {
+                foreach (var key in Terminal.ReadAvailableKeys()) {
+                    switch (key) {
                         case ConsoleKey.OemPlus: limiter.PerSecondRate += 1; break;
                         case ConsoleKey.OemMinus:
                             if (limiter.PerSecondRate > 1) {
