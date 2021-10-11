@@ -225,7 +225,7 @@ namespace Medo.IO {
         /// <summary>
         /// Resets foreground color.
         /// </summary>
-        public static Sequence NoColor() => ResetForeground();
+        public static Sequence NoColor() => NoForeground();
 
         /// <summary>
         /// Sets foreground color.
@@ -253,7 +253,7 @@ namespace Medo.IO {
         /// <summary>
         /// Resets foreground color.
         /// </summary>
-        public static Sequence ResetForeground() {
+        public static Sequence NoForeground() {
             lock (SyncOutput) {
                 if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
@@ -307,7 +307,7 @@ namespace Medo.IO {
         /// <summary>
         /// Resets background color.
         /// </summary>
-        public static Sequence ResetBackground() {
+        public static Sequence NoBackground() {
             lock (SyncOutput) {
                 if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
@@ -338,7 +338,7 @@ namespace Medo.IO {
         /// <summary>
         /// Resets bold attribute.
         /// </summary>
-        public static Sequence ResetBold() {
+        public static Sequence NoBold() {
             return SetBold(newState: false);
         }
 
@@ -390,7 +390,7 @@ namespace Medo.IO {
         /// <summary>
         /// Resets underline.
         /// </summary>
-        public static Sequence ResetUnderline() {
+        public static Sequence NoUnderline() {
             return SetUnderline(newState: false);
         }
 
@@ -428,7 +428,7 @@ namespace Medo.IO {
         /// <summary>
         /// Resets color invert attribute.
         /// </summary>
-        public static Sequence ResetInvert() {
+        public static Sequence NoInvert() {
             return SetInvert(newState: false);
         }
 
@@ -728,7 +728,7 @@ namespace Medo.IO {
             lock (SyncOutput) {
                 Foreground(foregroundColor);
                 Write(text);
-                ResetForeground();
+                NoForeground();
             }
             return Sequence.Chain;
         }
@@ -745,8 +745,8 @@ namespace Medo.IO {
                 Foreground(foregroundColor);
                 Background(backgroundColor);
                 Write(text);
-                ResetBackground();
-                ResetForeground();
+                NoBackground();
+                NoForeground();
             }
             return Sequence.Chain;
         }
@@ -780,7 +780,7 @@ namespace Medo.IO {
             lock (SyncOutput) {
                 Foreground(foregroundColor);
                 WriteLine(text);
-                ResetForeground();
+                NoForeground();
             }
             return Sequence.Chain;
         }
@@ -797,8 +797,8 @@ namespace Medo.IO {
                 Foreground(foregroundColor);
                 Background(backgroundColor);
                 WriteLine(text);
-                ResetBackground();
-                ResetForeground();
+                NoBackground();
+                NoForeground();
             }
             return Sequence.Chain;
         }
@@ -996,7 +996,7 @@ namespace Medo.IO {
             /// <summary>
             /// Resets foreground color.
             /// </summary>
-            public Sequence ResetForeground() => Terminal.ResetForeground();
+            public Sequence NoForeground() => Terminal.NoForeground();
 
             /// <summary>
             /// Sets background color.
@@ -1007,7 +1007,7 @@ namespace Medo.IO {
             /// <summary>
             /// Resets background color.
             /// </summary>
-            public Sequence ResetBackground() => Terminal.ResetBackground();
+            public Sequence NoBackground() => Terminal.NoBackground();
 
             /// <summary>
             /// Sets bold attribute.
@@ -1017,7 +1017,7 @@ namespace Medo.IO {
             /// <summary>
             /// Resets bold attribute.
             /// </summary>
-            public Sequence ResetBold() => Terminal.ResetBold();
+            public Sequence NoBold() => Terminal.NoBold();
 
             /// <summary>
             /// Sets underline attribute.
@@ -1028,7 +1028,7 @@ namespace Medo.IO {
             /// <summary>
             /// Resets underline.
             /// </summary>
-            public Sequence ResetUnderline() => Terminal.ResetUnderline();
+            public Sequence NoUnderline() => Terminal.NoUnderline();
 
             /// <summary>
             /// Sets color invert attribute.
@@ -1038,7 +1038,7 @@ namespace Medo.IO {
             /// <summary>
             /// Resets color invert attribute.
             /// </summary>
-            public Sequence ResetInvert() => Terminal.ResetInvert();
+            public Sequence NoInvert() => Terminal.NoInvert();
 
             /// <summary>
             /// Moves cursor left.

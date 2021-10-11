@@ -19,7 +19,7 @@ namespace Tests.Medo.IO {
         public void ColorForeDark() {
             var memory = new MemoryStream();
             Terminal.Setup(memory);
-            Terminal.Foreground(ConsoleColor.DarkRed).Write("---").ResetForeground().Write("===");
+            Terminal.Foreground(ConsoleColor.DarkRed).Write("---").NoForeground().Write("===");
             Assert.Equal("\x1B[31m---\x1B[39m===", Encoding.UTF8.GetString(memory.ToArray()));
         }
 
@@ -27,7 +27,7 @@ namespace Tests.Medo.IO {
         public void ColorForeBright() {
             var memory = new MemoryStream();
             Terminal.Setup(memory);
-            Terminal.Foreground(ConsoleColor.Green).Write("---").ResetForeground().Write("===");
+            Terminal.Foreground(ConsoleColor.Green).Write("---").NoForeground().Write("===");
             Assert.Equal("\x1B[92m---\x1B[39m===", Encoding.UTF8.GetString(memory.ToArray()));
         }
 
@@ -35,7 +35,7 @@ namespace Tests.Medo.IO {
         public void ColorBackDark() {
             var memory = new MemoryStream();
             Terminal.Setup(memory);
-            Terminal.Background(ConsoleColor.DarkYellow).Write("---").ResetBackground().Write("===");
+            Terminal.Background(ConsoleColor.DarkYellow).Write("---").NoBackground().Write("===");
             Assert.Equal("\x1B[43m---\x1B[49m===", Encoding.UTF8.GetString(memory.ToArray()));
         }
 
@@ -43,7 +43,7 @@ namespace Tests.Medo.IO {
         public void ColorBackBright() {
             var memory = new MemoryStream();
             Terminal.Setup(memory);
-            Terminal.Background(ConsoleColor.Cyan).Write("---").ResetBackground().Write("===");
+            Terminal.Background(ConsoleColor.Cyan).Write("---").NoBackground().Write("===");
             Assert.Equal("\x1B[106m---\x1B[49m===", Encoding.UTF8.GetString(memory.ToArray()));
         }
 
@@ -68,7 +68,7 @@ namespace Tests.Medo.IO {
         public void Bold() {
             var memory = new MemoryStream();
             Terminal.Setup(memory);
-            Terminal.Bold().Write("---").ResetBold().Write("===");
+            Terminal.Bold().Write("---").NoBold().Write("===");
             Assert.Equal("\x1B[1m---\x1B[22m===", Encoding.UTF8.GetString(memory.ToArray()));
         }
 
@@ -76,7 +76,7 @@ namespace Tests.Medo.IO {
         public void Underline() {
             var memory = new MemoryStream();
             Terminal.Setup(memory);
-            Terminal.Underline().Write("---").ResetUnderline().Write("===");
+            Terminal.Underline().Write("---").NoUnderline().Write("===");
             Assert.Equal("\x1B[4m---\x1B[24m===", Encoding.UTF8.GetString(memory.ToArray()));
         }
 
@@ -84,7 +84,7 @@ namespace Tests.Medo.IO {
         public void Invert() {
             var memory = new MemoryStream();
             Terminal.Setup(memory);
-            Terminal.Invert().Write("---").ResetInvert().Write("===");
+            Terminal.Invert().Write("---").NoInvert().Write("===");
             Assert.Equal("\x1B[7m---\x1B[27m===", Encoding.UTF8.GetString(memory.ToArray()));
         }
 
@@ -145,7 +145,7 @@ namespace Tests.Medo.IO {
             Terminal.Setup(memory);
             Terminal.Foreground(ConsoleColor.DarkRed).Write("---");
             Terminal.SuppressAttributes = true;
-            Terminal.ResetForeground().Write("===");
+            Terminal.NoForeground().Write("===");
             Terminal.SuppressAttributes = false;
             Terminal.Clear();
             Assert.Equal("\x1B[31m---===\x1B[2J\x1B[H", Encoding.UTF8.GetString(memory.ToArray()));

@@ -7,9 +7,9 @@ namespace Medo.Examples {
         private static void Main() {
             while (true) {
                 Terminal.Clear();
-                Terminal.Foreground(ConsoleColor.Cyan).Write("<A>").ResetForeground().WriteLine(" ANSI Terminal");
-                Terminal.Foreground(ConsoleColor.Cyan).Write("<C>").ResetForeground().WriteLine(" Console Terminal");
-                Terminal.Foreground(ConsoleColor.Cyan).Write("<T>").ResetForeground().WriteLine(" Throttling");
+                Terminal.Cyan().Write("<A>").NoColor().WriteLine(" ANSI Terminal");
+                Terminal.Cyan().Write("<C>").NoColor().WriteLine(" Console Terminal");
+                Terminal.Cyan().Write("<T>").NoColor().WriteLine(" Throttling");
 
                 switch (Terminal.ReadKey()) {
                     case ConsoleKey.A: TerminalExample.RunAnsi(); break;

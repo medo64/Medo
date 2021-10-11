@@ -22,9 +22,9 @@ namespace Medo.Examples {
             Terminal.WriteLine("Second line comes in default color");
             Terminal.WriteLine("However, you can also set both background and foreground if you wish", ConsoleColor.DarkBlue, ConsoleColor.Red);
 
-            Terminal.Invert().WriteLine("One can invert the colors too").ResetInvert();
-            Terminal.Write("Or make them ").Bold().WriteLine("bold").ResetBold();
-            Terminal.Write("Ansi can do ").Underline().Write("underline").ResetUnderline().WriteLine(" too, but the standard Console ignores it");
+            Terminal.Invert().WriteLine("One can invert the colors too").NoInvert();
+            Terminal.Write("Or make them ").Bold().WriteLine("bold").NoBold();
+            Terminal.Write("Ansi can do ").Underline().Write("underline").NoUnderline().WriteLine(" too, but the standard console ignores it");
             Terminal.Write("Of course, color can be ").Green().Write("changed ").NoColor().Write("inline", ConsoleColor.Black, ConsoleColor.White).WriteLine(" even in compatibility mode");
 
             Terminal.MoveRight(4).Write("One can also skip some things").MoveLeft(6).WriteLine("characters");
@@ -75,7 +75,7 @@ namespace Medo.Examples {
                     31 => "<US>",
                     _ => ch.ToString(),
                 };
-                Console.Write(text);
+                Terminal.Write(text);
                 if (ch == '\x1B') { break; }
             }
         }
