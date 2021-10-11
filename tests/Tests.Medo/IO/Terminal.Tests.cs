@@ -7,11 +7,17 @@ using Medo.IO;
 namespace Tests.Medo.IO {
     public class TerminalTests {
 
+        [Fact(DisplayName = "Terminal: Basic Color")]
+        public void BasicColor() {
+            var memory = new MemoryStream();
+            Terminal.Setup(memory);
+            Terminal.Blue().Write("---").NoColor().Write("===");
+            Assert.Equal("\x1B[94m---\x1B[39m===", Encoding.UTF8.GetString(memory.ToArray()));
+        }
+
         [Fact(DisplayName = "Terminal: Foreground Dark Color")]
         public void ColorForeDark() {
             var memory = new MemoryStream();
-            Terminal.UseAnsi = true;
-            Terminal.SuppressAttributes = false;
             Terminal.Setup(memory);
             Terminal.Foreground(ConsoleColor.DarkRed).Write("---").ResetForeground().Write("===");
             Assert.Equal("\x1B[31m---\x1B[39m===", Encoding.UTF8.GetString(memory.ToArray()));

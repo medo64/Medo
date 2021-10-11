@@ -143,6 +143,91 @@ namespace Medo.IO {
 
 
         /// <summary>
+        /// Sets foreground color to black.
+        /// </summary>
+        public static Sequence Black() => Foreground(ConsoleColor.Black);
+
+        /// <summary>
+        /// Sets foreground color to dark red.
+        /// </summary>
+        public static Sequence DarkRed() => Foreground(ConsoleColor.DarkRed);
+
+        /// <summary>
+        /// Sets foreground color to dark green.
+        /// </summary>
+        public static Sequence DarkGreen() => Foreground(ConsoleColor.DarkGreen);
+
+        /// <summary>
+        /// Sets foreground color to dark yellow.
+        /// </summary>
+        public static Sequence DarkYellow() => Foreground(ConsoleColor.DarkYellow);
+
+        /// <summary>
+        /// Sets foreground color to dark blue.
+        /// </summary>
+        public static Sequence DarkBlue() => Foreground(ConsoleColor.DarkBlue);
+
+        /// <summary>
+        /// Sets foreground color to dark magenta.
+        /// </summary>
+        public static Sequence DarkMagenta() => Foreground(ConsoleColor.DarkMagenta);
+
+        /// <summary>
+        /// Sets foreground color to cyan.
+        /// </summary>
+        public static Sequence DarkCyan() => Foreground(ConsoleColor.DarkCyan);
+
+        /// <summary>
+        /// Sets foreground color to gray.
+        /// </summary>
+        public static Sequence Gray() => Foreground(ConsoleColor.Gray);
+
+        /// <summary>
+        /// Sets foreground color to dark gray.
+        /// </summary>
+        public static Sequence DarkGray() => Foreground(ConsoleColor.DarkGray);
+
+        /// <summary>
+        /// Sets foreground color to red.
+        /// </summary>
+        public static Sequence Red() => Foreground(ConsoleColor.Red);
+
+        /// <summary>
+        /// Sets foreground color to green.
+        /// </summary>
+        public static Sequence Green() => Foreground(ConsoleColor.Green);
+
+        /// <summary>
+        /// Sets foreground color to yellow.
+        /// </summary>
+        public static Sequence Yellow() => Foreground(ConsoleColor.Yellow);
+
+        /// <summary>
+        /// Sets foreground color to blue.
+        /// </summary>
+        public static Sequence Blue() => Foreground(ConsoleColor.Blue);
+
+        /// <summary>
+        /// Sets foreground color to magenta.
+        /// </summary>
+        public static Sequence Magenta() => Foreground(ConsoleColor.Magenta);
+
+        /// <summary>
+        /// Sets foreground color to cyan.
+        /// </summary>
+        public static Sequence Cyan() => Foreground(ConsoleColor.Cyan);
+
+        /// <summary>
+        /// Sets foreground color to white.
+        /// </summary>
+        public static Sequence White() => Foreground(ConsoleColor.White);
+
+        /// <summary>
+        /// Resets foreground color.
+        /// </summary>
+        public static Sequence NoColor() => ResetForeground();
+
+        /// <summary>
         /// Sets foreground color.
         /// </summary>
         /// <param name="color">Color to use.</param>
@@ -810,154 +895,194 @@ namespace Medo.IO {
             /// <summary>
             /// Clears the screen.
             /// </summary>
-            public Sequence Clear() {
-                return Terminal.Clear();
-            }
+            public Sequence Clear() => Terminal.Clear();
 
             /// <summary>
             /// Resets color and other attributes.
             /// </summary>
-            public Sequence Reset() {
-                return Terminal.Reset();
-            }
+            public Sequence Reset() => Terminal.Reset();
 
+            /// <summary>
+            /// Sets foreground color to black.
+            /// </summary>
+            public Sequence Black() => Terminal.Black();
+
+            /// <summary>
+            /// Sets foreground color to dark red.
+            /// </summary>
+            public Sequence DarkRed() => Terminal.DarkRed();
+
+            /// <summary>
+            /// Sets foreground color to dark green.
+            /// </summary>
+            public Sequence DarkGreen() => Terminal.DarkGreen();
+
+            /// <summary>
+            /// Sets foreground color to dark yellow.
+            /// </summary>
+            public Sequence DarkYellow() => Terminal.DarkYellow();
+
+            /// <summary>
+            /// Sets foreground color to dark blue.
+            /// </summary>
+            public Sequence DarkBlue() => Terminal.DarkBlue();
+
+            /// <summary>
+            /// Sets foreground color to dark magenta.
+            /// </summary>
+            public Sequence DarkMagenta() => Terminal.DarkMagenta();
+
+            /// <summary>
+            /// Sets foreground color to cyan.
+            /// </summary>
+            public Sequence DarkCyan() => Terminal.DarkCyan();
+
+            /// <summary>
+            /// Sets foreground color to gray.
+            /// </summary>
+            public Sequence Gray() => Terminal.Gray();
+
+            /// <summary>
+            /// Sets foreground color to dark gray.
+            /// </summary>
+            public Sequence DarkGray() => Terminal.DarkGray();
+
+            /// <summary>
+            /// Sets foreground color to red.
+            /// </summary>
+            public Sequence Red() => Terminal.Red();
+
+            /// <summary>
+            /// Sets foreground color to green.
+            /// </summary>
+            public Sequence Green() => Terminal.Green();
+
+            /// <summary>
+            /// Sets foreground color to yellow.
+            /// </summary>
+            public Sequence Yellow() => Terminal.Yellow();
+
+            /// <summary>
+            /// Sets foreground color to blue.
+            /// </summary>
+            public Sequence Blue() => Terminal.Blue();
+
+            /// <summary>
+            /// Sets foreground color to magenta.
+            /// </summary>
+            public Sequence Magenta() => Terminal.Magenta();
+
+            /// <summary>
+            /// Sets foreground color to cyan.
+            /// </summary>
+            public Sequence Cyan() => Terminal.Cyan();
+
+            /// <summary>
+            /// Sets foreground color to white.
+            /// </summary>
+            public Sequence White() => Terminal.White();
+
+            /// <summary>
+            /// Resets foreground color.
+            /// </summary>
+            public Sequence NoColor() => Terminal.NoColor();
 
             /// <summary>
             /// Sets foreground color.
             /// </summary>
             /// <param name="color">Color to use.</param>
-            public Sequence Foreground(ConsoleColor color) {
-                return Terminal.Foreground(color);
-            }
+            public Sequence Foreground(ConsoleColor color) => Terminal.Foreground(color);
 
             /// <summary>
             /// Resets foreground color.
             /// </summary>
-            public Sequence ResetForeground() {
-                return Terminal.ResetForeground();
-            }
+            public Sequence ResetForeground() => Terminal.ResetForeground();
 
             /// <summary>
             /// Sets background color.
             /// </summary>
             /// <param name="color">Color to use.</param>
-            public Sequence Background(ConsoleColor color) {
-                return Terminal.Background(color);
-            }
+            public Sequence Background(ConsoleColor color) => Terminal.Background(color);
 
             /// <summary>
             /// Resets background color.
             /// </summary>
-            public Sequence ResetBackground() {
-                return Terminal.ResetBackground();
-            }
-
+            public Sequence ResetBackground() => Terminal.ResetBackground();
 
             /// <summary>
             /// Sets bold attribute.
             /// </summary>
-            public Sequence Bold() {
-                return Terminal.Bold();
-            }
+            public Sequence Bold() => Terminal.Bold();
 
             /// <summary>
             /// Resets bold attribute.
             /// </summary>
-            public Sequence ResetBold() {
-                return Terminal.ResetBold();
-            }
-
+            public Sequence ResetBold() => Terminal.ResetBold();
 
             /// <summary>
             /// Sets underline attribute.
             /// No fallback for Console.
             /// </summary>
-            public Sequence Underline() {
-                return Terminal.Underline();
-            }
+            public Sequence Underline() => Terminal.Underline();
 
             /// <summary>
             /// Resets underline.
             /// </summary>
-            public Sequence ResetUnderline() {
-                return Terminal.ResetUnderline();
-            }
-
+            public Sequence ResetUnderline() => Terminal.ResetUnderline();
 
             /// <summary>
             /// Sets color invert attribute.
             /// </summary>
-            public Sequence Invert() {
-                return Terminal.Invert();
-            }
+            public Sequence Invert() => Terminal.Invert();
 
             /// <summary>
             /// Resets color invert attribute.
             /// </summary>
-            public Sequence ResetInvert() {
-                return Terminal.ResetInvert();
-            }
-
+            public Sequence ResetInvert() => Terminal.ResetInvert();
 
             /// <summary>
             /// Moves cursor left.
             /// </summary>
-            public Sequence MoveLeft() {
-                return Terminal.MoveLeft();
-            }
+            public Sequence MoveLeft() => Terminal.MoveLeft();
 
             /// <summary>
             /// Moves cursor left.
             /// </summary>
             /// <exception cref="ArgumentOutOfRangeException">Amount must be a positive number less than 65536.</exception>
-            public Sequence MoveLeft(int amount) {
-                return Terminal.MoveLeft(amount);
-            }
+            public Sequence MoveLeft(int amount) => Terminal.MoveLeft(amount);
 
             /// <summary>
             /// Moves cursor right.
             /// </summary>
-            public Sequence MoveRight() {
-                return Terminal.MoveRight();
-            }
+            public Sequence MoveRight() => Terminal.MoveRight();
 
             /// <summary>
             /// Moves cursor right.
             /// </summary>
             /// <exception cref="ArgumentOutOfRangeException">Amount must be a positive number less than 65536.</exception>
-            public Sequence MoveRight(int amount) {
-                return Terminal.MoveRight(amount);
-            }
+            public Sequence MoveRight(int amount) => Terminal.MoveRight(amount);
 
             /// <summary>
             /// Moves cursor up.
             /// </summary>
-            public Sequence MoveUp() {
-                return Terminal.MoveUp();
-            }
+            public Sequence MoveUp() => Terminal.MoveUp();
 
             /// <summary>
             /// Moves cursor up.
             /// </summary>
             /// <exception cref="ArgumentOutOfRangeException">Amount must be a positive number less than 65536.</exception>
-            public Sequence MoveUp(int amount) {
-                return Terminal.MoveUp(amount);
-            }
+            public Sequence MoveUp(int amount) => Terminal.MoveUp(amount);
 
             /// <summary>
             /// Moves cursor down.
             /// </summary>
-            public Sequence MoveDown() {
-                return Terminal.MoveDown();
-            }
+            public Sequence MoveDown() => Terminal.MoveDown();
 
             /// <summary>
             /// Moves cursor down.
             /// </summary>
             /// <exception cref="ArgumentOutOfRangeException">Amount must be a positive number less than 65536.</exception>
-            public Sequence MoveDown(int amount) {
-                return Terminal.MoveDown(amount);
-            }
+            public Sequence MoveDown(int amount) => Terminal.MoveDown(amount);
 
             /// <summary>
             /// Moves to specified coordinates.
@@ -965,33 +1090,23 @@ namespace Medo.IO {
             /// <param name="x">X coordinate; 0 ignores the parameter.</param>
             /// <param name="y">Y coordinate; 0 ignores the parameter.</param>
             /// <exception cref="ArgumentOutOfRangeException">X must be either 0 or between 1 and 65535. -or- Y must be either 0 or between 1 and 65535.</exception>
-            public Sequence MoveTo(int x, int y) {
-                return Terminal.MoveTo(x, y);
-            }
-
+            public Sequence MoveTo(int x, int y) => Terminal.MoveTo(x, y);
 
             /// <summary>
             /// Stores cursor location.
             /// </summary>
-            public Sequence StoreCursor() {
-                return Terminal.StoreCursor();
-            }
+            public Sequence StoreCursor() => Terminal.StoreCursor();
 
             /// <summary>
             /// Restores cursor location.
             /// </summary>
-            public Sequence RestoreCursor() {
-                return Terminal.RestoreCursor();
-            }
-
+            public Sequence RestoreCursor() => Terminal.RestoreCursor();
 
             /// <summary>
             /// Writes text.
             /// </summary>
             /// <param name="text">Text to write.</param>
-            public Sequence Write(string text) {
-                return Terminal.Write(text);
-            }
+            public Sequence Write(string text) => Terminal.Write(text);
 
             /// <summary>
             /// Writes text.
@@ -999,9 +1114,7 @@ namespace Medo.IO {
             /// </summary>
             /// <param name="text">Text to write.</param>
             /// <param name="foregroundColor">Foreground color.</param>
-            public Sequence Write(string text, ConsoleColor foregroundColor) {
-                return Terminal.Write(text, foregroundColor);
-            }
+            public Sequence Write(string text, ConsoleColor foregroundColor) => Terminal.Write(text, foregroundColor);
 
             /// <summary>
             /// Writes text.
@@ -1010,25 +1123,18 @@ namespace Medo.IO {
             /// <param name="text">Text to write.</param>
             /// <param name="foregroundColor">Foreground color.</param>
             /// <param name="backgroundColor">Background color.</param>
-            public Sequence Write(string text, ConsoleColor foregroundColor, ConsoleColor backgroundColor) {
-                return Terminal.Write(text, foregroundColor, backgroundColor);
-            }
-
+            public Sequence Write(string text, ConsoleColor foregroundColor, ConsoleColor backgroundColor) => Terminal.Write(text, foregroundColor, backgroundColor);
 
             /// <summary>
             /// Writes a new line.
             /// </summary>
-            public Sequence WriteLine() {
-                return Terminal.WriteLine();
-            }
+            public Sequence WriteLine() => Terminal.WriteLine();
 
             /// <summary>
             /// Writes text and ends it with a new line.
             /// </summary>
             /// <param name="text">Text to write.</param>
-            public Sequence WriteLine(string text) {
-                return Terminal.WriteLine(text);
-            }
+            public Sequence WriteLine(string text) => Terminal.WriteLine(text);
 
             /// <summary>
             /// Writes text and ends it with a new line.
@@ -1036,9 +1142,7 @@ namespace Medo.IO {
             /// </summary>
             /// <param name="text">Text to write.</param>
             /// <param name="foregroundColor">Foreground color.</param>
-            public Sequence WriteLine(string text, ConsoleColor foregroundColor) {
-                return Terminal.WriteLine(text, foregroundColor);
-            }
+            public Sequence WriteLine(string text, ConsoleColor foregroundColor) => Terminal.WriteLine(text, foregroundColor);
 
             /// <summary>
             /// Writes text and ends it with a new line.
@@ -1047,9 +1151,7 @@ namespace Medo.IO {
             /// <param name="text">Text to write.</param>
             /// <param name="foregroundColor">Foreground color.</param>
             /// <param name="backgroundColor">Background color.</param>
-            public Sequence WriteLine(string text, ConsoleColor foregroundColor, ConsoleColor backgroundColor) {
-                return Terminal.WriteLine(text, foregroundColor, backgroundColor);
-            }
+            public Sequence WriteLine(string text, ConsoleColor foregroundColor, ConsoleColor backgroundColor) => Terminal.WriteLine(text, foregroundColor, backgroundColor);
 
 #pragma warning restore CA1822 // Mark members as static
 

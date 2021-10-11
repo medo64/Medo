@@ -25,7 +25,7 @@ namespace Medo.Examples {
             Terminal.Invert().WriteLine("One can invert the colors too").ResetInvert();
             Terminal.Write("Or make them ").Bold().WriteLine("bold").ResetBold();
             Terminal.Write("Ansi can do ").Underline().Write("underline").ResetUnderline().WriteLine(" too, but the standard Console ignores it");
-            Terminal.Write("Of course, color can be ").Foreground(ConsoleColor.Green).Write("changed ").ResetForeground().Write("inline", ConsoleColor.Black, ConsoleColor.White).WriteLine(" even in compatibility mode");
+            Terminal.Write("Of course, color can be ").Green().Write("changed ").NoColor().Write("inline", ConsoleColor.Black, ConsoleColor.White).WriteLine(" even in compatibility mode");
 
             Terminal.MoveRight(4).Write("One can also skip some things").MoveLeft(6).WriteLine("characters");
             Terminal.Write("Writing over ").MoveDown().Write("different").MoveUp().WriteLine(" lines is fun");
