@@ -5,35 +5,38 @@ namespace Medo.Examples {
     internal static class TerminalExample {
 
         public static void RunAnsi() {
-            Run(Terminal.AnsiConsole);
+            Terminal.Setup();
+            Run();
         }
 
         public static void RunConsole() {
-            Run(Terminal.Console);
+            Terminal.SetupPlain();
+            Run();
         }
 
-        public static void Run(Terminal terminal) {
-            terminal.Clear();
-            terminal.WriteLine(" Terminal ", ConsoleColor.Yellow, ConsoleColor.DarkGray);
-            terminal.WriteLine();
+        public static void Run() {
+            Terminal.Clear();
+            Terminal.WriteLine(" Terminal ", ConsoleColor.Yellow, ConsoleColor.DarkGray);
+            Terminal.WriteLine();
 
-            terminal.WriteLine("Second line comes in default color");
-            terminal.WriteLine("However, you can also set both background and foreground if you wish", ConsoleColor.DarkBlue, ConsoleColor.Red);
+            Terminal.WriteLine("Second line comes in default color");
+            Terminal.WriteLine("However, you can also set both background and foreground if you wish", ConsoleColor.DarkBlue, ConsoleColor.Red);
 
-            terminal.Invert().WriteLine("One can invert the colors too").ResetInvert();
-            terminal.Write("Or make them ").Bold().WriteLine("bold").ResetBold();
-            terminal.Write("Ansi can do ").Underline().Write("underline").ResetUnderline().WriteLine(" too, but the standard Console ignores it");
-            terminal.Write("Of course, color can be ").Foreground(ConsoleColor.Green).Write("changed ").ResetForeground().Write("inline", ConsoleColor.Black, ConsoleColor.White).WriteLine(" even in compatibility mode");
+            Terminal.Invert().WriteLine("One can invert the colors too").ResetInvert();
+            Terminal.Write("Or make them ").Bold().WriteLine("bold").ResetBold();
+            Terminal.Write("Ansi can do ").Underline().Write("underline").ResetUnderline().WriteLine(" too, but the standard Console ignores it");
+            Terminal.Write("Of course, color can be ").Foreground(ConsoleColor.Green).Write("changed ").ResetForeground().Write("inline", ConsoleColor.Black, ConsoleColor.White).WriteLine(" even in compatibility mode");
 
-            terminal.MoveRight(4).Write("One can also skip some things").MoveLeft(6).WriteLine("characters");
-            terminal.Write("Writing over ").MoveDown().Write("different").MoveUp().WriteLine(" lines is fun");
+            Terminal.MoveRight(4).Write("One can also skip some things").MoveLeft(6).WriteLine("characters");
+            Terminal.Write("Writing over ").MoveDown().Write("different").MoveUp().WriteLine(" lines is fun");
+            Terminal.WriteLine();
 
-            terminal.Write("Storing cursor is also ").StoreCursor().Write("possible").RestoreCursor().WriteLine("supported");
+            Terminal.Write("Storing cursor is also ").StoreCursor().Write("possible").RestoreCursor().WriteLine("supported");
 
-            terminal.MoveTo(3, 12).Write("One can write at any location").MoveTo(40, 0).Write("X").MoveLeft().MoveTo(0, 11).Write("Y").WriteLine().WriteLine();
+            Terminal.MoveTo(3, 14).Write("One can write at any location").MoveTo(40, 0).Write("X").MoveLeft().MoveTo(0, 13).Write("Y").WriteLine().WriteLine();
 
-            terminal.WriteLine();
-            terminal.Reset();
+            Terminal.WriteLine();
+            Terminal.Reset();
 
             while (true) {
                 var ch = Terminal.ReadChar();

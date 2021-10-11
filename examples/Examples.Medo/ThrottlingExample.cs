@@ -6,10 +6,9 @@ namespace Medo.Examples {
     internal static class ThrottlingExample {
 
         public static void Run() {
-            var terminal = Terminal.Console;
-            terminal.Clear();
-            terminal.WriteLine(" Terminal ", ConsoleColor.Yellow, ConsoleColor.DarkGray);
-            terminal.WriteLine();
+            Terminal.Clear();
+            Terminal.WriteLine(" Terminal ", ConsoleColor.Yellow, ConsoleColor.DarkGray);
+            Terminal.WriteLine();
 
             using var counter = new PerSecondCounter();
             counter.Tick = delegate {

@@ -5,12 +5,11 @@ namespace Medo.Examples {
     internal class App {
 
         private static void Main() {
-            var terminal = Terminal.Console;
             while (true) {
-                terminal.Clear();
-                terminal.Foreground(ConsoleColor.Cyan).Write("<A>").ResetForeground().WriteLine(" ANSI Terminal");
-                terminal.Foreground(ConsoleColor.Cyan).Write("<C>").ResetForeground().WriteLine(" Console Terminal");
-                terminal.Foreground(ConsoleColor.Cyan).Write("<T>").ResetForeground().WriteLine(" Throttling");
+                Terminal.Clear();
+                Terminal.Foreground(ConsoleColor.Cyan).Write("<A>").ResetForeground().WriteLine(" ANSI Terminal");
+                Terminal.Foreground(ConsoleColor.Cyan).Write("<C>").ResetForeground().WriteLine(" Console Terminal");
+                Terminal.Foreground(ConsoleColor.Cyan).Write("<T>").ResetForeground().WriteLine(" Throttling");
 
                 switch (Terminal.ReadKey()) {
                     case ConsoleKey.A: TerminalExample.RunAnsi(); break;
