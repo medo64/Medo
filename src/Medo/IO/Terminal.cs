@@ -103,7 +103,7 @@ namespace Medo.IO {
         /// </summary>
         public static Sequence Clear() {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -117,7 +117,7 @@ namespace Medo.IO {
                     Console.Clear();
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Medo.IO {
         /// </summary>
         public static Sequence Reset() {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -138,7 +138,7 @@ namespace Medo.IO {
                     FallbackIsInverted = false;
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -233,7 +233,7 @@ namespace Medo.IO {
         /// <param name="color">Color to use.</param>
         public static Sequence Foreground(ConsoleColor color) {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     var (colorByte, isColorBright) = GetColorByte(color);
@@ -243,11 +243,11 @@ namespace Medo.IO {
                     ComposingBytes[4] = 0x6D;  // m
                     stream.Write(ComposingBytes, 0, 5);
                 } else {  // Fallback: just use color directly
-                    if (UsingErrorStream) { return Sequence.Empty; }  // no color for error stream
+                    if (UsingErrorStream) { return Sequence.Chain; }  // no color for error stream
                     Console.ForegroundColor = color;
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace Medo.IO {
         /// </summary>
         public static Sequence ResetForeground() {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -264,13 +264,13 @@ namespace Medo.IO {
                     ComposingBytes[4] = 0x6D;  // m
                     stream.Write(ComposingBytes, 0, 5);
                 } else {  // Fallback: just use color directly
-                    if (UsingErrorStream) { return Sequence.Empty; }  // no color for error stream
+                    if (UsingErrorStream) { return Sequence.Chain; }  // no color for error stream
                     var backColor = Console.BackgroundColor;
                     Console.ResetColor();
                     Console.BackgroundColor = backColor;
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -279,7 +279,7 @@ namespace Medo.IO {
         /// <param name="color">Color to use.</param>
         public static Sequence Background(ConsoleColor color) {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     var (colorByte, isColorBright) = GetColorByte(color);
@@ -297,11 +297,11 @@ namespace Medo.IO {
                         stream.Write(ComposingBytes, 0, 6);
                     }
                 } else {  // Fallback: just use color directly
-                    if (UsingErrorStream) { return Sequence.Empty; }  // no color for error stream
+                    if (UsingErrorStream) { return Sequence.Chain; }  // no color for error stream
                     Console.BackgroundColor = color;
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace Medo.IO {
         /// </summary>
         public static Sequence ResetBackground() {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -318,13 +318,13 @@ namespace Medo.IO {
                     ComposingBytes[4] = 0x6D;  // m
                     stream.Write(ComposingBytes, 0, 5);
                 } else {  // Fallback: just use color directly
-                    if (UsingErrorStream) { return Sequence.Empty; }  // no color for error stream
+                    if (UsingErrorStream) { return Sequence.Chain; }  // no color for error stream
                     var foreColor = Console.ForegroundColor;
                     Console.ResetColor();
                     Console.ForegroundColor = foreColor;
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -344,7 +344,7 @@ namespace Medo.IO {
 
         private static Sequence SetBold(bool newState) {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     if (newState) {
@@ -375,7 +375,7 @@ namespace Medo.IO {
                     }
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -396,7 +396,7 @@ namespace Medo.IO {
 
         private static Sequence SetUnderline(bool newState) {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     if (newState) {
@@ -414,7 +414,7 @@ namespace Medo.IO {
                 } else {  // Fallback: none
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -434,7 +434,7 @@ namespace Medo.IO {
 
         private static Sequence SetInvert(bool newState) {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     if (newState) {
@@ -467,7 +467,7 @@ namespace Medo.IO {
                     }
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -504,9 +504,9 @@ namespace Medo.IO {
         }
 
         private static Sequence MoveHorizontally(int amount) {
-            if (amount == 0) { return Sequence.Empty; }
+            if (amount == 0) { return Sequence.Chain; }
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -535,7 +535,7 @@ namespace Medo.IO {
                     }
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -572,9 +572,9 @@ namespace Medo.IO {
         }
 
         private static Sequence MoveVertically(int amount) {
-            if (amount == 0) { return Sequence.Empty; }
+            if (amount == 0) { return Sequence.Chain; }
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -603,7 +603,7 @@ namespace Medo.IO {
                     }
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -618,10 +618,10 @@ namespace Medo.IO {
 
             var moveHor = (x > 0);
             var moveVer = (y > 0);
-            if (!moveHor && !moveVer) { return Sequence.Empty; }
+            if (!moveHor && !moveVer) { return Sequence.Chain; }
 
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -657,7 +657,7 @@ namespace Medo.IO {
                     }
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -666,7 +666,7 @@ namespace Medo.IO {
         /// </summary>
         public static Sequence StoreCursor() {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -677,7 +677,7 @@ namespace Medo.IO {
                     FallbackTop = Console.CursorTop;
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -685,7 +685,7 @@ namespace Medo.IO {
         /// </summary>
         public static Sequence RestoreCursor() {
             lock (SyncOutput) {
-                if (SuppressAttributes) { return Sequence.Empty; }
+                if (SuppressAttributes) { return Sequence.Chain; }
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
                     ComposingBytes[1] = 0x5B;  // [
@@ -696,7 +696,7 @@ namespace Medo.IO {
                     Console.CursorTop = FallbackTop;
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -705,7 +705,7 @@ namespace Medo.IO {
         /// </summary>
         /// <param name="text">Text to write.</param>
         public static Sequence Write(string text) {
-            if (string.IsNullOrEmpty(text)) { return Sequence.Empty; }  // just ignore
+            if (string.IsNullOrEmpty(text)) { return Sequence.Chain; }  // just ignore
             lock (SyncOutput) {
                 var stream = GetAppropriateStream();
                 if (stream is not null) {
@@ -715,7 +715,7 @@ namespace Medo.IO {
                     Console.Write(text);
                 }
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -730,7 +730,7 @@ namespace Medo.IO {
                 Write(text);
                 ResetForeground();
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -748,7 +748,7 @@ namespace Medo.IO {
                 ResetBackground();
                 ResetForeground();
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -757,7 +757,7 @@ namespace Medo.IO {
         /// </summary>
         public static Sequence WriteLine() {
             Write(Environment.NewLine);
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -767,7 +767,7 @@ namespace Medo.IO {
         public static Sequence WriteLine(string text) {
             Write(text);
             Write(Environment.NewLine);
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -782,7 +782,7 @@ namespace Medo.IO {
                 WriteLine(text);
                 ResetForeground();
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
         /// <summary>
@@ -800,7 +800,7 @@ namespace Medo.IO {
                 ResetBackground();
                 ResetForeground();
             }
-            return Sequence.Empty;  // just to allow for nicer calls
+            return Sequence.Chain;
         }
 
 
@@ -883,12 +883,12 @@ namespace Medo.IO {
         #region Sequences
 
         /// <summary>
-        /// Helper class used to chain sequences.
+        /// Helper class used to chain calls.
         /// </summary>
         public sealed class Sequence {
 
             private Sequence() { }
-            internal static Sequence Empty { get; } = new Sequence();
+            internal static Sequence Chain { get; } = new Sequence();
 
 #pragma warning disable CA1822 // Mark members as static - used for chaining so intentional
 
