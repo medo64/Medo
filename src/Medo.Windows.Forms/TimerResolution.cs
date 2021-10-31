@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-03-11: Initial version
+
 namespace Medo.Windows.Forms {
     using System;
     using System.ComponentModel;

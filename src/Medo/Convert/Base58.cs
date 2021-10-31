@@ -1,11 +1,13 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+//2019-10-04: Refactored for .NET 5
+//2019-03-09: Initial version
 
 namespace Medo.Convert {
+    using System;
+    using System.Collections.Generic;
+    using System.Numerics;
+    using System.Text;
 
     /// <summary>
     /// Base58 encoder/decoder with leading-zero preservation.

@@ -1,14 +1,18 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO.Ports;
-using System.Text;
-using System.Threading;
+//2021-10-08: Refactored for .NET 5
+//2018-10-28: Fixed line reading when CR is not immediately returned
+//            Background thread doesn't crash when device is removed
+//2018-09-01: New version
 
 namespace Medo.Device {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO.Ports;
+    using System.Text;
+    using System.Threading;
 
     /// <summary>
     /// Communication with Cananka, SLCAN-compatible device.

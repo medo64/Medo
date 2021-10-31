@@ -1,5 +1,10 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-04-03: Refactoring
+//2021-03-12: Case change support
+//2021-03-11: Environment variable support
+//2021-03-08: Initial version
+
 namespace Medo.Text {
     using System;
     using System.Collections.Generic;

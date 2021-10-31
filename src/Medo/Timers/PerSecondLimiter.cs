@@ -1,5 +1,20 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-05-20: Not using SemaphoreSlim
+//            Using Interlocked where possible
+//            Removed Async methods
+//2021-05-10: Removed TicketCount property, IsReadyForNext function, and TicketsAvailable event
+//            Support for CancellationToken
+//2021-03-15: Added event when more tickets are available
+//2021-03-11: Fixing startup when TickCount is negative
+//            Timer interval increased to 8ms
+//2021-03-09: Rate change support
+//            Added option to wait
+//            Lower resource usage
+//            Carry-over support
+//2021-03-02: Support for no limits
+//2021-03-01: Added
+
 namespace Medo.Timers {
     using System;
     using System.Diagnostics;

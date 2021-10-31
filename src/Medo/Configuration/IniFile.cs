@@ -1,12 +1,15 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Text;
+//2021-09-28: Added constructor for empty instance
+//2021-09-26: Initial version
 
 namespace Medo.Configuration {
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using System.Text;
+
     /// <summary>
     /// Provides read-only access for to a configuration file.
     /// File should follow Microsoft's INI file format but other variations are supported too.

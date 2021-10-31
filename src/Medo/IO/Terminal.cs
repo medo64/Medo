@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-10-10: Initial version
+
 namespace Medo.IO {
     using System;
     using System.Collections.Generic;

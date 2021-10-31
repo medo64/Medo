@@ -1,5 +1,10 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-03-05: Refactored for .NET 5
+//2017-08-15: Replacing ThreadStatic with Lazy<RandomNumberGenerator>
+//2016-01-08: Added ANSIX923 and ISO10126 padding modes
+//2015-12-27: Initial version
+
 namespace Medo.Security.Cryptography {
     using System;
     using System.Diagnostics;

@@ -1,5 +1,15 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-02-27: Refactored for .NET 5
+//2012-11-24: Suppressing bogus CA5122 warning (http://connect.microsoft.com/VisualStudio/feedback/details/729254/bogus-ca5122-warning-about-p-invoke-declarations-should-not-be-safe-critical)
+//2009-07-04: Compatibility with Mono 2.4
+//2008-12-01: Deleted methods without owner parameter
+//2008-11-14: Reworked code to use SafeHandle
+//            Fixed ToInt32 call on x64 bit windows
+//2008-04-11: Cleaned code to match FxCop 1.36 beta 2 (SpecifyMarshalingForPInvokeStringArguments, NormalizeStringsToUppercase)
+//2008-01-03: Added Resources
+//2007-12-31: New version
+
 namespace Medo.Windows.Forms {
     using System.Runtime.Versioning;
     using System.Windows.Forms;

@@ -1,5 +1,10 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-04-03: Refactoring
+//2021-03-24: Added Count property
+//2021-03-04: Refactoring
+//2021-03-03: Initial version
+
 namespace Medo.Math {
     using System;
     using System.Collections.Generic;

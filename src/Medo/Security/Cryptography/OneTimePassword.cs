@@ -1,5 +1,11 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-03-04: Refactored for .NET 5
+//2017-09-17: Refactored for .NET Standard 2.0
+//            Allowing custom DateTime for GetCode
+//            Removing GetCode overload for various digit lengths - use Digits instead
+//2015-02-12: Initial version
+
 namespace Medo.Security.Cryptography {
     using System;
     using System.Collections.Generic;

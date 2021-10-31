@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-04-08: Initial version
+
 namespace Medo.Reflection {
     using System;
     using System.Globalization;

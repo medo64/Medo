@@ -1,5 +1,21 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-10-07: Refactored for .NET 5
+//2014-12-20: Added support for .text files
+//2012-11-24: Suppressing bogus CA5122 warning (http://connect.microsoft.com/VisualStudio/feedback/details/729254/bogus-ca5122-warning-about-p-invoke-declarations-should-not-be-safe-critical)
+//2012-03-05: Added padding to buttons
+//2011-09-01: Added DEBUG sufix for DEBUG builds
+//2010-11-03: Informational version is used for program name
+//            Content background is now in Window system color
+//2009-10-25: Adjusted disposing of buttons
+//2008-12-20: Adjusted for high DPI mode
+//2008-11-05: Refactoring (Microsoft.Maintainability : 'AboutBox.ShowDialog(IWin32Window, Uri, string)' has a cyclomatic complexity of 27, Microsoft.Maintainability : 'AboutBox.ShowDialog(IWin32Window, Uri, string)' is coupled with 38 different types from 10 different namespaces.)
+//2008-04-11: Cleaned code to match FxCop 1.36 beta 2 (NormalizeStringsToUppercase, SpecifyMarshalingForPInvokeStringArguments)
+//2008-01-25: Added product title parameter
+//2008-01-22: Changed caption to "About" instead of "About..."
+//2008-01-05: Top line now contains product name
+//2008-01-02: New version
+
 namespace Medo.Windows.Forms {
     using System;
     using System.Collections.Generic;

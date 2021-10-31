@@ -1,15 +1,27 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
+//2021-09-16: Changed executable path for .NET 5 and above
+//2021-09-12: Refactored for .NET 5
+//2018-11-25: Refactored which file gets used if application is not installed
+//2017-11-05: Suppress exception on UnauthorizedAccessException
+//2017-10-09: Support for /opt installation on Linux
+//2017-04-29: Added IsAssumedInstalled property
+//            Added Reset and DeleteAll methods
+//2017-04-26: Renamed from Properties
+//            Added \0 escape sequence
+//            Fixed alignment issues
+//2017-04-17: First version
 
 namespace Medo.Configuration {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO;
+    using System.Reflection;
+    using System.Runtime.InteropServices;
+    using System.Text;
+
     /// <summary>
     /// Provides cached access to reading and writing settings.
     /// This class is thread-safe.
@@ -813,7 +825,7 @@ namespace Medo.Configuration {
                         var maxSuffixLength = firstKeyTotalLength - totalLengthWithoutSuffix;
                         if (maxSuffixLength < 1) { maxSuffixLength = 1; } //leave at least one space
                         if (SeparatorSuffix?.Length > maxSuffixLength) {
-                            SeparatorSuffix = SeparatorSuffix.Substring(0, maxSuffixLength);
+                            SeparatorSuffix = SeparatorSuffix[..maxSuffixLength];
                         }
                     }
                 }

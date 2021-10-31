@@ -1,5 +1,9 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-03-04: Class is sealed
+//2021-02-28: Refactored for .NET 5
+//2017-08-26: Initial version
+
 namespace Medo.Security.Checksum {
     using System;
     using System.Security.Cryptography;

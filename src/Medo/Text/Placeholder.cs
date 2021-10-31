@@ -1,12 +1,16 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Text;
+//2021-10-05: Refactored for .NET 5
+//2013-03-11: Nulls are supported
+//2013-03-08: Bug-fixing
+//2013-03-04: Initial version
 
 namespace Medo.Text {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.Text;
 
     /// <summary>
     /// Composite formatting based on placeholder name.

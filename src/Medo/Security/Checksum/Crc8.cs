@@ -1,5 +1,13 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-03-06: Refactored for .NET 5
+//2008-06-07: Replaced ShiftRight function with right shift (>>) operator
+//            Implemented bit reversal via lookup table (http://graphics.stanford.edu/~seander/bithacks.html)
+//            Append is not longer returning intermediate digest (performance reasons)
+//2008-04-11: Cleaned code to match FxCop 1.36 beta 2
+//2008-01-05: Added resources
+//2007-10-31: New version
+
 namespace Medo.Security.Checksum {
     using System.Security.Cryptography;
 

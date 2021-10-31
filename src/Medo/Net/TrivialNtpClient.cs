@@ -1,13 +1,16 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
+//2021-10-04: Refactored for .NET 5
+//2017-09-17: Initial version
 
 namespace Medo.Net {
+    using System;
+    using System.Collections.Generic;
+    using System.Net;
+    using System.Net.Sockets;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Simple NTP client.
     /// </summary>

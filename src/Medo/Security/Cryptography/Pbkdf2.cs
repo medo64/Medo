@@ -1,5 +1,8 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-03-06: Refactored for .NET 5
+//2012-04-12: Initial version
+
 namespace Medo.Security.Cryptography {
     using System;
     using System.Security.Cryptography;

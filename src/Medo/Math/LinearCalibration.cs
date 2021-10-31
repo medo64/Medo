@@ -1,5 +1,8 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-03-06: Refactored for .NET 5
+//2012-10-30: Initial version
+
 namespace Medo.Math {
     using System.Collections.Generic;
 

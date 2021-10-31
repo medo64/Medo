@@ -1,5 +1,10 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-10-09: Added IDisposable interface
+//2021-03-10: Replaced lock
+//2021-03-04: Refactoring
+//2021-03-01: Added
+
 namespace Medo.Timers {
     using System;
     using System.Threading;

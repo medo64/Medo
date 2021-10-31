@@ -1,5 +1,18 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-03-06: Refactored for .NET 5
+//            Adjusted to work on big-endian platform too
+//2008-06-07: Replaced ShiftRight function with right shift (>>) operator
+//            Implemented bit reversal via lookup table (http://graphics.stanford.edu/~seander/bithacks.html) and inlined byte bit reversal
+//            Append is not longer returning intermediate digest (performance reasons)
+//2008-04-11: Cleaned code to match FxCop 1.36 beta 2
+//2008-01-05: Changed class in order to be CLS compliant
+//            Fixed Posix and X-fer calcultions
+//            Added resources
+//2007-10-31: Moved to common
+//            Added internal Bitwise class
+//            Removed obsoleted constructors
+
 namespace Medo.Security.Checksum {
     using System;
     using System.Security.Cryptography;

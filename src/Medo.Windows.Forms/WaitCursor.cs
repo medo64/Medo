@@ -1,9 +1,11 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-using System;
-using System.Windows.Forms;
+//2021-04-02: Refactored for .NET 5
+//2007-10-30: Initial version
 
 namespace Medo.Windows.Forms {
+    using System;
+    using System.Windows.Forms;
 
     /// <summary>
     /// Changes the cursor to a WaitCursor and restores it back to default once class is desposed.

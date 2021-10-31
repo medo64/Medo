@@ -1,10 +1,12 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-using System;
-using System.Diagnostics;
-using System.Globalization;
+//2019-10-24: Refactored for .NET 5
+//2010-08-29: Initial version
 
 namespace Medo.Diagnostics {
+    using System;
+    using System.Diagnostics;
+    using System.Globalization;
 
     /// <summary>
     /// Timer that fires upon creation of object and stops with it's disposal.
