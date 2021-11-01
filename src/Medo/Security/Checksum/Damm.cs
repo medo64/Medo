@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-10-31: Fixed reuse for new hash
 //2021-03-04: Class is sealed
 //2021-02-28: Refactored for .NET 5
 //2017-08-26: Initial version
@@ -23,21 +24,12 @@ namespace Medo.Security.Checksum {
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        public Damm() { }
+        public Damm() {
+            ProcessInitialization();
+        }
 
 
         #region Helpers
-
-        /// <summary>
-        /// Gets hash as number between 0 and 9.
-        /// </summary>
-        public int HashAsNumber { get; private set; } = 0;
-
-        /// <summary>
-        /// Gets hash as char.
-        /// </summary>
-        public char HashAsChar => (char)(0x30 + HashAsNumber);
-
 
         /// <summary>
         /// Returns hash characters based on digits passed to it.
@@ -88,6 +80,8 @@ namespace Medo.Security.Checksum {
         #endregion
 
 
+        #region Algorithm
+
         private static readonly int[,] AntisymmetricQuasigroup = new int[10, 10] {
             {0, 3, 1, 7, 5, 9, 8, 6, 4, 2},
             {7, 0, 9, 2, 1, 5, 4, 8, 6, 3},
@@ -101,8 +95,39 @@ namespace Medo.Security.Checksum {
             {2, 5, 8, 1, 4, 3, 6, 7, 9, 0},
         };
 
+        private void ProcessInitialization() {
+            HashAsNumber = 0;
+        }
+
+        private void ProcessBytes(byte[] bytes, int index, int count) {
+            var savedHash = HashAsNumber;
+            for (var i = index; i < (index + count); i++) {
+                var b = bytes[i];
+                if ((b < 0x30) || (b > 0x39)) {
+                    HashAsNumber = savedHash;  // restore old hash value
+                    throw new ArgumentOutOfRangeException(nameof(bytes), "Only numbers 0 to 9 are allowed.");
+                }
+                var row = HashAsNumber;
+                var col = b - 0x30;
+                HashAsNumber = AntisymmetricQuasigroup[row, col];
+            }
+        }
+
+        /// <summary>
+        /// Gets hash as number between 0 and 9.
+        /// </summary>
+        public int HashAsNumber { get; private set; }
+
+        /// <summary>
+        /// Gets hash as char.
+        /// </summary>
+        public char HashAsChar => (char)(0x30 + HashAsNumber);
+
+        #endregion Algorithm
 
         #region HashAlgorithm
+
+        private bool InitializationPending;
 
         /// <summary>
         /// Gets the size, in bits, of the computed hash code.
@@ -114,6 +139,7 @@ namespace Medo.Security.Checksum {
         /// Initializes an instance.
         /// </summary>
         public override void Initialize() {
+            InitializationPending = true;  // just queue cleanup so that we can read final state before all is gone
         }
 
         /// <summary>
@@ -124,13 +150,12 @@ namespace Medo.Security.Checksum {
         /// <param name="cbSize">The number of bytes in the array to use as data.</param>
         /// <exception cref="ArgumentOutOfRangeException">Only numbers 0 to 9 are allowed.</exception>
         protected override void HashCore(byte[] array, int ibStart, int cbSize) {
-            for (var i = ibStart; i < (ibStart + cbSize); i++) {
-                var b = array[i];
-                if ((b < 0x30) || (b > 0x39)) { throw new ArgumentOutOfRangeException(nameof(array), "Only numbers 0 to 9 are allowed."); }
-                var row = HashAsNumber;
-                var col = b - 0x30;
-                HashAsNumber = AntisymmetricQuasigroup[row, col];
+            if (InitializationPending) {
+                ProcessInitialization();
+                InitializationPending = false;
             }
+
+            ProcessBytes(array, ibStart, cbSize);
         }
 
         /// <summary>

@@ -123,5 +123,16 @@ namespace Tests.Medo.Security.Checksum {
             });
         }
 
+        [Fact(DisplayName = "Damm: Reuse")]
+        public void Reuse() {
+            var crc = new Damm();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("4428922675"));
+            Assert.Equal(6, crc.HashAsNumber);
+            Assert.Equal("36", BitConverter.ToString(crc.Hash).Replace("-", ""));
+            crc.ComputeHash(Encoding.ASCII.GetBytes("4428922675"));
+            Assert.Equal(6, crc.HashAsNumber);
+            Assert.Equal("36", BitConverter.ToString(crc.Hash).Replace("-", ""));
+        }
+
     }
 }
