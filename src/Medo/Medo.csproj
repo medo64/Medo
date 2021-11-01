@@ -24,8 +24,4 @@
     <Copyright>Copyright (c) 2004 Josip Medved</Copyright>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Drawing\" />
-  </ItemGroup>
-
 </Project>
