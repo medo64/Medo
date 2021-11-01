@@ -42,5 +42,14 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(expected, BitConverter.ToString(crc.Hash).Replace("-", ""));
         }
 
+        [Fact(DisplayName = "Crc32: Reuse")]
+        public void Reuse() {
+            var checksum = Crc32.GetIeee();
+            checksum.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal("1A657BE2", checksum.HashAsInt32.ToString("X8"));
+            checksum.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal("1A657BE2", checksum.HashAsInt32.ToString("X8"));
+        }
+
     }
 }

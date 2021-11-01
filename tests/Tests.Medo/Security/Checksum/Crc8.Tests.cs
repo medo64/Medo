@@ -24,5 +24,14 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(expected, BitConverter.ToString(crc.Hash).Replace("-", ""));
         }
 
+        [Fact(DisplayName = "Crc8: Reuse")]
+        public void Reuse() {
+            var checksum = Crc8.GetDallas();
+            checksum.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal("80", checksum.HashAsByte.ToString("X2"));
+            checksum.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal("80", checksum.HashAsByte.ToString("X2"));
+        }
+
     }
 }

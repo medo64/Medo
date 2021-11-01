@@ -69,5 +69,12 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(expected, BitConverter.ToString(crc.Hash).Replace("-", ""));
         }
 
+        [Fact(DisplayName = "Crc16: Reuse")]
+        public void Reuse() {
+            var checksum = Crc16.GetIeee();
+            checksum.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal("178C", checksum.HashAsInt16.ToString("X4"));
+        }
+
     }
 }

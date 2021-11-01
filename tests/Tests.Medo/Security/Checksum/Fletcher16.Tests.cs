@@ -107,6 +107,15 @@ namespace Tests.Medo.Security.Checksum {
             });
         }
 
+        [Fact(DisplayName = "Fletcher16: Reuse")]
+        public void Reuse() {
+            var checksum = new Fletcher16();
+            checksum.ComputeHash(System.Text.ASCIIEncoding.ASCII.GetBytes("140byt.es is totally rad!"));
+            Assert.Equal(unchecked((Int16)51599), checksum.HashAsInt16);
+            checksum.ComputeHash(System.Text.ASCIIEncoding.ASCII.GetBytes("140byt.es is totally rad!"));
+            Assert.Equal(unchecked((Int16)51599), checksum.HashAsInt16);
+        }
+
 
         #region Helpers
 

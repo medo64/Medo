@@ -123,6 +123,7 @@ namespace Tests.Medo.Security.Checksum {
             });
         }
 
+
         [Fact(DisplayName = "Damm: Reuse")]
         public void Reuse() {
             var crc = new Damm();
