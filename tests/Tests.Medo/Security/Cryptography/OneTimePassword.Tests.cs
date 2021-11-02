@@ -346,13 +346,20 @@ namespace Tests.Medo.Security.Cryptography {
         #endregion
 
 
-        #region TOTP
+        #region TOTP/8
 
-        [Fact(DisplayName = "OneTimePassword: Generate TOTP (SHA-1)")]
+        [Fact(DisplayName = "OneTimePassword: Generate TOTP/8 (SHA-1)")]
         public void TOTP_Generate_SHA1() {
             var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890")) {
                 Digits = 8
             };
+
+            Assert.Equal(94287082, o.GetCode(new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.Equal(07081804, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.Equal(14050471, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.Equal(89005924, o.GetCode(new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.Equal(69279037, o.GetCode(new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.Equal(65353130, o.GetCode(new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
 
             Assert.Equal(94287082, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
             Assert.Equal(07081804, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
@@ -361,14 +368,29 @@ namespace Tests.Medo.Security.Cryptography {
             Assert.Equal(69279037, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
             Assert.Equal(65353130, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
 
+            Assert.Equal(94287082, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(07081804, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(14050471, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(89005924, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(69279037, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(65353130, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+
             Assert.Equal(o.GetCode(), o.GetCode(DateTime.UtcNow));
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.Now));
         }
 
-        [Fact(DisplayName = "OneTimePassword: Validate TOTP (SHA-1)")]
+        [Fact(DisplayName = "OneTimePassword: Validate TOTP/8 (SHA-1)")]
         public void TOTP_Validate_SHA1() {
             var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890")) {
                 Digits = 8
             };
+
+            Assert.True(o.IsCodeValid(94287082, new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(07081804, new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(14050471, new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(89005924, new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(69279037, new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(65353130, new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
 
             Assert.True(o.IsCodeValid(94287082, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(07081804, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
@@ -376,15 +398,29 @@ namespace Tests.Medo.Security.Cryptography {
             Assert.True(o.IsCodeValid(89005924, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(69279037, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(65353130, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.True(o.IsCodeValid(94287082, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(07081804, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(14050471, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(89005924, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(69279037, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(65353130, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
         }
 
 
-        [Fact(DisplayName = "OneTimePassword: Generate TOTP (SHA-256)")]
+        [Fact(DisplayName = "OneTimePassword: Generate TOTP/8 (SHA-256)")]
         public void TOTP_Generate_SHA256() {
             var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890123456789012")) {
                 Algorithm = OneTimePasswordAlgorithm.Sha256,
                 Digits = 8
             };
+
+            Assert.Equal(46119246, o.GetCode(new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.Equal(68084774, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.Equal(67062674, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.Equal(91819424, o.GetCode(new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.Equal(90698825, o.GetCode(new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.Equal(77737706, o.GetCode(new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
 
             Assert.Equal(46119246, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
             Assert.Equal(68084774, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
@@ -393,15 +429,30 @@ namespace Tests.Medo.Security.Cryptography {
             Assert.Equal(90698825, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
             Assert.Equal(77737706, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
 
+            Assert.Equal(46119246, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(68084774, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(67062674, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(91819424, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(90698825, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(77737706, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+
             Assert.Equal(o.GetCode(), o.GetCode(DateTime.UtcNow));
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.Now));
         }
 
-        [Fact(DisplayName = "OneTimePassword: Validate TOTP (SHA-256)")]
+        [Fact(DisplayName = "OneTimePassword: Validate TOTP/8 (SHA-256)")]
         public void TOTP_Validate_SHA256() {
             var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890123456789012")) {
                 Algorithm = OneTimePasswordAlgorithm.Sha256,
                 Digits = 8
             };
+
+            Assert.True(o.IsCodeValid(46119246, new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(68084774, new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(67062674, new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(91819424, new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(90698825, new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(77737706, new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
 
             Assert.True(o.IsCodeValid(46119246, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(68084774, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
@@ -409,15 +460,29 @@ namespace Tests.Medo.Security.Cryptography {
             Assert.True(o.IsCodeValid(91819424, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(90698825, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(77737706, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.True(o.IsCodeValid(46119246, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(68084774, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(67062674, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(91819424, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(90698825, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(77737706, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
         }
 
 
-        [Fact(DisplayName = "OneTimePassword: Generate TOTP (SHA-512)")]
+        [Fact(DisplayName = "OneTimePassword: Generate TOTP/8 (SHA-512)")]
         public void TOTP_Generate_SHA512() {
             var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("1234567890123456789012345678901234567890123456789012345678901234")) {
                 Algorithm = OneTimePasswordAlgorithm.Sha512,
                 Digits = 8
             };
+
+            Assert.Equal(90693936, o.GetCode(new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.Equal(25091201, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.Equal(99943326, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.Equal(93441116, o.GetCode(new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.Equal(38618901, o.GetCode(new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.Equal(47863826, o.GetCode(new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
 
             Assert.Equal(90693936, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
             Assert.Equal(25091201, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
@@ -426,15 +491,30 @@ namespace Tests.Medo.Security.Cryptography {
             Assert.Equal(38618901, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
             Assert.Equal(47863826, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
 
+            Assert.Equal(90693936, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(25091201, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(99943326, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(93441116, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(38618901, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(47863826, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+
             Assert.Equal(o.GetCode(), o.GetCode(DateTime.UtcNow));
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.Now));
         }
 
-        [Fact(DisplayName = "OneTimePassword: Validate TOTP (SHA-512)")]
+        [Fact(DisplayName = "OneTimePassword: Validate TOTP/8 (SHA-512)")]
         public void TOTP_Validate_SHA512() {
             var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("1234567890123456789012345678901234567890123456789012345678901234")) {
                 Algorithm = OneTimePasswordAlgorithm.Sha512,
                 Digits = 8
             };
+
+            Assert.True(o.IsCodeValid(90693936, new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(25091201, new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(99943326, new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(93441116, new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(38618901, new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(47863826, new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
 
             Assert.True(o.IsCodeValid(90693936, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(25091201, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
@@ -442,6 +522,201 @@ namespace Tests.Medo.Security.Cryptography {
             Assert.True(o.IsCodeValid(93441116, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(38618901, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
             Assert.True(o.IsCodeValid(47863826, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.True(o.IsCodeValid(90693936, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(25091201, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(99943326, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(93441116, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(38618901, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(47863826, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+        }
+
+        #endregion
+
+
+        #region TOTP/6
+
+        [Fact(DisplayName = "OneTimePassword: Generate TOTP/6 (SHA-1)")]
+        public void TOTP_Generate6_SHA1() {
+            var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890")) {
+                Digits = 6
+            };
+
+            Assert.Equal(287082, o.GetCode(new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.Equal(081804, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.Equal(050471, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.Equal(005924, o.GetCode(new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.Equal(279037, o.GetCode(new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.Equal(353130, o.GetCode(new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
+
+            Assert.Equal(287082, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
+            Assert.Equal(081804, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
+            Assert.Equal(050471, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc)));
+            Assert.Equal(005924, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
+            Assert.Equal(279037, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
+            Assert.Equal(353130, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.Equal(287082, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(081804, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(050471, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(005924, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(279037, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(353130, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.UtcNow));
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.Now));
+        }
+
+        [Fact(DisplayName = "OneTimePassword: Validate TOTP/6 (SHA-1)")]
+        public void TOTP_Validate6_SHA1() {
+            var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890")) {
+                Digits = 6
+            };
+
+            Assert.True(o.IsCodeValid(287082, new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(081804, new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(050471, new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(005924, new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(279037, new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(353130, new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
+
+            Assert.True(o.IsCodeValid(287082, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(081804, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(050471, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(005924, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(279037, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(353130, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.True(o.IsCodeValid(287082, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(081804, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(050471, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(005924, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(279037, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(353130, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+        }
+
+
+        [Fact(DisplayName = "OneTimePassword: Generate TOTP/6 (SHA-256)")]
+        public void TOTP_Generate6_SHA256() {
+            var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890123456789012")) {
+                Algorithm = OneTimePasswordAlgorithm.Sha256,
+                Digits = 6
+            };
+
+            Assert.Equal(119246, o.GetCode(new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.Equal(084774, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.Equal(062674, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.Equal(819424, o.GetCode(new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.Equal(698825, o.GetCode(new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.Equal(737706, o.GetCode(new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
+
+            Assert.Equal(119246, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
+            Assert.Equal(084774, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
+            Assert.Equal(062674, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc)));
+            Assert.Equal(819424, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
+            Assert.Equal(698825, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
+            Assert.Equal(737706, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.Equal(119246, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(084774, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(062674, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(819424, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(698825, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(737706, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.UtcNow));
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.Now));
+        }
+
+        [Fact(DisplayName = "OneTimePassword: Validate TOTP/6 (SHA-256)")]
+        public void TOTP_Validate6_SHA256() {
+            var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890123456789012")) {
+                Algorithm = OneTimePasswordAlgorithm.Sha256,
+                Digits = 6
+            };
+
+            Assert.True(o.IsCodeValid(119246, new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(084774, new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(062674, new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(819424, new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(698825, new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(737706, new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
+
+            Assert.True(o.IsCodeValid(119246, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(084774, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(062674, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(819424, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(698825, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(737706, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.True(o.IsCodeValid(119246, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(084774, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(062674, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(819424, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(698825, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(737706, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+        }
+
+
+        [Fact(DisplayName = "OneTimePassword: Generate TOTP/6 (SHA-512)")]
+        public void TOTP_Generate6_SHA512() {
+            var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("1234567890123456789012345678901234567890123456789012345678901234")) {
+                Algorithm = OneTimePasswordAlgorithm.Sha512,
+                Digits = 6
+            };
+
+            Assert.Equal(693936, o.GetCode(new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.Equal(091201, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.Equal(943326, o.GetCode(new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.Equal(441116, o.GetCode(new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.Equal(618901, o.GetCode(new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.Equal(863826, o.GetCode(new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
+
+            Assert.Equal(693936, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
+            Assert.Equal(091201, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
+            Assert.Equal(943326, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc)));
+            Assert.Equal(441116, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
+            Assert.Equal(618901, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
+            Assert.Equal(863826, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.Equal(693936, o.GetCode(new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(091201, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(943326, o.GetCode(new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(441116, o.GetCode(new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(618901, o.GetCode(new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.Equal(863826, o.GetCode(new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.UtcNow));
+            Assert.Equal(o.GetCode(), o.GetCode(DateTime.Now));
+        }
+
+        [Fact(DisplayName = "OneTimePassword: Validate TOTP/6 (SHA-512)")]
+        public void TOTP_Validate6_SHA512() {
+            var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("1234567890123456789012345678901234567890123456789012345678901234")) {
+                Algorithm = OneTimePasswordAlgorithm.Sha512,
+                Digits = 6
+            };
+
+            Assert.True(o.IsCodeValid(693936, new DateTimeOffset(1970, 01, 01, 01, 00, 59, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(091201, new DateTimeOffset(2005, 03, 18, 02, 58, 29, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(943326, new DateTimeOffset(2005, 03, 18, 02, 58, 31, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(441116, new DateTimeOffset(2009, 02, 14, 00, 31, 30, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(618901, new DateTimeOffset(2033, 05, 18, 04, 33, 20, TimeSpan.FromHours(1))));
+            Assert.True(o.IsCodeValid(863826, new DateTimeOffset(2603, 10, 11, 12, 33, 20, TimeSpan.FromHours(1))));
+
+            Assert.True(o.IsCodeValid(693936, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(091201, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(943326, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(441116, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(618901, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc)));
+            Assert.True(o.IsCodeValid(863826, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc)));
+
+            Assert.True(o.IsCodeValid(693936, new DateTime(1970, 01, 01, 00, 00, 59, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(091201, new DateTime(2005, 03, 18, 01, 58, 29, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(943326, new DateTime(2005, 03, 18, 01, 58, 31, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(441116, new DateTime(2009, 02, 13, 23, 31, 30, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(618901, new DateTime(2033, 05, 18, 03, 33, 20, DateTimeKind.Utc).ToLocalTime()));
+            Assert.True(o.IsCodeValid(863826, new DateTime(2603, 10, 11, 11, 33, 20, DateTimeKind.Utc).ToLocalTime()));
         }
 
         #endregion

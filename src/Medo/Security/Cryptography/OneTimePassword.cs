@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-01: Added support for DateTimeOffset
 //2021-03-04: Refactored for .NET 5
 //2017-09-17: Refactored for .NET Standard 2.0
 //            Allowing custom DateTime for GetCode
@@ -139,8 +140,8 @@ namespace Medo.Security.Cryptography {
             }
         }
 
-        private static long GetTimeBasedCounter(DateTime utcTime, int timeStep) {
-            var seconds = (utcTime.Ticks - DateTime.UnixEpoch.Ticks) / 10000000;
+        private static long GetTimeBasedCounter(DateTimeOffset time, int timeStep) {
+            var seconds = time.ToUnixTimeSeconds();
             return (seconds / timeStep);
         }
 
@@ -181,14 +182,23 @@ namespace Medo.Security.Cryptography {
         /// Returns code.
         /// Number of digits should be kept between 6 and 8 for best results.
         /// </summary>
-        /// <param name="utcTime">UTC time for code retrieval.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Time must be in UTC.</exception>
+        /// <param name="time">UTC or Local time for code retrieval.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Time must be either UTC or Local.</exception>
         /// <exception cref="NotSupportedException">Cannot specify time in HOTP mode (time step is zero).</exception>
-        public int GetCode(DateTime utcTime) {
-            if (utcTime.Kind != DateTimeKind.Utc) { throw new ArgumentOutOfRangeException(nameof(utcTime), "Time must be either UTC or local."); }
-            if (TimeStep == 0) { throw new NotSupportedException("Cannot specify time in HOTP mode (time step is zero)."); }
+        public int GetCode(DateTime time) {
+            if ((time.Kind != DateTimeKind.Utc) && (time.Kind != DateTimeKind.Local)) { throw new ArgumentOutOfRangeException(nameof(time), "Time must be either UTC or Local."); }
+            return GetCode(new DateTimeOffset(time));
+        }
 
-            return GetCode(Digits, GetTimeBasedCounter(utcTime, TimeStep));
+        /// <summary>
+        /// Returns code.
+        /// Number of digits should be kept between 6 and 8 for best results.
+        /// </summary>
+        /// <param name="utcTime">UTC time for code retrieval.</param>
+        /// <exception cref="NotSupportedException">Cannot specify time in HOTP mode (time step is zero).</exception>
+        public int GetCode(DateTimeOffset time) {
+            if (TimeStep == 0) { throw new NotSupportedException("Cannot specify time in HOTP mode (time step is zero)."); }
+            return GetCode(Digits, GetTimeBasedCounter(time, TimeStep));
         }
 
 
@@ -278,14 +288,24 @@ namespace Medo.Security.Cryptography {
         /// </summary>
         /// <param name="code">Code to validate.</param>
         /// <param name="utcTime">UTC time.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Time must be in UTC.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Time must be either UTC or Local.</exception>
         /// <exception cref="NotSupportedException">Cannot specify time in HOTP mode (time step is zero).</exception>
-        public bool IsCodeValid(int code, DateTime utcTime) {
-            if (utcTime.Kind != DateTimeKind.Utc) { throw new ArgumentOutOfRangeException(nameof(utcTime), "Time must be in UTC."); }
+        public bool IsCodeValid(int code, DateTime time) {
+            if ((time.Kind != DateTimeKind.Utc) && (time.Kind != DateTimeKind.Local)) { throw new ArgumentOutOfRangeException(nameof(time), "Time must be either UTC or Local."); }
+            return IsCodeValid(code, new DateTimeOffset(time));
+        }
+
+        /// <summary>
+        /// Returns true if code has been validated.
+        /// In HOTP mode (time step is zero) counter will increased if code is valid.
+        /// </summary>
+        /// <param name="code">Code to validate.</param>
+        /// <param name="utcTime">UTC time.</param>
+        /// <exception cref="NotSupportedException">Cannot specify time in HOTP mode (time step is zero).</exception>
+        public bool IsCodeValid(int code, DateTimeOffset time) {
             if (TimeStep == 0) { throw new NotSupportedException("Cannot specify time in HOTP mode (time step is zero)."); }
 
-            var counter = GetTimeBasedCounter(utcTime, TimeStep);
-
+            var counter = GetTimeBasedCounter(time, TimeStep);
             var currCode = GetCode(Digits, counter);
             var prevCode = GetCode(Digits, counter - 1);
 
