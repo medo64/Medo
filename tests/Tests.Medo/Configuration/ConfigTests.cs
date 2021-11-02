@@ -55,6 +55,7 @@ namespace Tests.Medo.Configuration {
             if (File.Exists(localFileLocation)) { File.Delete(localFileLocation); }
 
             try {
+                Config.Reset();
                 Assert.False(Config.IsAssumedInstalled);
                 Assert.NotNull(Config.FileName);
                 Assert.Null(Config.OverrideFileName);

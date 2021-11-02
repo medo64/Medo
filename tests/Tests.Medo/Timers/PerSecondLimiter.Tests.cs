@@ -11,7 +11,7 @@ namespace Tests.Medo.Timers {
         public void Basic() {
             var tps = new PerSecondLimiter(1);
 
-            while (DateTime.Now.Millisecond > 10) { Thread.Sleep(1); }  // just wait to get more of a second
+            while (DateTime.Now.Millisecond > 1) { Thread.Sleep(1); }  // just wait to get more of a second
 
             Assert.True(tps.Wait(0), "Should be ready (1)");
             Assert.False(tps.Wait(0), "Should be not ready (1)");

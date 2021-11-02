@@ -92,6 +92,14 @@ namespace Tests.Medo.Text {
             Assert.Equal("Test: 19790128T181500.", Placeholder.Format(CultureInfo.InvariantCulture, "Test: {Time:yyyyMMdd'T'HHmmss}.", dict));
         }
 
+        [Fact(DisplayName = "Placeholder: DateTimeOffset")]
+        public void DateTimeOffset() {
+            var dict = new Dictionary<string, object> {
+                { "Time", new DateTimeOffset(1979, 01, 28, 18, 15, 0, TimeSpan.FromHours(1)) }
+            };
+            Assert.Equal("Test: 19790128T181500.", Placeholder.Format(CultureInfo.InvariantCulture, "Test: {Time:yyyyMMdd'T'HHmmss}.", dict));
+        }
+
 
         [Fact(DisplayName = "Placeholder: MultipleFormats")]
         public void MultipleFormats() {
