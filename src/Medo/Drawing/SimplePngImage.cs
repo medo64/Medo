@@ -4,14 +4,17 @@
 
 namespace Medo.Drawing {
     using System;
+    using System.Collections.Generic;
     using System.Drawing;
+    using System.Globalization;
     using System.IO;
     using System.IO.Compression;
     using System.Text;
 
     /// <summary>
     /// A simple PNG image reader/writer.
-    /// Supports only writing 24-bit (RGB) and 32-bit (RGBA) PNG files.
+    /// Does not support reading interlaced files.
+    /// Writing is always done in 24-bit or 32-bit color.
     /// </summary>
     /// <remarks>https://www.w3.org/TR/2003/REC-PNG-20031110/</remarks>
     public sealed class SimplePngImage {
@@ -171,7 +174,7 @@ namespace Medo.Drawing {
 
         #region Load
 
-        private enum ColorStyle { Unknown, Truecolor24, Truecolor32 }
+        private enum ColorStyle { Unknown, Color, ColorAlpha, Indexed, Mono, MonoAlpha }
 
         private static Color[,] GetBufferFromStream(Stream stream) {
             var headerBytes = new byte[8];
@@ -181,12 +184,14 @@ namespace Medo.Drawing {
 
             var width = 0;
             var height = 0;
+            var bitDepth = 0;
             var colorStyle = ColorStyle.Unknown;
             using var dataStream = new MemoryStream();
 
             var lengthBytes = new byte[4];
             var chunkNameBytes = new byte[4];
             var crcBytes = new byte[4];
+            var palette = new List<Color>();
             while (true) {
                 stream.Read(lengthBytes, 0, 4);
                 stream.Read(chunkNameBytes, 0, 4);
@@ -209,21 +214,36 @@ namespace Medo.Drawing {
 
                     width = (int)FromBytes(dataBytes, 0);
                     height = (int)FromBytes(dataBytes, 4);
-                    var bitDepth = dataBytes[8];
+                    bitDepth = dataBytes[8];
                     var colorType = dataBytes[9];
                     var compressionMethod = dataBytes[10];
                     var filterMethod = dataBytes[11];
                     var interlaceMethod = dataBytes[12];
 
                     switch (colorType) {
-                        case 2:  //  Truecolour
+                        case 0:  // Greyscale
+                            if ((bitDepth != 1) && (bitDepth != 2) && (bitDepth != 4) && (bitDepth != 8)) { throw new InvalidDataException("Unsupported bit depth."); }
+                            colorStyle = ColorStyle.Mono;
+                            break;
+
+                        case 2:  // Truecolour
                             if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorStyle.Truecolor24;
+                            colorStyle = ColorStyle.Color;
+                            break;
+
+                        case 3:  // Indexed-colour
+                            if ((bitDepth != 1) && (bitDepth != 2) && (bitDepth != 4) && (bitDepth != 8)) { throw new InvalidDataException("Unsupported bit depth."); }
+                            colorStyle = ColorStyle.Indexed;
+                            break;
+
+                        case 4:  // Greyscale with alpha
+                            if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
+                            colorStyle = ColorStyle.MonoAlpha;
                             break;
 
                         case 6:  // Truecolour with alpha
                             if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorStyle.Truecolor32;
+                            colorStyle = ColorStyle.ColorAlpha;
                             break;
 
                         default: throw new InvalidDataException("Unsupported color type.");
@@ -234,7 +254,9 @@ namespace Medo.Drawing {
                     if (interlaceMethod != 0) { throw new InvalidDataException("Unsupported interlace method."); }
 
                 } else if (CheckIfEqual(chunkNameBytes, PngChunkPaletteNameBytes)) {  // palette chunk
-                    //TODO
+                    for (var i = 0; i < dataBytes.Length; i += 3) {
+                        palette.Add(Color.FromArgb(dataBytes[i + 0], dataBytes[i + 1], dataBytes[i + 2]));
+                    }
                 } else if (CheckIfEqual(chunkNameBytes, PngChunkDataNameBytes)) {  // data chunk
                     dataStream.Write(dataBytes, 0, dataBytes.Length);
                 }
@@ -245,32 +267,116 @@ namespace Medo.Drawing {
 
             dataStream.Position = 2;  // skip header
             using (var deflateStream = new DeflateStream(dataStream, CompressionMode.Decompress)) {
+                byte[]? prevLineBytes = null;
                 for (var y = 0; y < height; y++) {
                     var lineFilter = (byte)deflateStream.ReadByte();
-                    if (lineFilter != 0) { throw new InvalidDataException("Unsupported scanline filter."); }
 
-                    byte[] lineBytes;
+                    var bitMultiplier = colorStyle switch {
+                        ColorStyle.Color => 3,
+                        ColorStyle.ColorAlpha => 4,
+                        ColorStyle.Indexed => 1,
+                        ColorStyle.Mono => 1,
+                        ColorStyle.MonoAlpha => 2,
+                        _ => throw new InvalidDataException("Unsupported color type."),
+                    };
+                    var bitCount = width * bitDepth * bitMultiplier;
+                    var byteCount = bitCount / 8 + (bitCount % 8 != 0 ? 1 : 0);
+                    var lineBytes = new byte[byteCount];
+                    deflateStream.Read(lineBytes, 0, lineBytes.Length);
+
+                    switch (lineFilter) {
+                        case 0:  // None
+                            break;
+
+                        case 1:  // Sub
+                            for (var i = 0; i < lineBytes.Length; i++) {
+                                var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
+                                lineBytes[i] = (byte)(lineBytes[i] + a);
+                            }
+                            break;
+
+                        case 2:  // Up
+                            for (var i = 0; i < lineBytes.Length; i++) {
+                                var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
+                                lineBytes[i] = (byte)(lineBytes[i] + b);
+                            }
+                            break;
+
+                        case 3:  // Average
+                            for (var i = 0; i < lineBytes.Length; i++) {
+                                var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
+                                var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
+                                lineBytes[i] = (byte)(lineBytes[i] + (byte)((a + b) / 2));
+                            }
+                            break;
+
+                        case 4:  // Paeth
+                            for (var i = 0; i < lineBytes.Length; i++) {
+                                var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
+                                var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
+                                var c = ((i >= bitMultiplier) && (prevLineBytes != null)) ? prevLineBytes[i - bitMultiplier] : (byte)0;
+                                lineBytes[i] = (byte)(lineBytes[i] + PaethPredictor(a, b, c));
+                            }
+                            break;
+
+                        default: throw new InvalidDataException("Unsupported scanline filter (" + lineFilter.ToString(CultureInfo.InvariantCulture) + ").");
+                    }
+
                     switch (colorStyle) {
-                        case ColorStyle.Truecolor24:
-                            lineBytes = new byte[3 * width];
-                            deflateStream.Read(lineBytes, 0, lineBytes.Length);
+                        case ColorStyle.Color:
                             for (var x = 0; x < width; x++) {
                                 var offset = x * 3;
                                 pixelBuffer[x, y] = Color.FromArgb(lineBytes[offset + 0], lineBytes[offset + 1], lineBytes[offset + 2]);
                             }
                             break;
 
-                        case ColorStyle.Truecolor32:
-                            lineBytes = new byte[4 * width];
-                            deflateStream.Read(lineBytes, 0, lineBytes.Length);
+                        case ColorStyle.ColorAlpha:
                             for (var x = 0; x < width; x++) {
                                 var offset = x * 4;
                                 pixelBuffer[x, y] = Color.FromArgb(lineBytes[offset + 3], lineBytes[offset + 0], lineBytes[offset + 1], lineBytes[offset + 2]);
                             }
                             break;
 
+                        case ColorStyle.Indexed:
+                        case ColorStyle.Mono:  // mono is just indexed with preset palette for all practical purposes
+                            for (var n = 0; n < bitCount; n += bitDepth) {
+                                var i = n / 8;
+                                var x = n / bitDepth;
+                                var index = bitDepth switch {
+                                    8 => lineBytes[i],
+                                    4 => (x % 2 == 0) ? lineBytes[i] >> 4 : lineBytes[i] & 0x0F,
+                                    2 => (x % 4 == 0) ? lineBytes[i] >> 6 : (x % 4 == 1) ? (lineBytes[i] >> 4) & 0x03 : (x % 4 == 2) ? (lineBytes[i] >> 2) & 0x03 : lineBytes[i] & 0x03,
+                                    1 => (x % 8 == 0) ? lineBytes[i] >> 7 : (x % 8 == 1) ? (lineBytes[i] >> 6) & 0x01 : (x % 8 == 2) ? (lineBytes[i] >> 5) & 0x01 : (x % 8 == 3) ? (lineBytes[i] >> 4) & 0x01 : (x % 8 == 4) ? (lineBytes[i] >> 3) & 0x01 : (x % 8 == 5) ? (lineBytes[i] >> 2) & 0x01 : (x % 8 == 6) ? (lineBytes[i] >> 1) & 0x01 : lineBytes[i] & 0x01,
+                                    _ => throw new InvalidDataException("Unsupported bits per pixel."),
+                                };
+                                if (colorStyle == ColorStyle.Mono) {  // just setup grayscale
+                                    var m = bitDepth switch {
+                                        8 => index,
+                                        4 => (index == 0) ? 0x00 : (index == 1) ? 0x11 : (index == 2) ? 0x22 : (index == 3) ? 0x33 : (index == 4) ? 0x44 : (index == 5) ? 0x55 : (index == 6) ? 0x66 : (index == 7) ? 0x77 : (index == 8) ? 0x88 : (index == 9) ? 0x99 : (index == 10) ? 0xAA : (index == 11) ? 0xBB : (index == 12) ? 0xCC : (index == 13) ? 0xDD : (index == 14) ? 0xEE : 0xFF,
+                                        2 => (index == 0) ? 0x00 : (index == 1) ? 0x67 : (index == 2) ? 0xB6 : 0xFF,
+                                        1 => index * 255,
+                                        _ => throw new InvalidDataException("Unsupported bits per pixel."),
+                                    };
+                                    pixelBuffer[x, y] = Color.FromArgb(index, index, index);
+                                } else if (index < palette.Count) {  // use the palette
+                                    pixelBuffer[x, y] = palette[index];
+                                }
+                            }
+                            break;
+
+                        case ColorStyle.MonoAlpha:
+                            for (var x = 0; x < width; x++) {
+                                var offset = x * 2;
+                                var m = lineBytes[offset + 0];
+                                var a = lineBytes[offset + 1];
+                                pixelBuffer[x, y] = Color.FromArgb(a, m, m, m);
+                            }
+                            break;
+
                         default: throw new InvalidDataException("Unsupported color type.");
                     }
+
+                    prevLineBytes = lineBytes;
                 }
             }
 
@@ -376,6 +482,22 @@ namespace Medo.Drawing {
                 crc = Crc32LookupTable[(crc ^ b) & 0xff] ^ (crc >> 8);
             }
             return crc;
+        }
+
+        private static byte PaethPredictor(byte a, byte b, byte c) {  // a = left, b = above, c = upper left
+            var p = a + b - c;  // initial estimate
+            var pa = Math.Abs(p - a);  // distances to a, b, c
+            var pb = Math.Abs(p - b);
+            var pc = Math.Abs(p - c);
+
+            // breaking ties in order a, b, c.
+            if ((pa <= pb) && (pa <= pc)) {
+                return a;
+            } else if (pb <= pc) {
+                return b;
+            } else {
+                return c;
+            }
         }
 
         #endregion Png
