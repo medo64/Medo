@@ -112,7 +112,9 @@ namespace Medo.Drawing {
         /// Writes PNG image to a file.
         /// </summary>
         /// <param name="fileName">File that will be written to.</param>
+        /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
         public void SaveAsPng(string fileName) {
+            if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
             using var stream = File.OpenWrite(fileName);
             SaveAsPng(stream);
         }
@@ -123,7 +125,9 @@ namespace Medo.Drawing {
         /// <param name="fileName">File that will be written to.</param>
         /// <param name="barColor">Bar color.</param>
         /// <param name="gapColor">Color of gaps and spaces.</param>
+        /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
         public void SaveAsPng(string fileName, Color barColor, Color gapColor) {
+            if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
             using var stream = File.OpenWrite(fileName);
             SaveAsPng(stream, barColor, gapColor);
         }
@@ -137,8 +141,10 @@ namespace Medo.Drawing {
         /// <param name="barWidth">Width of a single bar.</param>
         /// <param name="barHeight">Height of a single bar.</param>
         /// <param name="margin">Width of margin around barcode.</param>
+        /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
         public void SaveAsPng(string fileName, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
+            if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
             using var stream = File.OpenWrite(fileName);
             SaveAsPng(stream, barColor, gapColor, barWidth, barHeight, margin);
         }
