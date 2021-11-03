@@ -1,6 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-//2021-11-01: Added PNG output (WritePngImageToStream method)
+//2021-11-02: Properly disposing streams
+//2021-11-01: Added PNG output (SaveAsPng method)
 //2021-10-31: Refactored for .NET 5
 //            Removed System.Drawing dependency
 //2008-12-09: Changed Code 128 pattern 27 from 311212 to 312212
@@ -108,12 +109,47 @@ namespace Medo.Drawing {
 
 
         /// <summary>
+        /// Writes PNG image to a file.
+        /// </summary>
+        /// <param name="fileName">File that will be written to.</param>
+        public void SaveAsPng(string fileName) {
+            using var stream = File.OpenWrite(fileName);
+            SaveAsPng(fileName);
+        }
+
+        /// <summary>
+        /// Writes PNG image to a stream.
+        /// </summary>
+        /// <param name="fileName">File that will be written to.</param>
+        /// <param name="barColor">Bar color.</param>
+        /// <param name="gapColor">Color of gaps and spaces.</param>
+        public void SaveAsPng(string fileName, Color barColor, Color gapColor) {
+            using var stream = File.OpenWrite(fileName);
+            SaveAsPng(fileName, barColor, gapColor);
+        }
+
+        /// <summary>
+        /// Writes PNG image to a file.
+        /// </summary>
+        /// <param name="fileName">File that will be written to.</param>
+        /// <param name="barColor">Bar color.</param>
+        /// <param name="gapColor">Color of gaps and spaces.</param>
+        /// <param name="barWidth">Width of a single bar.</param>
+        /// <param name="barHeight">Height of a single bar.</param>
+        /// <param name="margin">Width of margin around barcode.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
+        public void SaveAsPng(string fileName, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
+            using var stream = File.OpenWrite(fileName);
+            SaveAsPng(fileName, barColor, gapColor, barWidth, barHeight, margin);
+        }
+
+        /// <summary>
         /// Writes PNG image to a stream.
         /// </summary>
         /// <param name="stream">Stream that will be written to.</param>
         /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
-        public void WritePngImageToStream(Stream stream) {
-            WritePngImageToStream(stream, Color.Black, Color.White);
+        public void SaveAsPng(Stream stream) {
+            SaveAsPng(stream, Color.Black, Color.White);
         }
 
         /// <summary>
@@ -123,8 +159,8 @@ namespace Medo.Drawing {
         /// <param name="barColor">Bar color.</param>
         /// <param name="gapColor">Color of gaps and spaces.</param>
         /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
-        public void WritePngImageToStream(Stream stream, Color barColor, Color gapColor) {
-            WritePngImageToStream(stream, barColor, gapColor, 1, 9, 3);
+        public void SaveAsPng(Stream stream, Color barColor, Color gapColor) {
+            SaveAsPng(stream, barColor, gapColor, 1, 9, 3);
         }
 
         /// <summary>
@@ -138,7 +174,7 @@ namespace Medo.Drawing {
         /// <param name="margin">Width of margin around barcode.</param>
         /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
-        public void WritePngImageToStream(Stream stream, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
+        public void SaveAsPng(Stream stream, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
             if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
             if ((barWidth <= 0) || (barWidth > 100)) { throw new ArgumentOutOfRangeException(nameof(barWidth), "Bar width must be between 1 and 100 pixels."); }
             if ((barHeight <= 0) || (barHeight > 1000)) { throw new ArgumentOutOfRangeException(nameof(barHeight), "Bar height must be between 1 and 1000 pixels."); }
@@ -148,39 +184,39 @@ namespace Medo.Drawing {
             var barBytes = hasTransparency ? new byte[] { barColor.R, barColor.G, barColor.B, barColor.A } : new byte[] { barColor.R, barColor.G, barColor.B };
             var gapBytes = hasTransparency ? new byte[] { gapColor.R, gapColor.G, gapColor.B, gapColor.A } : new byte[] { gapColor.R, gapColor.G, gapColor.B };
 
-            var memStream = new MemoryStream();  // prepare data
-            memStream.Write(new byte[] { 0x78, 0x9C });  // deflate header
-            var deflateStream = new DeflateStream(memStream, CompressionLevel.Optimal);
-
             var barcodePattern = GetBinaryPattern();
             var totalWidth = (uint)(margin + barcodePattern.Length + margin);
             var totalHeight = (uint)(margin + barHeight + margin);
 
-            for (var y = 0; y < margin; y++) {  // top margin
-                deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
-                for (var x = 0; x < totalWidth; x++) { deflateStream.Write(gapBytes); }
-            }
+            using var memStream = new MemoryStream();  // prepare data
+            memStream.Write(new byte[] { 0x78, 0x9C });  // deflate header
 
-            for (var y = 0; y < barHeight; y++) {  // barcode
-                deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
-                for (var x = 0; x < margin; x++) { deflateStream.Write(gapBytes); }  // left margin
-                for (var x = 0; x < barcodePattern.Length; x++) {
-                    deflateStream.Write(barcodePattern[x] ? barBytes : gapBytes);
+            using (var deflateStream = new DeflateStream(memStream, CompressionLevel.Optimal)) {
+                for (var y = 0; y < margin; y++) {  // top margin
+                    deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
+                    for (var x = 0; x < totalWidth; x++) { deflateStream.Write(gapBytes); }
                 }
-                for (var x = 0; x < margin; x++) { deflateStream.Write(gapBytes); }  // right margin
-            }
 
-            for (var y = 0; y < margin; y++) {  // bottom margin
-                deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
-                for (var x = 0; x < totalWidth; x++) { deflateStream.Write(gapBytes); }
-            }
+                for (var y = 0; y < barHeight; y++) {  // barcode
+                    deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
+                    for (var x = 0; x < margin; x++) { deflateStream.Write(gapBytes); }  // left margin
+                    for (var x = 0; x < barcodePattern.Length; x++) {
+                        deflateStream.Write(barcodePattern[x] ? barBytes : gapBytes);
+                    }
+                    for (var x = 0; x < margin; x++) { deflateStream.Write(gapBytes); }  // right margin
+                }
 
-            deflateStream.Close();
+                for (var y = 0; y < margin; y++) {  // bottom margin
+                    deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
+                    for (var x = 0; x < totalWidth; x++) { deflateStream.Write(gapBytes); }
+                }
+            }
 
             stream.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, 0, 8);  // Header
             WritePngChunk(stream, Encoding.ASCII.GetBytes("IHDR"), GetBEBytes(totalWidth), GetBEBytes(totalHeight), new byte[] { 0x08, (byte)(hasTransparency ? 0x06 : 0x02), 0x00, 0x00, 0x00 });
             WritePngChunk(stream, Encoding.ASCII.GetBytes("IDAT"), memStream.ToArray());
             WritePngChunk(stream, Encoding.ASCII.GetBytes("IEND"));
+            stream.Flush();
         }
 
         #region Png
