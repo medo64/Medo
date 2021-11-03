@@ -114,7 +114,7 @@ namespace Medo.Drawing {
         /// <param name="fileName">File that will be written to.</param>
         public void SaveAsPng(string fileName) {
             using var stream = File.OpenWrite(fileName);
-            SaveAsPng(fileName);
+            SaveAsPng(stream);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Medo.Drawing {
         /// <param name="gapColor">Color of gaps and spaces.</param>
         public void SaveAsPng(string fileName, Color barColor, Color gapColor) {
             using var stream = File.OpenWrite(fileName);
-            SaveAsPng(fileName, barColor, gapColor);
+            SaveAsPng(stream, barColor, gapColor);
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace Medo.Drawing {
         /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
         public void SaveAsPng(string fileName, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
             using var stream = File.OpenWrite(fileName);
-            SaveAsPng(fileName, barColor, gapColor, barWidth, barHeight, margin);
+            SaveAsPng(stream, barColor, gapColor, barWidth, barHeight, margin);
         }
 
         /// <summary>
