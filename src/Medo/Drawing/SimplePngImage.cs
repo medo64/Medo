@@ -14,7 +14,6 @@ namespace Medo.Drawing {
     /// <summary>
     /// A simple PNG image reader/writer.
     /// Does not support reading interlaced files.
-    /// Writing is always done in 24-bit or 32-bit color.
     /// </summary>
     /// <remarks>https://www.w3.org/TR/2003/REC-PNG-20031110/</remarks>
     public sealed class SimplePngImage {
@@ -137,15 +136,23 @@ namespace Medo.Drawing {
         public void Save(Stream stream) {
             if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
 
-            var hasAnyTransparency = false;
-            for (var x = 0; x < Width; x++) {
-                for (var y = 0; y < Height; y++) {
+            var hasAlpha = false;
+            var hasColor = false;
+            var width = Width;
+            var height = Height;
+            for (var x = 0; x < width; x++) {
+                for (var y = 0; y < height; y++) {
                     if (PixelBuffer[x, y].A < 255) {
-                        hasAnyTransparency = true;
-                        break;
+                        hasAlpha = true;
+                        if (hasColor) { break; }  // finish early if color is also detected
+                    }
+                    if ((PixelBuffer[x, y].R != PixelBuffer[x, y].G) || (PixelBuffer[x, y].G != PixelBuffer[x, y].B)) {
+                        hasColor = true;
+                        if (hasAlpha) { break; }  // finish early if transparency is also detected
                     }
                 }
             }
+            var colorKind = hasColor && hasAlpha ? ColorKind.ColorAlpha : hasColor ? ColorKind.Color : hasAlpha ? ColorKind.MonoAlpha : ColorKind.Mono;
 
             using var memStream = new MemoryStream();  // prepare data
             memStream.Write(new byte[] { 0x78, 0x9C });  // deflate header
@@ -155,16 +162,28 @@ namespace Medo.Drawing {
                     deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
                     for (var x = 0; x < Width; x++) {
                         var pixelColor = PixelBuffer[x, y];
-                        var pixelBytes = hasAnyTransparency
-                                       ? new byte[] { pixelColor.R, pixelColor.G, pixelColor.B, pixelColor.A }
-                                       : new byte[] { pixelColor.R, pixelColor.G, pixelColor.B };
+                        var pixelBytes = colorKind switch {
+                            ColorKind.ColorAlpha => new byte[] { pixelColor.R, pixelColor.G, pixelColor.B, pixelColor.A },
+                            ColorKind.Color => new byte[] { pixelColor.R, pixelColor.G, pixelColor.B },
+                            ColorKind.MonoAlpha => new byte[] { pixelColor.R, pixelColor.A },
+                            ColorKind.Mono => new byte[] { pixelColor.R },
+                            _ => Array.Empty<byte>()  // should not happen
+                        };
                         deflateStream.Write(pixelBytes, 0, pixelBytes.Length);
                     }
                 }
             }
 
+            var colorType = colorKind switch {
+                ColorKind.Color => 0x02,
+                ColorKind.ColorAlpha => 0x06,
+                ColorKind.Mono => 0x00,
+                ColorKind.MonoAlpha => 0x04,
+                _ => throw new InvalidOperationException("Cannot determine color type.")  // should not happen
+            };
+
             stream.Write(PngHeaderBytes, 0, PngHeaderBytes.Length);  // header
-            WritePngChunk(stream, PngChunkHeaderNameBytes, ToBytes((uint)Width), ToBytes((uint)Height), new byte[] { 0x08, (byte)(hasAnyTransparency ? 0x06 : 0x02), 0x00, 0x00, 0x00 });  // header chunk
+            WritePngChunk(stream, PngChunkHeaderNameBytes, ToBytes((uint)Width), ToBytes((uint)Height), new byte[] { 0x08, (byte)colorType, 0x00, 0x00, 0x00 });  // header chunk
             WritePngChunk(stream, PngChunkDataNameBytes, memStream.ToArray());  // data chunk
             WritePngChunk(stream, PngChunkEndNameBytes);  // end chunk
             stream.Flush();
@@ -174,7 +193,7 @@ namespace Medo.Drawing {
 
         #region Load
 
-        private enum ColorStyle { Unknown, Color, ColorAlpha, Indexed, Mono, MonoAlpha }
+        private enum ColorKind { Unknown, Color, ColorAlpha, Indexed, Mono, MonoAlpha }
 
         private static Color[,] GetBufferFromStream(Stream stream) {
             var headerBytes = new byte[8];
@@ -185,7 +204,7 @@ namespace Medo.Drawing {
             var width = 0;
             var height = 0;
             var bitDepth = 0;
-            var colorStyle = ColorStyle.Unknown;
+            var colorStyle = ColorKind.Unknown;
             using var dataStream = new MemoryStream();
 
             var lengthBytes = new byte[4];
@@ -223,27 +242,27 @@ namespace Medo.Drawing {
                     switch (colorType) {
                         case 0:  // Greyscale
                             if ((bitDepth != 1) && (bitDepth != 2) && (bitDepth != 4) && (bitDepth != 8)) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorStyle.Mono;
+                            colorStyle = ColorKind.Mono;
                             break;
 
                         case 2:  // Truecolour
                             if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorStyle.Color;
+                            colorStyle = ColorKind.Color;
                             break;
 
                         case 3:  // Indexed-colour
                             if ((bitDepth != 1) && (bitDepth != 2) && (bitDepth != 4) && (bitDepth != 8)) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorStyle.Indexed;
+                            colorStyle = ColorKind.Indexed;
                             break;
 
                         case 4:  // Greyscale with alpha
                             if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorStyle.MonoAlpha;
+                            colorStyle = ColorKind.MonoAlpha;
                             break;
 
                         case 6:  // Truecolour with alpha
                             if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorStyle.ColorAlpha;
+                            colorStyle = ColorKind.ColorAlpha;
                             break;
 
                         default: throw new InvalidDataException("Unsupported color type.");
@@ -272,11 +291,11 @@ namespace Medo.Drawing {
                     var lineFilter = (byte)deflateStream.ReadByte();
 
                     var bitMultiplier = colorStyle switch {
-                        ColorStyle.Color => 3,
-                        ColorStyle.ColorAlpha => 4,
-                        ColorStyle.Indexed => 1,
-                        ColorStyle.Mono => 1,
-                        ColorStyle.MonoAlpha => 2,
+                        ColorKind.Color => 3,
+                        ColorKind.ColorAlpha => 4,
+                        ColorKind.Indexed => 1,
+                        ColorKind.Mono => 1,
+                        ColorKind.MonoAlpha => 2,
                         _ => throw new InvalidDataException("Unsupported color type."),
                     };
                     var bitCount = width * bitDepth * bitMultiplier;
@@ -323,22 +342,22 @@ namespace Medo.Drawing {
                     }
 
                     switch (colorStyle) {
-                        case ColorStyle.Color:
+                        case ColorKind.Color:
                             for (var x = 0; x < width; x++) {
                                 var offset = x * 3;
                                 pixelBuffer[x, y] = Color.FromArgb(lineBytes[offset + 0], lineBytes[offset + 1], lineBytes[offset + 2]);
                             }
                             break;
 
-                        case ColorStyle.ColorAlpha:
+                        case ColorKind.ColorAlpha:
                             for (var x = 0; x < width; x++) {
                                 var offset = x * 4;
                                 pixelBuffer[x, y] = Color.FromArgb(lineBytes[offset + 3], lineBytes[offset + 0], lineBytes[offset + 1], lineBytes[offset + 2]);
                             }
                             break;
 
-                        case ColorStyle.Indexed:
-                        case ColorStyle.Mono:  // mono is just indexed with preset palette for all practical purposes
+                        case ColorKind.Indexed:
+                        case ColorKind.Mono:  // mono is just indexed with preset palette for all practical purposes
                             for (var n = 0; n < bitCount; n += bitDepth) {
                                 var i = n / 8;
                                 var x = n / bitDepth;
@@ -349,7 +368,7 @@ namespace Medo.Drawing {
                                     1 => (x % 8 == 0) ? lineBytes[i] >> 7 : (x % 8 == 1) ? (lineBytes[i] >> 6) & 0x01 : (x % 8 == 2) ? (lineBytes[i] >> 5) & 0x01 : (x % 8 == 3) ? (lineBytes[i] >> 4) & 0x01 : (x % 8 == 4) ? (lineBytes[i] >> 3) & 0x01 : (x % 8 == 5) ? (lineBytes[i] >> 2) & 0x01 : (x % 8 == 6) ? (lineBytes[i] >> 1) & 0x01 : lineBytes[i] & 0x01,
                                     _ => throw new InvalidDataException("Unsupported bits per pixel."),
                                 };
-                                if (colorStyle == ColorStyle.Mono) {  // just setup grayscale
+                                if (colorStyle == ColorKind.Mono) {  // just setup grayscale
                                     var m = bitDepth switch {
                                         8 => index,
                                         4 => (index == 0) ? 0x00 : (index == 1) ? 0x11 : (index == 2) ? 0x22 : (index == 3) ? 0x33 : (index == 4) ? 0x44 : (index == 5) ? 0x55 : (index == 6) ? 0x66 : (index == 7) ? 0x77 : (index == 8) ? 0x88 : (index == 9) ? 0x99 : (index == 10) ? 0xAA : (index == 11) ? 0xBB : (index == 12) ? 0xCC : (index == 13) ? 0xDD : (index == 14) ? 0xEE : 0xFF,
@@ -364,7 +383,7 @@ namespace Medo.Drawing {
                             }
                             break;
 
-                        case ColorStyle.MonoAlpha:
+                        case ColorKind.MonoAlpha:
                             for (var x = 0; x < width; x++) {
                                 var offset = x * 2;
                                 var m = lineBytes[offset + 0];

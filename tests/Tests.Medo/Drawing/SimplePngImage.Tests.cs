@@ -8,8 +8,8 @@ using System.Reflection;
 namespace Tests.Medo.Drawing {
     public class SimplePngImageTests {
 
-        [Fact(DisplayName = "SimplePngImage: Basic")]
-        public void Basic() {
+        [Fact(DisplayName = "SimplePngImage: Color Basic")]
+        public void ColorBasic() {
             var bmp = new SimplePngImage(2, 3);
             Assert.Equal(2, bmp.Width);
             Assert.Equal(3, bmp.Height);
@@ -27,16 +27,15 @@ namespace Tests.Medo.Drawing {
             Assert.Equal(Color.Black, bmp.GetPixel(1, 1));
             Assert.Equal(Color.Purple, bmp.GetPixel(1, 2));
 
-            //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-basic.png"));
+            //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-color-basic.png"));
             var memStream = new MemoryStream();
             bmp.Save(memStream);
             Assert.Equal("89504E470D0A1A0A0000000D4948445200000002000000030802000000368849D60000001349444154789C63F8CFC0F0FF3F9068608080FF0D0C0D00D6C212940000000049454E44AE426082",
                          BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
         }
 
-
-        [Fact(DisplayName = "SimplePngImage: Basic Transparency")]
-        public void Transparency() {
+        [Fact(DisplayName = "SimplePngImage: Color Transparency")]
+        public void ColorAlpha() {
             var bmp = new SimplePngImage(2, 3);
             Assert.Equal(2, bmp.Width);
             Assert.Equal(3, bmp.Height);
@@ -54,12 +53,58 @@ namespace Tests.Medo.Drawing {
             Assert.Equal(Color.Black, bmp.GetPixel(1, 1));
             Assert.Equal(Color.FromArgb(128, Color.Purple), bmp.GetPixel(1, 2));
 
-            //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-transparency.png"));
+            //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-color-transparency.png"));
             var memStream = new MemoryStream();
             bmp.Save(memStream);
             Assert.Equal("89504E470D0A1A0A0000000D4948445200000002000000030806000000B9EADE810000001749444154789C63F8CFC0F01F0418181A18800404FF6F6068680000700275140000000049454E44AE426082",
                          BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
         }
+
+
+        [Fact(DisplayName = "SimplePngImage: Mono Basic")]
+        public void MonoBasic() {
+            var bmp = new SimplePngImage(2, 2);
+            Assert.Equal(2, bmp.Width);
+            Assert.Equal(2, bmp.Height);
+
+            bmp.SetPixel(0, 0, Color.Black);
+            bmp.SetPixel(0, 1, Color.DarkGray);
+            bmp.SetPixel(1, 0, Color.Gray);
+            bmp.SetPixel(1, 1, Color.White);
+            Assert.Equal(Color.Black, bmp.GetPixel(0, 0));
+            Assert.Equal(Color.DarkGray, bmp.GetPixel(0, 1));
+            Assert.Equal(Color.Gray, bmp.GetPixel(1, 0));
+            Assert.Equal(Color.White, bmp.GetPixel(1, 1));
+
+            //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-mono-basic.png"));
+            var memStream = new MemoryStream();
+            bmp.Save(memStream);
+            Assert.Equal("89504E470D0A1A0A0000000D494844520000000200000002080000000057DD52F80000000A49444154789C6360686058F91F00384FDB7F0000000049454E44AE426082",
+                         BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
+        }
+
+        [Fact(DisplayName = "SimplePngImage: Mono Transparency")]
+        public void MonoAlpha() {
+            var bmp = new SimplePngImage(2, 2);
+            Assert.Equal(2, bmp.Width);
+            Assert.Equal(2, bmp.Height);
+
+            bmp.SetPixel(0, 0, Color.Black);
+            bmp.SetPixel(0, 1, Color.DarkGray);
+            bmp.SetPixel(1, 0, Color.Gray);
+            bmp.SetPixel(1, 1, Color.FromArgb(192, Color.White));
+            Assert.Equal(Color.Black, bmp.GetPixel(0, 0));
+            Assert.Equal(Color.DarkGray, bmp.GetPixel(0, 1));
+            Assert.Equal(Color.Gray, bmp.GetPixel(1, 0));
+            Assert.Equal(Color.FromArgb(192, Color.White), bmp.GetPixel(1, 1));
+
+            //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-mono-transparency.png"));
+            var memStream = new MemoryStream();
+            bmp.Save(memStream);
+            Assert.Equal("89504E470D0A1A0A0000000D4948445200000002000000020804000000D8BFC5AF0000000E49444154789C6360F8DFF09F61E5FFFF0700F55FDCD50000000049454E44AE426082",
+                         BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
+        }
+
 
         [Fact(DisplayName = "SimplePngImage: Clone")]
         public void Clone() {
@@ -310,7 +355,7 @@ namespace Tests.Medo.Drawing {
                     bmp.SetPixel(x, y, Color.FromArgb(m, m, m));
                 }
             }
-            bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-mono-256.png"));
+            //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-mono-256.png"));
             return bmp;
         }
 
