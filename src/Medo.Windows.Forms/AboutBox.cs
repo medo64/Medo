@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-07: Changing delegate signature
 //2021-10-07: Refactored for .NET 5
 //2014-12-20: Added support for .text files
 //2012-11-24: Suppressing bogus CA5122 warning (http://connect.microsoft.com/VisualStudio/feedback/details/729254/bogus-ca5122-warning-about-p-invoke-declarations-should-not-be-safe-critical)
@@ -228,7 +229,7 @@ namespace Medo.Windows.Forms {
             form.AcceptButton = closeButton;
             form.CancelButton = closeButton;
 
-            form.Paint += delegate (object sender, PaintEventArgs e) {
+            form.Paint += delegate (object? sender, PaintEventArgs e) {
                 if (paintItems != null) {
                     e.Graphics.FillRectangle(SystemBrushes.Window, e.ClipRectangle.Left, e.ClipRectangle.Top, e.ClipRectangle.Width, paintItems[^1].Rectangle.Bottom + 11);
                 }
