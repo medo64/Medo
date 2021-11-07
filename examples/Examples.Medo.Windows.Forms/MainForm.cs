@@ -79,5 +79,13 @@ namespace Medo.Windows.Forms.Examples {
             using var x = new WaitCursor(this);
             Thread.Sleep(1000);
         }
+
+        private void btnErrorReport_Click(object sender, EventArgs e) {
+            ErrorReport.ShowDialog(this, new Uri("http://example.com/"), new InvalidOperationException("Something truly dreadful error."));
+        }
+
+        private void btnFeedback_Click(object sender, EventArgs e) {
+            ErrorReport.ShowDialog(this, new Uri("http://example.com/"));
+        }
     }
 }

@@ -39,8 +39,10 @@ namespace Medo.Windows.Forms.Examples
             this.btnAboutBox = new System.Windows.Forms.Button();
             this.btnTps = new System.Windows.Forms.Button();
             this.btnTimerResolution = new System.Windows.Forms.Button();
-            this.bwUnhandledCatchBackground = new System.ComponentModel.BackgroundWorker();
             this.btnWaitCursor = new System.Windows.Forms.Button();
+            this.bwUnhandledCatchBackground = new System.ComponentModel.BackgroundWorker();
+            this.btnErrorReport = new System.Windows.Forms.Button();
+            this.btnFeedback = new System.Windows.Forms.Button();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,6 +59,8 @@ namespace Medo.Windows.Forms.Examples
             this.flowLayoutPanel1.Controls.Add(this.btnTps);
             this.flowLayoutPanel1.Controls.Add(this.btnTimerResolution);
             this.flowLayoutPanel1.Controls.Add(this.btnWaitCursor);
+            this.flowLayoutPanel1.Controls.Add(this.btnErrorReport);
+            this.flowLayoutPanel1.Controls.Add(this.btnFeedback);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -163,11 +167,6 @@ namespace Medo.Windows.Forms.Examples
             this.btnTimerResolution.UseVisualStyleBackColor = true;
             this.btnTimerResolution.Click += new System.EventHandler(this.btnTimerResolution_Click);
             // 
-            // bwUnhandledCatchBackground
-            // 
-            this.bwUnhandledCatchBackground.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwUnhandledCatchWorker_DoWork);
-            this.bwUnhandledCatchBackground.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwUnhandledCatchBackground_RunWorkerCompleted);
-            // 
             // btnWaitCursor
             // 
             this.btnWaitCursor.Location = new System.Drawing.Point(209, 108);
@@ -177,6 +176,31 @@ namespace Medo.Windows.Forms.Examples
             this.btnWaitCursor.Text = "Wait Cursor";
             this.btnWaitCursor.UseVisualStyleBackColor = true;
             this.btnWaitCursor.Click += new System.EventHandler(this.btnWaitCursor_Click);
+            // 
+            // bwUnhandledCatchBackground
+            // 
+            this.bwUnhandledCatchBackground.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwUnhandledCatchWorker_DoWork);
+            this.bwUnhandledCatchBackground.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwUnhandledCatchBackground_RunWorkerCompleted);
+            // 
+            // btnErrorReport
+            // 
+            this.btnErrorReport.Location = new System.Drawing.Point(415, 108);
+            this.btnErrorReport.Name = "btnErrorReport";
+            this.btnErrorReport.Size = new System.Drawing.Size(200, 29);
+            this.btnErrorReport.TabIndex = 11;
+            this.btnErrorReport.Text = "Error report";
+            this.btnErrorReport.UseVisualStyleBackColor = true;
+            this.btnErrorReport.Click += new System.EventHandler(this.btnErrorReport_Click);
+            // 
+            // btnFeedback
+            // 
+            this.btnFeedback.Location = new System.Drawing.Point(3, 143);
+            this.btnFeedback.Name = "btnFeedback";
+            this.btnFeedback.Size = new System.Drawing.Size(200, 29);
+            this.btnFeedback.TabIndex = 12;
+            this.btnFeedback.Text = "Feedback";
+            this.btnFeedback.UseVisualStyleBackColor = true;
+            this.btnFeedback.Click += new System.EventHandler(this.btnFeedback_Click);
             // 
             // MainForm
             // 
@@ -206,6 +230,8 @@ namespace Medo.Windows.Forms.Examples
         private System.ComponentModel.BackgroundWorker bwUnhandledCatchBackground;
         private System.Windows.Forms.Button btnUnhandledCatchTask;
         private System.Windows.Forms.Button btnWaitCursor;
+        private System.Windows.Forms.Button btnErrorReport;
+        private System.Windows.Forms.Button btnFeedback;
     }
 }
 
