@@ -81,11 +81,11 @@ namespace Medo.Windows.Forms.Examples {
         }
 
         private void btnErrorReport_Click(object sender, EventArgs e) {
-            ErrorReport.ShowDialog(this, new Uri("http://example.com/"), new InvalidOperationException("Something truly dreadful error."));
+            ErrorReportBox.ShowDialog(this, new Uri("http://example.com/"), new InvalidOperationException("Something truly dreadful error."));
         }
 
         private void btnFeedback_Click(object sender, EventArgs e) {
-            ErrorReport.ShowDialog(this, new Uri("http://example.com/"));
+            ErrorReportBox.ShowDialog(this, new Uri("http://example.com/"));
         }
     }
 }

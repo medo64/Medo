@@ -1,6 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
 //2021-11-07: Refactored for .NET 5
+//            Renamed to ErrorReportBox
 //2019-11-16: Allowing for TLS 1.2 and 1.3 where available
 //2012-09-16: Added retry upon send failure
 //2010-11-06: Graphical update
@@ -49,7 +50,7 @@ namespace Medo.Windows.Forms {
     /// Handing sending error report or feedback.
     /// This class is thread-safe.
     /// </summary>
-    public static class ErrorReport {
+    public static class ErrorReportBox {
 
         private static readonly object SyncRoot = new();
         private static readonly StringBuilder LogBuffer = new(8000);
@@ -67,7 +68,7 @@ namespace Medo.Windows.Forms {
         /// <summary>
         /// Setting up of initial variable values in order to avoid setting them once problems (e.g. OutOfMemoryException) occur.
         /// </summary>
-        static ErrorReport() {
+        static ErrorReportBox() {
             var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly(); ;
 
             var productAttributes = assembly.GetCustomAttributes(typeof(AssemblyProductAttribute), true);
@@ -131,14 +132,14 @@ namespace Medo.Windows.Forms {
         /// </summary>
         /// <param name="owner">Any object that implements System.Windows.Forms.IWin32Window that represents the top-level window that will own the modal dialog box.</param>
         /// <param name="exception">Exception which is processed. If exception is null, this is considered feature request.</param>
-        /// <param name="address">Address of form which will receive data. Form should expect POST request with fields "EntryAssembly", "Message" and "Details".</param>
+        /// <param name="serviceUrl">Service URL which will receive data.</param>
         /// <param name="additionalInformation">Additional information to be added in log.</param>
-        /// <exception cref="ArgumentNullException">Address cannot be null. -or- Exception cannot be null. -or- Additional information cannot be null.</exception>
-        public static DialogResult ShowDialog(IWin32Window? owner, Uri address, Exception exception, params string[] additionalInformation) {
-            if (address is null) { throw new ArgumentNullException(nameof(address), "Address cannot be null."); }
+        /// <exception cref="ArgumentNullException">Service URL cannot be null. -or- Exception cannot be null. -or- Additional information cannot be null.</exception>
+        public static DialogResult ShowDialog(IWin32Window? owner, Uri serviceUrl, Exception exception, params string[] additionalInformation) {
+            if (serviceUrl is null) { throw new ArgumentNullException(nameof(serviceUrl), "Service URL cannot be null."); }
             if (exception is null) { throw new ArgumentNullException(nameof(exception), "Exception cannot be not null."); }
             if (additionalInformation is null) { throw new ArgumentNullException(nameof(additionalInformation), "Additional information cannot be not null."); }
-            return ShowDialogWeb(owner, address, exception, additionalInformation);
+            return ShowDialogWeb(owner, serviceUrl, exception, additionalInformation);
         }
 
         /// <summary>
@@ -146,13 +147,13 @@ namespace Medo.Windows.Forms {
         /// Returns DialogResult.OK if posting error report succeded.
         /// </summary>
         /// <param name="owner">Any object that implements System.Windows.Forms.IWin32Window that represents the top-level window that will own the modal dialog box.</param>
-        /// <param name="address">Address of form which will receive data. Form should expect POST request with fields "EntryAssembly", "Message" and "Details".</param>
+        /// <param name="serviceUrl">Service URL which will receive data.</param>
         /// <param name="exception">Exception which is processed.</param>
-        /// <exception cref="ArgumentNullException">Address cannot be null. -or- Exception cannot be null.</exception>
-        public static DialogResult ShowDialog(IWin32Window? owner, Uri address, Exception exception) {
-            if (address is null) { throw new ArgumentNullException(nameof(address), "Address cannot be null."); }
+        /// <exception cref="ArgumentNullException">Service URL cannot be null. -or- Exception cannot be null.</exception>
+        public static DialogResult ShowDialog(IWin32Window? owner, Uri serviceUrl, Exception exception) {
+            if (serviceUrl is null) { throw new ArgumentNullException(nameof(serviceUrl), "Service URL cannot be null."); }
             if (exception is null) { throw new ArgumentNullException(nameof(exception), "Exception cannot be not null."); }
-            return ShowDialogWeb(owner, address, exception, Array.Empty<string>());
+            return ShowDialogWeb(owner, serviceUrl, exception, Array.Empty<string>());
         }
 
         /// <summary>
@@ -176,11 +177,11 @@ namespace Medo.Windows.Forms {
         /// Returns DialogResult.OK if posting error report succeded.
         /// </summary>
         /// <param name="owner">Any object that implements System.Windows.Forms.IWin32Window that represents the top-level window that will own the modal dialog box.</param>
-        /// <param name="address">Address of form which will receive data. Form should expect POST request with fields "EntryAssembly", "Message" and "Details".</param>
-        /// <exception cref="ArgumentNullException">Address cannot be null.</exception>
-        public static DialogResult ShowDialog(IWin32Window? owner, Uri address) {
-            if (address is null) { throw new ArgumentNullException(nameof(address), "Address cannot be null."); }
-            return ShowDialogWeb(owner, address, null, Array.Empty<string>());
+        /// <param name="serviceUrl">Service URL which will receive data.</param>
+        /// <exception cref="ArgumentNullException">Service URL cannot be null.</exception>
+        public static DialogResult ShowDialog(IWin32Window? owner, Uri serviceUrl) {
+            if (serviceUrl is null) { throw new ArgumentNullException(nameof(serviceUrl), "Service URL cannot be null."); }
+            return ShowDialogWeb(owner, serviceUrl, null, Array.Empty<string>());
         }
 
         /// <summary>
@@ -188,13 +189,13 @@ namespace Medo.Windows.Forms {
         /// Returns DialogResult.OK if posting error report succeded.
         /// </summary>
         /// <param name="owner">Any object that implements System.Windows.Forms.IWin32Window that represents the top-level window that will own the modal dialog box.</param>
-        /// <param name="address">Address of form which will receive data. Form should expect POST request with fields "EntryAssembly", "Message" and "Details".</param>
+        /// <param name="serviceUrl">Service URL which will receive data.</param>
         /// <param name="additionalInformation">Additional information to be added in log.</param>
-        /// <exception cref="ArgumentNullException">Address cannot be null. -or- Additional information cannot be null.</exception>
-        public static DialogResult ShowDialog(IWin32Window? owner, Uri address, params string[] additionalInformation) {
-            if (address is null) { throw new ArgumentNullException(nameof(address), "Address cannot be null."); }
+        /// <exception cref="ArgumentNullException">Service URL cannot be null. -or- Additional information cannot be null.</exception>
+        public static DialogResult ShowDialog(IWin32Window? owner, Uri serviceUrl, params string[] additionalInformation) {
+            if (serviceUrl is null) { throw new ArgumentNullException(nameof(serviceUrl), "Service URL cannot be null."); }
             if (additionalInformation is null) { throw new ArgumentNullException(nameof(additionalInformation), "Additional information cannot be null."); }
-            return ShowDialogWeb(owner, address, null, additionalInformation);
+            return ShowDialogWeb(owner, serviceUrl, null, additionalInformation);
         }
 
         #endregion ShowDialog: Feedback
@@ -274,7 +275,7 @@ namespace Medo.Windows.Forms {
         /// <summary>
         /// Root for web operations.
         /// </summary>
-        private static DialogResult ShowDialogWeb(IWin32Window? owner, Uri address, Exception? exception, params string[] additionalInformation) {
+        private static DialogResult ShowDialogWeb(IWin32Window? owner, Uri serviceUrl, Exception? exception, params string[] additionalInformation) {
             lock (SyncRoot) {
                 LogBufferFill(exception, additionalInformation);
 
@@ -284,11 +285,11 @@ namespace Medo.Windows.Forms {
 
                 try {
                     if (exception != null) {
-                        if (ShowDialogInformError(owner, address, exception) == DialogResult.OK) {
+                        if (ShowDialogInformError(owner, serviceUrl, exception) == DialogResult.OK) {
                             if (ShowDialogCollect(owner, exception, out var message, out var email, out var displayName) == DialogResult.OK) {
                                 var fullMessage = LogBufferGetStringWithUserInformation(message, displayName, email);
                                 while (true) {
-                                    var result = ShowDialogSend(owner, address, exception, fullMessage, email, displayName);
+                                    var result = ShowDialogSend(owner, serviceUrl, exception, fullMessage, email, displayName);
                                     if (result != DialogResult.Retry) { return result; }
                                 }
                             }
@@ -297,7 +298,7 @@ namespace Medo.Windows.Forms {
                         if (ShowDialogCollect(owner, exception, out var message, out var email, out var displayName) == DialogResult.OK) {
                             var fullMessage = LogBufferGetStringWithUserInformation(message, displayName, email);
                             while (true) {
-                                var result = ShowDialogSend(owner, address, exception, fullMessage, email, displayName);
+                                var result = ShowDialogSend(owner, serviceUrl, exception, fullMessage, email, displayName);
                                 if (result != DialogResult.Retry) { return result; }
                             }
                         }
@@ -328,7 +329,7 @@ namespace Medo.Windows.Forms {
         /// <summary>
         /// Shows dialog with error and asks about sending
         /// </summary>
-        private static DialogResult ShowDialogInformError(IWin32Window? owner, Uri? address, Exception exception) {
+        private static DialogResult ShowDialogInformError(IWin32Window? owner, Uri? serviceUrl, Exception exception) {
             using var form = new Form();
             using var label = new Label();
             using var sendButton = new Button();
@@ -388,7 +389,7 @@ namespace Medo.Windows.Forms {
             label.Text = "Unexpected error occurred.\n" + exception.Message;
 
             form.Controls.Add(label);
-            if (address != null) {
+            if (serviceUrl != null) {
                 form.Controls.Add(sendButton);
             }
             form.Controls.Add(closeButton);
@@ -727,7 +728,7 @@ namespace Medo.Windows.Forms {
             }
         }
 
-        private static DialogResult ShowDialogSend(IWin32Window? owner, Uri address, Exception? exception, string message, string email, string displayName) {
+        private static DialogResult ShowDialogSend(IWin32Window? owner, Uri serviceUrl, Exception? exception, string message, string email, string displayName) {
             var ownerForm = owner as Form;
 
             using var form = new Form();
@@ -791,7 +792,7 @@ namespace Medo.Windows.Forms {
             if (!string.IsNullOrEmpty(email)) { allFormParameters.Add(new KeyValuePair<string?, string?>("Email", email)); }
             if (!string.IsNullOrEmpty(displayName)) { allFormParameters.Add(new KeyValuePair<string?, string?>("DisplayName", displayName)); }
 
-            backgroundWorker.RunWorkerAsync(new object[] { form, address, allFormParameters });
+            backgroundWorker.RunWorkerAsync(new object[] { form, serviceUrl, allFormParameters });
 
             MessageBoxOptions mbOptions = 0;
             if (owner == null) { mbOptions |= MessageBoxOptions.ServiceNotification; }
@@ -816,13 +817,13 @@ namespace Medo.Windows.Forms {
 
             var transferBag = (object[])e.Argument;
             var form = (Form)transferBag[0];
-            var address = (Uri)transferBag[1];
+            var serviceUrl = (Uri)transferBag[1];
             var allFormParameters = (IEnumerable<KeyValuePair<string?, string?>>)transferBag[2];
 
             try {
                 var content = new FormUrlEncodedContent(allFormParameters);
                 using var client = new HttpClient();
-                using var response = client.PostAsync(address, content).Result;
+                using var response = client.PostAsync(serviceUrl, content).Result;
 
                 if (response.StatusCode == HttpStatusCode.OK) {
                     using var reader = new StreamReader(response.Content.ReadAsStream());
