@@ -40,9 +40,10 @@ namespace Medo.Windows.Forms.Examples
             this.btnTps = new System.Windows.Forms.Button();
             this.btnTimerResolution = new System.Windows.Forms.Button();
             this.btnWaitCursor = new System.Windows.Forms.Button();
-            this.bwUnhandledCatchBackground = new System.ComponentModel.BackgroundWorker();
             this.btnErrorReport = new System.Windows.Forms.Button();
             this.btnFeedback = new System.Windows.Forms.Button();
+            this.bwUnhandledCatchBackground = new System.ComponentModel.BackgroundWorker();
+            this.btnUpgrade = new System.Windows.Forms.Button();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -61,6 +62,7 @@ namespace Medo.Windows.Forms.Examples
             this.flowLayoutPanel1.Controls.Add(this.btnWaitCursor);
             this.flowLayoutPanel1.Controls.Add(this.btnErrorReport);
             this.flowLayoutPanel1.Controls.Add(this.btnFeedback);
+            this.flowLayoutPanel1.Controls.Add(this.btnUpgrade);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -177,11 +179,6 @@ namespace Medo.Windows.Forms.Examples
             this.btnWaitCursor.UseVisualStyleBackColor = true;
             this.btnWaitCursor.Click += new System.EventHandler(this.btnWaitCursor_Click);
             // 
-            // bwUnhandledCatchBackground
-            // 
-            this.bwUnhandledCatchBackground.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwUnhandledCatchWorker_DoWork);
-            this.bwUnhandledCatchBackground.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwUnhandledCatchBackground_RunWorkerCompleted);
-            // 
             // btnErrorReport
             // 
             this.btnErrorReport.Location = new System.Drawing.Point(415, 108);
@@ -201,6 +198,21 @@ namespace Medo.Windows.Forms.Examples
             this.btnFeedback.Text = "Feedback";
             this.btnFeedback.UseVisualStyleBackColor = true;
             this.btnFeedback.Click += new System.EventHandler(this.btnFeedback_Click);
+            // 
+            // bwUnhandledCatchBackground
+            // 
+            this.bwUnhandledCatchBackground.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwUnhandledCatchWorker_DoWork);
+            this.bwUnhandledCatchBackground.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwUnhandledCatchBackground_RunWorkerCompleted);
+            // 
+            // btnUpgrade
+            // 
+            this.btnUpgrade.Location = new System.Drawing.Point(209, 143);
+            this.btnUpgrade.Name = "btnUpgrade";
+            this.btnUpgrade.Size = new System.Drawing.Size(200, 29);
+            this.btnUpgrade.TabIndex = 13;
+            this.btnUpgrade.Text = "Upgrade";
+            this.btnUpgrade.UseVisualStyleBackColor = true;
+            this.btnUpgrade.Click += new System.EventHandler(this.btnUpgrade_Click);
             // 
             // MainForm
             // 
@@ -232,6 +244,7 @@ namespace Medo.Windows.Forms.Examples
         private System.Windows.Forms.Button btnWaitCursor;
         private System.Windows.Forms.Button btnErrorReport;
         private System.Windows.Forms.Button btnFeedback;
+        private System.Windows.Forms.Button btnUpgrade;
     }
 }
 

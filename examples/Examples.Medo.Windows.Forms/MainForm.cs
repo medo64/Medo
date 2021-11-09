@@ -87,5 +87,9 @@ namespace Medo.Windows.Forms.Examples {
         private void btnFeedback_Click(object sender, EventArgs e) {
             ErrorReportBox.ShowDialog(this, new Uri("http://example.com/"));
         }
+
+        private void btnUpgrade_Click(object sender, EventArgs e) {
+            UpgradeBox.ShowDialog(this, new Uri("http://example.com/"));
+        }
     }
 }
