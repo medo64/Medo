@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-08: Refactored for .NET 6
 //2021-10-10: Initial version
 
 namespace Medo.IO {
@@ -454,16 +455,12 @@ namespace Medo.IO {
                 } else {  // Fallback
                     if (newState) {
                         if (!FallbackIsInverted) {
-                            var foreColor = Console.ForegroundColor;
-                            Console.ForegroundColor = Console.BackgroundColor;
-                            Console.BackgroundColor = foreColor;
+                            (Console.BackgroundColor, Console.ForegroundColor) = (Console.ForegroundColor, Console.BackgroundColor);
                             FallbackIsInverted = true;
                         }
                     } else {
                         if (FallbackIsInverted) {
-                            var foreColor = Console.ForegroundColor;
-                            Console.ForegroundColor = Console.BackgroundColor;
-                            Console.BackgroundColor = foreColor;
+                            (Console.BackgroundColor, Console.ForegroundColor) = (Console.ForegroundColor, Console.BackgroundColor);
                             FallbackIsInverted = false;
                         }
                     }

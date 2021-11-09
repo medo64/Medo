@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-08: Refactored for .NET 6
 //2021-03-05: Refactored for .NET 5
 //2017-08-15: Replacing ThreadStatic with Lazy<RandomNumberGenerator>
 //2016-01-08: Added ANSIX923 and ISO10126 padding modes
@@ -503,8 +504,8 @@ namespace Medo.Security.Cryptography {
                     x[2] = RotateRight(x[2], 1);
 
                     if (r < Rounds - 1) { //swap for next round
-                        var tmp = x[0]; x[0] = x[2]; x[2] = tmp;
-                        tmp = x[1]; x[1] = x[3]; x[3] = tmp;
+                        (x[2], x[0]) = (x[0], x[2]);
+                        (x[3], x[1]) = (x[1], x[3]);
                     }
                 }
 

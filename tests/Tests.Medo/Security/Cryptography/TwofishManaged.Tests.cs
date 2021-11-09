@@ -663,7 +663,7 @@ namespace Tests.Medo.Security.Cryptography {
             Trace.Assert((hex.Length % 2) == 0);
             var result = new byte[hex.Length / 2];
             for (var i = 0; i < hex.Length; i += 2) {
-                result[i / 2] = byte.Parse(hex.Substring(i, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                result[i / 2] = byte.Parse(hex.AsSpan(i, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             }
             return result;
         }

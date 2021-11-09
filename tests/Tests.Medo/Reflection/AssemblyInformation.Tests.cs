@@ -20,10 +20,10 @@ namespace Tests.Medo.Reflection {
 
         [Fact(DisplayName = "AssemblyInformation: Calling")]
         public void Calling() {
-            Assert.Equal("System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e", AssemblyInformation.Calling.FullName);
+            Assert.Equal("System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e", AssemblyInformation.Calling.FullName);
             Assert.Equal("System.Private.CoreLib", AssemblyInformation.Calling.Name);
-            Assert.Equal(new Version(5, 0, 0, 0), AssemblyInformation.Calling.Version);
-            Assert.Equal("5.0.0", AssemblyInformation.Calling.SemanticVersionText);
+            Assert.Equal(new Version(6, 0, 0, 0), AssemblyInformation.Calling.Version);
+            Assert.Equal("6.0.0", AssemblyInformation.Calling.SemanticVersionText);
             Assert.Equal("System.Private.CoreLib", AssemblyInformation.Calling.Title);
             Assert.Equal("Microsoft® .NET", AssemblyInformation.Calling.Product);
             Assert.Equal("System.Private.CoreLib", AssemblyInformation.Calling.Description);
