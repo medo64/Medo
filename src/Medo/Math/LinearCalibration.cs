@@ -110,7 +110,7 @@ namespace Medo.Math {
                 var r = mT / System.Math.Sqrt(mB * (n * sumY2 - sumY * sumY));
 
                 Slope = m;
-                Intercept = (sumY / n) - m * (sumX / n); ;
+                Intercept = (sumY / n) - m * (sumX / n);
                 CorrelationCoefficient = r;
                 CoefficientOfDetermination = r * r;
             }

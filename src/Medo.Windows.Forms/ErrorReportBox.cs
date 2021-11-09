@@ -69,7 +69,7 @@ namespace Medo.Windows.Forms {
         /// Setting up of initial variable values in order to avoid setting them once problems (e.g. OutOfMemoryException) occur.
         /// </summary>
         static ErrorReportBox() {
-            var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly(); ;
+            var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
 
             var productAttributes = assembly.GetCustomAttributes(typeof(AssemblyProductAttribute), true);
             if ((productAttributes != null) && (productAttributes.Length >= 1)) {
@@ -545,7 +545,7 @@ namespace Medo.Windows.Forms {
             sendButton.Enabled = (exception != null);
             sendButton.DialogResult = DialogResult.OK;
             sendButton.Location = new Point(dluBorder, form.ClientRectangle.Bottom - sendButton.Height - dluBorder);
-            sendButton.Text = (exception is null) ? "Send feedback" : "Report a bug"; ;
+            sendButton.Text = (exception is null) ? "Send feedback" : "Report a bug";
 
             //cancelButton
             cancelButton.AutoEllipsis = true;
