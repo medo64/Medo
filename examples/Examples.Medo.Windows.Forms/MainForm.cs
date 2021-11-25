@@ -11,24 +11,24 @@ namespace Medo.Windows.Forms.Examples {
         }
 
         private void btnMessageBoxInformation_Click(object sender, EventArgs e) {
-            MessageBox.ShowInformation(this, "Some information.");
+            MsgBox.ShowInformation(this, "Some information.");
         }
 
         private void btnMessageBoxWarning_Click(object sender, EventArgs e) {
-            MessageBox.ShowWarning(this, "A warning!");
+            MsgBox.ShowWarning(this, "A warning!");
         }
 
         private void btnMessageBoxError_Click(object sender, EventArgs e) {
-            MessageBox.ShowError(this, "A grave error!");
+            MsgBox.ShowError(this, "A grave error!");
         }
 
         private void btnMessageBoxQuestion_Click(object sender, EventArgs e) {
-            switch (MessageBox.ShowQuestion(this, "Are you sure?", MessageBoxButtons.YesNo)) {
+            switch (MsgBox.ShowQuestion(this, "Are you sure?", MessageBoxButtons.YesNo)) {
                 case DialogResult.Yes:
-                    MessageBox.ShowQuestion(this, "How come?", "Answer?");
+                    MsgBox.ShowQuestion(this, "How come?", "Answer?");
                     break;
                 case DialogResult.No:
-                    MessageBox.ShowQuestion(this, "Why now?", "Answer?");
+                    MsgBox.ShowQuestion(this, "Why now?", "Answer?");
                     break;
             }
         }

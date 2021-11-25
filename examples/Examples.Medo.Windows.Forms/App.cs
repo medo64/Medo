@@ -11,7 +11,7 @@ namespace Medo.Windows.Forms.Examples {
             Application.SetCompatibleTextRenderingDefault(false);
 
             UnhandledCatch.UnhandledException += (sender, e) => {
-                MessageBox.ShowError(null, e.Exception.Message, "Unhandled!");
+                MsgBox.ShowError(null, e.Exception.Message, "Unhandled!");
             };
             UnhandledCatch.Attach();
 

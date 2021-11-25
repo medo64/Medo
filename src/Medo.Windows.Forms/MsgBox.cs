@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Renamed to MsgBox
 //2021-02-27: Refactored for .NET 5
 //2012-11-24: Suppressing bogus CA5122 warning (http://connect.microsoft.com/VisualStudio/feedback/details/729254/bogus-ca5122-warning-about-p-invoke-declarations-should-not-be-safe-critical)
 //2009-07-04: Compatibility with Mono 2.4
@@ -18,7 +19,7 @@ namespace Medo.Windows.Forms {
     /// Displays a message box that can contain text, buttons, and symbols that inform and instruct the user.
     /// </summary>
     [SupportedOSPlatform("windows")]
-    public static class MessageBox {
+    public static class MsgBox {
 
         /// <summary>
         /// Displays a message box in front of the specified object and with the specified text.

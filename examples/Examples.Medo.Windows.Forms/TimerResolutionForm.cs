@@ -18,7 +18,7 @@ namespace Medo.Windows.Forms.Examples {
             sb.AppendLine($"Resolution (current): {SystemTimerResolution.ResolutionInTicks / 10000.0} ms");
             sb.AppendLine($"Resolution (minimum): {SystemTimerResolution.MinimumResolutionInTicks / 10000.0} ms");
             sb.AppendLine($"Resolution (maximum): {SystemTimerResolution.MaximumResolutionInTicks / 10000.0} ms");
-            MessageBox.ShowInformation(this, sb.ToString());
+            MsgBox.ShowInformation(this, sb.ToString());
         }
     }
 }
