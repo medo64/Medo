@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using Medo.Text;
+using System.Globalization;
 
 namespace Tests.Medo.Text {
     public class ParameterExpansionTests {
@@ -31,6 +32,13 @@ namespace Tests.Medo.Text {
             var shell = new ParameterExpansion();
             var output = shell.Expand("#$-");
             Assert.Equal("#$-", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Lone dollar (3)")]
+        public void LoneDollar3() {
+            var shell = new ParameterExpansion();
+            var output = shell.Expand("$X$");
+            Assert.Equal("$", output);
         }
 
         [Fact(DisplayName = "ParameterExpansion: Cannot expand (1)")]
@@ -65,6 +73,16 @@ namespace Tests.Medo.Text {
             };
             var output = shell.Expand("-$X-");
             Assert.Equal("-Y-", output);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Simple expand (3)")]
+        public void SimpleExpand3() {
+            var shell = new ParameterExpansion();
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                e.Value = e.Name.ToLowerInvariant();
+            };
+            var output = shell.Expand("$X$Y$Z");
+            Assert.Equal("xyz", output);
         }
 
         [Fact(DisplayName = "ParameterExpansion: Special chars")]
@@ -606,6 +624,109 @@ namespace Tests.Medo.Text {
             };
             var output = shell.Expand("${X,,}");
             Assert.Equal("testing", output);
+        }
+
+
+        [Fact(DisplayName = "ParameterExpansion: With AutoAddParameters")]
+        public void WithAutoAdd() {
+            var retrieveCount = 0;
+            var shell = new ParameterExpansion() { AutoAddParameters = true };
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                retrieveCount += 1;
+                e.Value = (e.Name) switch {
+                    "X" => retrieveCount.ToString(CultureInfo.InvariantCulture),
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X}${X}${X}");
+            Assert.Equal("111", output);
+            Assert.Equal(1, retrieveCount);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Without AutoAddParameters")]
+        public void WithoutAutoAdd() {
+            var retrieveCount = 0;
+            var shell = new ParameterExpansion() { AutoAddParameters = false };
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                retrieveCount += 1;
+                e.Value = (e.Name) switch {
+                    "X" => retrieveCount.ToString(CultureInfo.InvariantCulture),
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X}${X}${X}");
+            Assert.Equal("123", output);
+            Assert.Equal(3, retrieveCount);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Indirect with AutoAddParameters")]
+        public void IndirectWithAutoAdd() {
+            var retrieveCount = 0;
+            var shell = new ParameterExpansion() { AutoAddParameters = true };
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                retrieveCount += 1;
+                e.Value = (e.Name) switch {
+                    "X" => retrieveCount.ToString(CultureInfo.InvariantCulture),
+                    "Y" => "X",
+                    "Z" => "Z",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X}${X}${X}${!Y}${X}${!Y}${Z}");
+            Assert.Equal("111111Z", output);
+            Assert.Equal(3, retrieveCount);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Indirect without AutoAddParameters")]
+        public void IndirectWithoutAutoAdd() {
+            var retrieveCount = 0;
+            var shell = new ParameterExpansion() { AutoAddParameters = false };
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                retrieveCount += 1;
+                e.Value = (e.Name) switch {
+                    "X" => retrieveCount.ToString(CultureInfo.InvariantCulture),
+                    "Y" => "X",
+                    "Z" => "Z",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${X}${X}${X}${!Y}${X}${!Y}${Z}");
+            Assert.Equal("123568Z", output);
+            Assert.Equal(9, retrieveCount);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex with AutoAddParameters")]
+        public void ComplexWithAutoAdd() {
+            var retrieveCount = 0;
+            var shell = new ParameterExpansion() { AutoAddParameters = true };
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                retrieveCount += 1;
+                e.Value = (e.Name) switch {
+                    "X" => retrieveCount.ToString(CultureInfo.InvariantCulture),
+                    "Z" => "Z",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${UPS1:-${X}}${UPS2:-${X}}$X$X$Z");
+            Assert.Equal("1111Z", output);
+            Assert.Equal(4, retrieveCount);
+        }
+
+        [Fact(DisplayName = "ParameterExpansion: Complex without AutoAddParameters")]
+        public void ComplexWithoutAutoAdd() {
+            var retrieveCount = 0;
+            var shell = new ParameterExpansion() { AutoAddParameters = false };
+            shell.RetrieveParameter += delegate (object sender, ParameterExpansionEventArgs e) {
+                retrieveCount += 1;
+                e.Value = (e.Name) switch {
+                    "X" => retrieveCount.ToString(CultureInfo.InvariantCulture),
+                    "Z" => "Z",
+                    _ => null,
+                };
+            };
+            var output = shell.Expand("${UPS1:-${X}}${UPS2:-${X}}$X$X$Z");
+            Assert.Equal("1356Z", output);
+            Assert.Equal(7, retrieveCount);
         }
 
     }

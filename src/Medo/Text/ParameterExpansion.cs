@@ -1,5 +1,8 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Added AutoAddParameters
+//            Fixed parsing of single-letter variables
+//            Fixed parsing of lone dollar ($) ending
 //2021-04-03: Refactoring
 //2021-03-12: Case change support
 //2021-03-11: Environment variable support
@@ -14,28 +17,28 @@ namespace Medo.Text {
     /// <summary>
     /// Performs basic shell parameter expansion.
     /// </summary>
-    /// <remarks>https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html</remarks>
+    /// <remarks>
+    /// https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+    /// The following substitutions are supported:
+    ///     ${parameter-word}
+    ///     ${parameter=word}
+    ///     ${parameter+word}
+    ///     ${parameter:-word}
+    ///     ${parameter:=word}
+    ///     ${parameter:+word}
+    ///     ${parameter:offset}
+    ///     ${parameter:offset:length}
+    ///     ${!parameter}
+    ///     ${#parameter}
+    ///     ${parameter@U}
+    ///     ${parameter@u}
+    ///     ${parameter@L}
+    /// </remarks>
     public sealed class ParameterExpansion {
 
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        /// <remarks>
-        /// The following substitutions are supported:
-        ///     ${parameter-word}
-        ///     ${parameter=word}
-        ///     ${parameter+word}
-        ///     ${parameter:-word}
-        ///     ${parameter:=word}
-        ///     ${parameter:+word}
-        ///     ${parameter:offset}
-        ///     ${parameter:offset:length}
-        ///     ${!parameter}
-        ///     ${#parameter}
-        ///     ${parameter@U}
-        ///     ${parameter@u}
-        ///     ${parameter@L}
-        /// </remarks>
         public ParameterExpansion() {
             Parameters = new Dictionary<string, string?>();
         }
@@ -60,6 +63,11 @@ namespace Medo.Text {
         /// Event RetrieveParameter will still be queried but value will be prefilled and used in absence of change.
         /// </summary>
         public bool UseEnvironmentVariables { get; set; } = true;
+
+        /// <summary>
+        /// Gets/sets if parameters will be reused once they're set in RetrieveParameter event.
+        /// </summary>
+        public bool AutoAddParameters { get; set; } = true;
 
 
         /// <summary>
@@ -87,7 +95,7 @@ namespace Medo.Text {
 
                 switch (state) {
                     case State.Text: {
-                            if (ch == '$') {
+                            if (ch is '$') {
                                 sbParameterName.Clear();
                                 state = State.ParameterStart;
                             } else {
@@ -97,10 +105,10 @@ namespace Medo.Text {
                         break;
 
                     case State.ParameterStart: {
-                            if (ch == '{') {  // start complex parameter
+                            if (ch is '{') {  // start complex parameter
                                 state = State.ComplexParameter;
                                 braceLevel = 1;
-                            } else if (ch.HasValue && (char.IsLetterOrDigit(ch.Value) || (ch == '_'))) {  // normal variable
+                            } else if (ch.HasValue && (char.IsLetterOrDigit(ch.Value) || (ch is '_'))) {  // normal variable
                                 sbParameterName.Append(ch);
                                 state = State.SimpleParameter;
                             } else {  // just assume it's normal text
@@ -112,27 +120,35 @@ namespace Medo.Text {
                         break;
 
                     case State.SimpleParameter: {
-                            if (ch.HasValue && (char.IsLetterOrDigit(ch.Value) || (ch == '_'))) {  // continue as variable
+                            if (ch.HasValue && (char.IsLetterOrDigit(ch.Value) || (ch is '_'))) {  // continue as variable
                                 sbParameterName.Append(ch);
-                            } else {  // parameter done
+                            } else if (ch.HasValue && (ch is '$')) {  // next variable starts immediatelly
                                 OnRetrieveParameter(sbParameterName.ToString(), null, out var value);
                                 sbOutput.Append(value);
-                                sbOutput.Append(ch);
+                                sbParameterName.Clear();
+                            } else {  // parameter done
+                                if (sbParameterName.Length > 0) {
+                                    OnRetrieveParameter(sbParameterName.ToString(), null, out var value);
+                                    sbOutput.Append(value);
+                                } else if (ch is null) {  // lone ending $
+                                    sbOutput.Append('$');
+                                }
+                                if (ch is not null) { sbOutput.Append(ch); }  // only add char if not null
                                 state = State.Text;
                             }
                         }
                         break;
 
                     case State.ComplexParameter: {
-                            if (ch == '}') {  // parameter done
+                            if (ch is '}') {  // parameter done
                                 OnRetrieveParameter(sbParameterName.ToString(), null, out var value);
                                 sbOutput.Append(value);
                                 state = State.Text;
-                            } else if ((sbParameterName.Length == 0) && ((ch == '!') || (ch == '#'))) { //indirection must be the first character
+                            } else if ((sbParameterName.Length == 0) && (ch is '!' or '#')) { //indirection must be the first character
                                 sbParameterInstructions.Clear();
                                 sbParameterInstructions.Append(ch);
                                 state = State.ComplexParameterWithInstructions;
-                            } else if ((ch == '+') || (ch == '-') || (ch == ':') || (ch == '=') || (ch == '@') || (ch == ',') || (ch == '^')) {
+                            } else if (ch is '+' or '-' or ':' or '=' or '@' or ',' or '^') {
                                 sbParameterInstructions.Clear();
                                 sbParameterInstructions.Append(ch);
                                 state = State.ComplexParameterWithInstructions;
@@ -143,8 +159,8 @@ namespace Medo.Text {
                         break;
 
                     case State.ComplexParameterWithInstructions: {
-                            if ((ch == '}') && (braceLevel == 1)) {  // parameter done
-                                var expander = new ParameterExpansion(Parameters);
+                            if ((ch is '}') && (braceLevel == 1)) {  // parameter done
+                                var expander = new ParameterExpansion(Parameters) { AutoAddParameters = AutoAddParameters };
                                 expander.RetrieveParameter += delegate (object? sender, ParameterExpansionEventArgs e) {
                                     RetrieveParameter?.Invoke(this, e);
                                 };
@@ -218,7 +234,7 @@ namespace Medo.Text {
                                     if (value != null) {
                                         sbOutput.Append(value.ToUpperInvariant());
                                     }
-                                } else if (instructions=="^") {  // ${parameter^} uppercase first letter
+                                } else if (instructions == "^") {  // ${parameter^} uppercase first letter
                                     OnRetrieveParameter(parameterName, null, out var value);
                                     if (value != null) {
                                         sbOutput.Append(value[0..1].ToUpperInvariant() + value[1..]);
@@ -241,9 +257,9 @@ namespace Medo.Text {
                                 state = State.Text;
                             } else {
                                 sbParameterInstructions.Append(ch);
-                                if (ch == '{') {
+                                if (ch is '{') {
                                     braceLevel += 1;
-                                } else if (ch == '}') {
+                                } else if (ch is '}') {
                                     braceLevel -= 1;
                                 }
                             }
@@ -309,7 +325,7 @@ namespace Medo.Text {
                 var e = new ParameterExpansionEventArgs(name, defaultValue);
                 RetrieveParameter?.Invoke(this, e);
                 value = e.Value;
-                Parameters.Add(name, value);
+                if (AutoAddParameters) { Parameters.Add(name, value); }
             }
         }
 
