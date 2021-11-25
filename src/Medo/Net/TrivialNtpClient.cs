@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-10-04: Refactored for .NET 5
 //2017-09-17: Initial version
 
@@ -37,7 +38,7 @@ namespace Medo.Net {
         public TrivialNtpClient(string hostName, int port) {
             if (hostName == null) { throw new ArgumentNullException(nameof(hostName), "Host name cannot be null."); }
             if (string.IsNullOrWhiteSpace(hostName)) { throw new ArgumentOutOfRangeException(nameof(hostName), "Host name cannot be empty."); }
-            if ((port < 1) || (port > 65535)) { throw new ArgumentOutOfRangeException(nameof(port), "Port must be between 1 and 65535."); }
+            if (port is < 1 or > 65535) { throw new ArgumentOutOfRangeException(nameof(port), "Port must be between 1 and 65535."); }
 
             HostName = hostName;
             Port = port;

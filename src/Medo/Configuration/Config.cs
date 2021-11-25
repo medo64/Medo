@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-09-16: Changed executable path for .NET 5 and above
 //2021-09-12: Refactored for .NET 5
 //2018-11-25: Refactored which file gets used if application is not installed
@@ -549,7 +550,7 @@ namespace Medo.Configuration {
 
                     var prevChar = '\0';
                     foreach (var ch in fileContent) {
-                        if (ch == '\n') {
+                        if (ch is '\n') {
                             if (prevChar == '\r') { //CRLF pair
                                 if (!lineEndingDetermined) {
                                     lineEnding = "\r\n";
@@ -563,7 +564,7 @@ namespace Medo.Configuration {
                                 processLine(currLine);
                                 currLine.Clear();
                             }
-                        } else if (ch == '\r') {
+                        } else if (ch is '\r') {
                             processLine(currLine);
                             if (!lineEndingDetermined) { lineEnding = "\r"; } //do not set as determined as there is possibility of trailing LF
                         } else {
@@ -599,10 +600,10 @@ namespace Medo.Configuration {
                         switch (state) {
                             case State.Default:
                                 if (char.IsWhiteSpace(ch)) {
-                                } else if (ch == '#') {
+                                } else if (ch is '#') {
                                     sbComment.Append(ch);
                                     state = State.Comment;
-                                } else if (ch == '\\') {
+                                } else if (ch is '\\') {
                                     state = State.KeyEscape;
                                 } else {
                                     sbKey.Append(ch);
@@ -618,13 +619,13 @@ namespace Medo.Configuration {
                                 if (char.IsWhiteSpace(ch)) {
                                     valueSeparator = ch;
                                     state = State.SeparatorOrValue;
-                                } else if ((ch == ':') || (ch == '=')) {
+                                } else if (ch is ':' or '=') {
                                     valueSeparator = ch;
                                     state = State.ValueOrWhitespace;
-                                } else if (ch == '#') {
+                                } else if (ch is '#') {
                                     sbComment.Append(ch);
                                     state = State.Comment;
-                                } else if (ch == '\\') {
+                                } else if (ch is '\\') {
                                     state = State.KeyEscape;
                                 } else {
                                     sbKey.Append(ch);
@@ -633,13 +634,13 @@ namespace Medo.Configuration {
 
                             case State.SeparatorOrValue:
                                 if (char.IsWhiteSpace(ch)) {
-                                } else if ((ch == ':') || (ch == '=')) {
+                                } else if (ch is ':' or '=') {
                                     valueSeparator = ch;
                                     state = State.ValueOrWhitespace;
-                                } else if (ch == '#') {
+                                } else if (ch is '#') {
                                     sbComment.Append(ch);
                                     state = State.Comment;
-                                } else if (ch == '\\') {
+                                } else if (ch is '\\') {
                                     state = State.ValueEscape;
                                 } else {
                                     sbValue.Append(ch);
@@ -649,10 +650,10 @@ namespace Medo.Configuration {
 
                             case State.ValueOrWhitespace:
                                 if (char.IsWhiteSpace(ch)) {
-                                } else if (ch == '#') {
+                                } else if (ch is '#') {
                                     sbComment.Append(ch);
                                     state = State.Comment;
-                                } else if (ch == '\\') {
+                                } else if (ch is '\\') {
                                     state = State.ValueEscape;
                                 } else {
                                     sbValue.Append(ch);
@@ -663,10 +664,10 @@ namespace Medo.Configuration {
                             case State.Value:
                                 if (char.IsWhiteSpace(ch)) {
                                     state = State.ValueOrComment;
-                                } else if (ch == '#') {
+                                } else if (ch is '#') {
                                     sbComment.Append(ch);
                                     state = State.Comment;
-                                } else if (ch == '\\') {
+                                } else if (ch is '\\') {
                                     state = State.ValueEscape;
                                 } else {
                                     sbValue.Append(ch);
@@ -675,10 +676,10 @@ namespace Medo.Configuration {
 
                             case State.ValueOrComment:
                                 if (char.IsWhiteSpace(ch)) {
-                                } else if (ch == '#') {
+                                } else if (ch is '#') {
                                     sbComment.Append(ch);
                                     state = State.Comment;
-                                } else if (ch == '\\') {
+                                } else if (ch is '\\') {
                                     sbValue.Append(sbWhitespace);
                                     state = State.ValueEscape;
                                 } else {
@@ -690,8 +691,8 @@ namespace Medo.Configuration {
 
                             case State.KeyEscape:
                             case State.ValueEscape:
-                                if (ch == 'u') {
-                                    state = (state == State.KeyEscape) ? State.KeyEscapeLong : State.ValueEscapeLong;
+                                if (ch is 'u') {
+                                    state = (state is State.KeyEscape) ? State.KeyEscapeLong : State.ValueEscapeLong;
                                 } else {
                                     var newCh = ch switch {
                                         '0' => '\0',
@@ -702,12 +703,12 @@ namespace Medo.Configuration {
                                         '_' => ' ',
                                         _ => ch,
                                     };
-                                    if (state == State.KeyEscape) {
+                                    if (state is State.KeyEscape) {
                                         sbKey.Append(newCh);
                                     } else {
                                         sbValue.Append(newCh);
                                     }
-                                    state = (state == State.KeyEscape) ? State.Key : State.Value;
+                                    state = (state is State.KeyEscape) ? State.Key : State.Value;
                                 }
                                 break;
 
@@ -716,13 +717,13 @@ namespace Medo.Configuration {
                                 sbEscapeLong.Append(ch);
                                 if (sbEscapeLong.Length == 4) {
                                     if (int.TryParse(sbEscapeLong.ToString(), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var chValue)) {
-                                        if (state == State.KeyEscape) {
+                                        if (state is State.KeyEscape) {
                                             sbKey.Append((char)chValue);
                                         } else {
                                             sbValue.Append((char)chValue);
                                         }
                                     }
-                                    state = (state == State.KeyEscapeLong) ? State.Key : State.Value;
+                                    state = (state is State.KeyEscapeLong) ? State.Key : State.Value;
                                 }
                                 break;
                         }
@@ -730,16 +731,16 @@ namespace Medo.Configuration {
                         if (char.IsWhiteSpace(ch) && (prevState != State.KeyEscape) && (prevState != State.ValueEscape) && (prevState != State.KeyEscapeLong) && (prevState != State.ValueEscapeLong)) {
                             sbWhitespace.Append(ch);
                         } else if (state != prevState) { //on state change, clean comment prefix
-                            if ((state == State.ValueOrWhitespace) && (separatorPrefix == null)) {
+                            if ((state is State.ValueOrWhitespace) && (separatorPrefix == null)) {
                                 separatorPrefix = sbWhitespace.ToString();
                                 sbWhitespace.Clear();
-                            } else if ((state == State.Value) && (separatorSuffix == null)) {
+                            } else if ((state is State.Value) && (separatorSuffix == null)) {
                                 separatorSuffix = sbWhitespace.ToString();
                                 sbWhitespace.Clear();
-                            } else if ((state == State.Comment) && (commentPrefix == null)) {
+                            } else if ((state is State.Comment) && (commentPrefix == null)) {
                                 commentPrefix = sbWhitespace.ToString();
                                 sbWhitespace.Clear();
-                            } else if ((state == State.Key) || (state == State.ValueOrWhitespace) || (state == State.Value)) {
+                            } else if (state is State.Key or State.ValueOrWhitespace or State.Value) {
                                 sbWhitespace.Clear();
                             }
                         }
@@ -854,7 +855,7 @@ namespace Medo.Configuration {
                         EscapeIntoStringBuilder(sb, Key, isKey: true);
 
                         if (!string.IsNullOrEmpty(Value)) {
-                            if ((Separator == ':') || (Separator == '=')) {
+                            if (Separator is ':' or '=') {
                                 sb.Append(SeparatorPrefix);
                                 sb.Append(Separator);
                                 sb.Append(SeparatorSuffix);
@@ -912,7 +913,7 @@ namespace Medo.Configuration {
                             default:
                                 if (char.IsControl(ch)) {
                                     sb.Append(((int)ch).ToString("X4", CultureInfo.InvariantCulture));
-                                } else if (ch == ' ') {
+                                } else if (ch is ' ') {
                                     if ((i == 0) || (i == (text.Length - 1)) || isKey) {
                                         sb.Append(@"\_");
                                     } else {
@@ -939,7 +940,7 @@ namespace Medo.Configuration {
                                             sb.Append(((int)ch).ToString("X4", CultureInfo.InvariantCulture));
                                             break;
                                     }
-                                } else if (ch == '\\') {
+                                } else if (ch is '\\') {
                                     sb.Append(@"\\");
                                 } else {
                                     sb.Append(ch);

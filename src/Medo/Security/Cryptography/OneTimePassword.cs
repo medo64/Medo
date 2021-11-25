@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-11-01: Added support for DateTimeOffset
 //2021-03-04: Refactored for .NET 5
 //2017-09-17: Refactored for .NET Standard 2.0
@@ -90,7 +91,7 @@ namespace Medo.Security.Cryptography {
         public int Digits {
             get { return _digits; }
             set {
-                if ((value < 4) || (value > 9)) { throw new ArgumentOutOfRangeException(nameof(value), "Number of digits to return must be between 4 and 9."); }
+                if (value is < 4 or > 9) { throw new ArgumentOutOfRangeException(nameof(value), "Number of digits to return must be between 4 and 9."); }
                 _digits = value;
             }
         }
@@ -109,7 +110,7 @@ namespace Medo.Security.Cryptography {
                     _timeStep = 0;
                     Counter = 0;
                 } else {
-                    if ((value < 15) || (value > 300)) { throw new ArgumentOutOfRangeException(nameof(value), "Time step must be between 15 and 300 seconds."); }
+                    if (value is < 15 or > 300) { throw new ArgumentOutOfRangeException(nameof(value), "Time step must be between 15 and 300 seconds."); }
                     _timeStep = value;
                 }
             }
@@ -186,7 +187,7 @@ namespace Medo.Security.Cryptography {
         /// <exception cref="ArgumentOutOfRangeException">Time must be either UTC or Local.</exception>
         /// <exception cref="NotSupportedException">Cannot specify time in HOTP mode (time step is zero).</exception>
         public int GetCode(DateTime time) {
-            if ((time.Kind != DateTimeKind.Utc) && (time.Kind != DateTimeKind.Local)) { throw new ArgumentOutOfRangeException(nameof(time), "Time must be either UTC or Local."); }
+            if (time.Kind is not DateTimeKind.Utc and not DateTimeKind.Local) { throw new ArgumentOutOfRangeException(nameof(time), "Time must be either UTC or Local."); }
             return GetCode(new DateTimeOffset(time));
         }
 
@@ -291,7 +292,7 @@ namespace Medo.Security.Cryptography {
         /// <exception cref="ArgumentOutOfRangeException">Time must be either UTC or Local.</exception>
         /// <exception cref="NotSupportedException">Cannot specify time in HOTP mode (time step is zero).</exception>
         public bool IsCodeValid(int code, DateTime time) {
-            if ((time.Kind != DateTimeKind.Utc) && (time.Kind != DateTimeKind.Local)) { throw new ArgumentOutOfRangeException(nameof(time), "Time must be either UTC or Local."); }
+            if (time.Kind is not DateTimeKind.Utc and not DateTimeKind.Local) { throw new ArgumentOutOfRangeException(nameof(time), "Time must be either UTC or Local."); }
             return IsCodeValid(code, new DateTimeOffset(time));
         }
 
@@ -438,7 +439,7 @@ namespace Medo.Security.Cryptography {
                 }
             }
 
-            if ((bitPosition > -1) && (bitPosition >= 5)) {
+            if (bitPosition is > (-1) and >= 5) {
                 partialByte <<= (8 - bitPosition);
                 buffer[index] = partialByte;
                 index++;

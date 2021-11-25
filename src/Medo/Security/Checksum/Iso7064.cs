@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-10-31: Refactored for .NET 5
 //2009-01-05: Initial version.
 
@@ -83,7 +84,7 @@ namespace Medo.Security.Checksum {
         private void ProcessBytes(byte[] bytes, int index, int count) {
             int oldDigest = DigestSum;
             for (var i = index; i < (index + count); i++) {
-                if ((bytes[i] >= '0') && (bytes[i] <= '9')) {
+                if (bytes[i] is >= (byte)'0' and <= (byte)'9') {
                     DigestSum += (bytes[i] - '0');
                     if (DigestSum > 10) { DigestSum -= 10; }
                     DigestSum *= 2;

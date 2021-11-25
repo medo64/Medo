@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-10-31: Fixed reuse for new hash
 //2021-03-04: Class is sealed
 //2021-02-28: Refactored for .NET 5
@@ -103,7 +104,7 @@ namespace Medo.Security.Checksum {
             var savedHash = HashAsNumber;
             for (var i = index; i < (index + count); i++) {
                 var b = bytes[i];
-                if ((b < 0x30) || (b > 0x39)) {
+                if (b is < 0x30 or > 0x39) {
                     HashAsNumber = savedHash;  // restore old hash value
                     throw new ArgumentOutOfRangeException(nameof(bytes), "Only numbers 0 to 9 are allowed.");
                 }

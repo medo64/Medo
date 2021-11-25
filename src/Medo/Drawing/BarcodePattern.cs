@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-11-02: Properly disposing streams
 //2021-11-01: Added PNG output (SaveAsPng method)
 //2021-10-31: Refactored for .NET 5
@@ -182,9 +183,9 @@ namespace Medo.Drawing {
         /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
         public void SaveAsPng(Stream stream, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
             if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
-            if ((barWidth <= 0) || (barWidth > 100)) { throw new ArgumentOutOfRangeException(nameof(barWidth), "Bar width must be between 1 and 100 pixels."); }
-            if ((barHeight <= 0) || (barHeight > 1000)) { throw new ArgumentOutOfRangeException(nameof(barHeight), "Bar height must be between 1 and 1000 pixels."); }
-            if ((margin < 0) || (margin > 1000)) { throw new ArgumentOutOfRangeException(nameof(margin), "Margin must be between 1 and 1000 pixels."); }
+            if (barWidth is <= 0 or > 100) { throw new ArgumentOutOfRangeException(nameof(barWidth), "Bar width must be between 1 and 100 pixels."); }
+            if (barHeight is <= 0 or > 1000) { throw new ArgumentOutOfRangeException(nameof(barHeight), "Bar height must be between 1 and 1000 pixels."); }
+            if (margin is < 0 or > 1000) { throw new ArgumentOutOfRangeException(nameof(margin), "Margin must be between 1 and 1000 pixels."); }
 
             var hasTransparency = (barColor.A < 255) || (gapColor.A < 255);
             var barBytes = hasTransparency ? new byte[] { barColor.R, barColor.G, barColor.B, barColor.A } : new byte[] { barColor.R, barColor.G, barColor.B };
@@ -344,8 +345,8 @@ namespace Medo.Drawing {
         public static BarcodePattern GetNewCodabar(string text, char startCharacter, char endCharacter) {
             var startCharUpper = char.ToUpperInvariant(startCharacter);
             var endCharUpper = char.ToUpperInvariant(endCharacter);
-            if ((startCharUpper != 'A') && (startCharUpper != 'B') && (startCharUpper != 'C') && (startCharUpper != 'D')) { throw new ArgumentOutOfRangeException(nameof(startCharacter), "Invalid start character."); }
-            if ((endCharUpper != 'A') && (endCharUpper != 'B') && (endCharUpper != 'C') && (endCharUpper != 'D')) { throw new ArgumentOutOfRangeException(nameof(endCharacter), "Invalid end character."); }
+            if (startCharUpper is not 'A' and not 'B' and not 'C' and not 'D') { throw new ArgumentOutOfRangeException(nameof(startCharacter), "Invalid start character."); }
+            if (endCharUpper is not 'A' and not 'B' and not 'C' and not 'D') { throw new ArgumentOutOfRangeException(nameof(endCharacter), "Invalid end character."); }
             return new BarcodePattern(new CodabarImpl(startCharUpper, endCharUpper), text);
         }
 
@@ -863,7 +864,7 @@ namespace Medo.Drawing {
 
             bool IBarcodeImpl.IsCharacterSupported(char character) {
                 var value = (int)character;
-                return (value >= 0) && (value <= 127);
+                return (value is >= 0 and <= 127);
             }
 
             int[] IBarcodeImpl.GetPattern(string text) {

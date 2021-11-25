@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-03-24: Added Count property
 //2021-03-04: Refactored for .NET 5
 //2011-03-05: Moved to Medo.Math
@@ -66,7 +67,8 @@ namespace Medo.Math {
         /// <param name="smoothingFactor">Smoothing factor. Must be between 0 and 1. Lower values result in a greated smooting.</param>
         /// <exception cref="ArgumentOutOfRangeException">Smoothing factor must be between 0 and 1 (inclusive).</exception>
         public ExponentialMovingAverage(double smoothingFactor) {
-            if ((smoothingFactor < 0) || (smoothingFactor > 1)) { throw new ArgumentOutOfRangeException(nameof(smoothingFactor), "smoothingFactor", "Smoothing factor must be between 0 and 1."); }
+            var v = (smoothingFactor < 0);
+            if (v || (smoothingFactor > 1)) { throw new ArgumentOutOfRangeException(nameof(smoothingFactor), "smoothingFactor", "Smoothing factor must be between 0 and 1."); }
             _smoothingFactor = smoothingFactor;
         }
 

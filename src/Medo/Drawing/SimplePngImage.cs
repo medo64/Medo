@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-11-03: Initial version
 
 namespace Medo.Drawing {
@@ -241,7 +242,7 @@ namespace Medo.Drawing {
 
                     switch (colorType) {
                         case 0:  // Greyscale
-                            if ((bitDepth != 1) && (bitDepth != 2) && (bitDepth != 4) && (bitDepth != 8)) { throw new InvalidDataException("Unsupported bit depth."); }
+                            if (bitDepth is not 1 and not 2 and not 4 and not 8) { throw new InvalidDataException("Unsupported bit depth."); }
                             colorStyle = ColorKind.Mono;
                             break;
 
@@ -251,7 +252,7 @@ namespace Medo.Drawing {
                             break;
 
                         case 3:  // Indexed-colour
-                            if ((bitDepth != 1) && (bitDepth != 2) && (bitDepth != 4) && (bitDepth != 8)) { throw new InvalidDataException("Unsupported bit depth."); }
+                            if (bitDepth is not 1 and not 2 and not 4 and not 8) { throw new InvalidDataException("Unsupported bit depth."); }
                             colorStyle = ColorKind.Indexed;
                             break;
 

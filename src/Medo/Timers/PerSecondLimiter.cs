@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-05-20: Not using SemaphoreSlim
 //            Using Interlocked where possible
 //            Removed Async methods
@@ -192,7 +193,7 @@ namespace Medo.Timers {
             Interlocked.Exchange(ref LastTimestamp, currentTimestamp);
 
             long maxToAdd;
-            if ((msElapsed == 1) || (msElapsed >= 100)) {  // add only single slice if waiting more than 100ms (or if only single slice is needed)
+            if (msElapsed is 1 or >= 100) {  // add only single slice if waiting more than 100ms (or if only single slice is needed)
                 var index = Interlocked.Increment(ref RateSliceIndex) % 1000;
                 maxToAdd = Interlocked.Read(ref RateSlices[index]);
             } else {

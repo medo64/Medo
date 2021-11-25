@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-10-08: Refactored for .NET 5
 //2018-10-28: Fixed line reading when CR is not immediately returned
 //            Background thread doesn't crash when device is removed
@@ -228,7 +229,7 @@ namespace Medo.Device {
         /// <param name="level">Load level; 0 is off, 9 is highest.</param>
         /// <exception cref="ArgumentOutOfRangeException">Level must be between 0 (off) and 9 (highest).</exception>
         public bool SetLoad(int level) {
-            if ((level < 0) || (level > 9)) { throw new ArgumentOutOfRangeException(nameof(level), "Level must be between 0 (off) and 9 (highest)."); }
+            if (level is < 0 or > 9) { throw new ArgumentOutOfRangeException(nameof(level), "Level must be between 0 (off) and 9 (highest)."); }
             var response = WriteCommand(new byte[] { (byte)'*', (byte)'L', (byte)(0x30 + level), CR });
             return (response != null) && response.IsPositive;
         }
@@ -312,7 +313,7 @@ namespace Medo.Device {
             for (var i = 0; i < length; i++) {
                 var curr = buffer[i];
                 ByteQueue.Enqueue(curr);
-                if ((curr == CR) || (curr == BEL)) {
+                if (curr is CR or BEL) {
                     var response = new ParsedResponseData(ByteQueue.ToArray());
                     ByteQueue.Clear();
 
@@ -688,10 +689,10 @@ namespace Medo.Device {
     public class CanankaVersion {
         internal CanankaVersion(byte[]? data) {
             if ((data != null) && (data.Length >= 5) && (data[0] == (byte)'V')) {
-                var hwMajorOK = (data[1] >= 0x30) && (data[1] <= 0x39);
-                var hwMinorOK = (data[2] >= 0x30) && (data[2] <= 0x39);
-                var swMajorOK = (data[3] >= 0x30) && (data[3] <= 0x39);
-                var swMinorOK = (data[4] >= 0x30) && (data[4] <= 0x39);
+                var hwMajorOK = data[1] is >= 0x30 and <= 0x39;
+                var hwMinorOK = data[2] is >= 0x30 and <= 0x39;
+                var swMajorOK = data[3] is >= 0x30 and <= 0x39;
+                var swMinorOK = data[4] is >= 0x30 and <= 0x39;
                 var hwMajor = hwMajorOK ? data[1] - 0x30 : 0;
                 var hwMinor = hwMinorOK ? data[2] - 0x30 : 0;
                 var swMajor = swMajorOK ? data[3] - 0x30 : 0;
@@ -762,11 +763,11 @@ namespace Medo.Device {
         /// <param name="data">Data bytes.</param>
         /// <exception cref="ArgumentOutOfRangeException">ID must be between 0 and 0x1FFFFFFF. -or- Length must be between 0 and 8 bytes. -or- Remote request cannot contain data. -or- Data cannot be longer than 8 bytes.</exception>
         internal CanankaMessage(int id, int length, bool isExtended, bool isRemoteRequest, byte[]? data) {
-            if ((id < 0x00000000) || (id > 0x1FFFFFFF)) { throw new ArgumentOutOfRangeException(nameof(id), "ID must be between 0 and 0x1FFFFFFF."); }
+            if (id is < 0x00000000 or > 0x1FFFFFFF) { throw new ArgumentOutOfRangeException(nameof(id), "ID must be between 0 and 0x1FFFFFFF."); }
             if (id > 0x7FF) { isExtended = true; }
 
             if (isRemoteRequest) {
-                if ((length < 0) || (length > 8)) { throw new ArgumentOutOfRangeException(nameof(length), "Length must be between 0 and 8 bytes."); }
+                if (length is < 0 or > 8) { throw new ArgumentOutOfRangeException(nameof(length), "Length must be between 0 and 8 bytes."); }
                 if (data != null) { throw new ArgumentOutOfRangeException(nameof(data), "Remote request cannot contain data."); }
             } else {
                 if (data == null) { data = Array.Empty<byte>(); }
@@ -787,7 +788,7 @@ namespace Medo.Device {
         /// <param name="data">Data.</param>
         /// <exception cref="ArgumentOutOfRangeException">ID must be between 0 and 0x1FFFFFFF. -or- Data cannot be longer than 8 bytes.</exception>
         public CanankaMessage(int id, byte[] data) {
-            if ((id < 0x00000000) || (id > 0x1FFFFFFF)) { throw new ArgumentOutOfRangeException(nameof(id), "ID must be between 0 and 0x1FFFFFFF."); }
+            if (id is < 0x00000000 or > 0x1FFFFFFF) { throw new ArgumentOutOfRangeException(nameof(id), "ID must be between 0 and 0x1FFFFFFF."); }
             if (data == null) { data = Array.Empty<byte>(); }
             if (data.Length > 8) { throw new ArgumentOutOfRangeException(nameof(data), "Data cannot be longer than 8 bytes."); }
 
@@ -805,8 +806,8 @@ namespace Medo.Device {
         /// <param name="length">Data length.</param>
         /// <exception cref="ArgumentOutOfRangeException">ID must be between 0 and 0x1FFFFFFF. -or- Length must be between 0 and 8 bytes.</exception>
         public CanankaMessage(int id, int length) {
-            if ((id < 0x00000000) || (id > 0x1FFFFFFF)) { throw new ArgumentOutOfRangeException(nameof(id), "ID must be between 0 and 0x1FFFFFFF."); }
-            if ((length < 0) || (length > 8)) { throw new ArgumentOutOfRangeException(nameof(length), "Length must be between 0 and 8 bytes."); }
+            if (id is < 0x00000000 or > 0x1FFFFFFF) { throw new ArgumentOutOfRangeException(nameof(id), "ID must be between 0 and 0x1FFFFFFF."); }
+            if (length is < 0 or > 8) { throw new ArgumentOutOfRangeException(nameof(length), "Length must be between 0 and 8 bytes."); }
 
             Id = id;
             Length = length;

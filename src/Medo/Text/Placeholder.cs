@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-10-05: Refactored for .NET 5
 //2013-03-11: Nulls are supported
 //2013-03-08: Bug-fixing
@@ -134,7 +135,7 @@ namespace Medo.Text {
             if (namesAndValues != null) {
                 if ((namesAndValues.Length % 2) != 0) { throw new ArgumentOutOfRangeException(nameof(namesAndValues), "There must be even number of names and values."); }
                 for (int i = 0; i < namesAndValues.Length; i += 2) {
-                    if (!(namesAndValues[i] is string name)) { throw new ArgumentOutOfRangeException(nameof(namesAndValues), "Name must be a string."); }
+                    if (namesAndValues[i] is not string name) { throw new ArgumentOutOfRangeException(nameof(namesAndValues), "Name must be a string."); }
                     var value = namesAndValues[i + 1];
                     items.Add(name, value);
                 }

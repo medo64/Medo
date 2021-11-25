@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-03-16: Initial version
 
 namespace Medo.Text {
@@ -48,7 +49,7 @@ namespace Medo.Text {
             get { return _separator; }
             set {
                 if (HeaderFieldCount > 0) { throw new InvalidOperationException("Cannot change separator after starting to write."); }
-                if ((value != ',') && (value != ';')) { throw new ArgumentOutOfRangeException(nameof(value), "Only comma and semicolon are supported characters."); }
+                if (value is not ',' and not ';') { throw new ArgumentOutOfRangeException(nameof(value), "Only comma and semicolon are supported characters."); }
                 _separator = value;
             }
         }
@@ -68,7 +69,7 @@ namespace Medo.Text {
             set {
                 if (HeaderFieldCount > 0) { throw new InvalidOperationException("Cannot change separator after starting to write."); }
                 if (value == null) { throw new ArgumentNullException(nameof(value), "Value cannot be null."); }
-                if ((value != "\n") && (value != "\r\n") && (value != "\r")) { throw new ArgumentOutOfRangeException(nameof(value), "Only LF, CRLF, and CR are supported characters."); }
+                if (value is not "\n" and not "\r\n" and not "\r") { throw new ArgumentOutOfRangeException(nameof(value), "Only LF, CRLF, and CR are supported characters."); }
                 _newLine = value;
             }
         }

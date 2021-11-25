@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-03-11: Initial version
 
 namespace Medo.Windows.Forms {
@@ -23,7 +24,7 @@ namespace Medo.Windows.Forms {
         /// <param name="millisecondResolution">Desired resolution in milliseconds.</param>
         /// <exception cref="ArgumentOutOfRangeException">Resolution must be between 1 to 15 ms.</exception>
         public TimerResolution(int millisecondResolution) {
-            if ((millisecondResolution < 1) || (millisecondResolution > 15)) { throw new ArgumentOutOfRangeException(nameof(millisecondResolution), "Resolution must be between 1 to 15 ms."); }
+            if (millisecondResolution is < 1 or > 15) { throw new ArgumentOutOfRangeException(nameof(millisecondResolution), "Resolution must be between 1 to 15 ms."); }
             try {
                 Successful = (NativeMethods.TimeBeginPeriod((uint)millisecondResolution) == NativeMethods.TIMERR_NOERROR);
             } catch (Win32Exception) {

@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-10-09: Added IDisposable interface
 //2021-03-10: Replaced lock
 //2021-03-04: Refactoring
@@ -26,7 +27,7 @@ namespace Medo.Timers {
         /// </summary>
         /// <param name="resolution">Resolution in milliseconds (100 ms to 10 s).</param>
         public PerSecondCounter(int resolution) {
-            if ((resolution < 100) || (resolution > 10000)) { throw new ArgumentOutOfRangeException(nameof(resolution), "Resolution must be between 100 and 10000 ms."); }
+            if (resolution is < 100 or > 10000) { throw new ArgumentOutOfRangeException(nameof(resolution), "Resolution must be between 100 and 10000 ms."); }
             TimebaseDivisor = resolution;
             HeartbeatTimer = new Timer(
                 delegate { Tick?.Invoke(null, EventArgs.Empty); }, null,

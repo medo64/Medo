@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-11-08: Refactored for .NET 6
 //2021-10-10: Initial version
 
@@ -482,7 +483,7 @@ namespace Medo.IO {
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Amount must be a positive number less than 65536.</exception>
         public static Sequence MoveLeft(int amount) {
-            if ((amount < 1) || (amount > 65535)) { throw new ArgumentNullException(nameof(amount), "Amount must be a positive number less than 65536."); }
+            if (amount is < 1 or > 65535) { throw new ArgumentNullException(nameof(amount), "Amount must be a positive number less than 65536."); }
             return MoveHorizontally(-amount);
         }
 
@@ -498,7 +499,7 @@ namespace Medo.IO {
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Amount must be a positive number less than 65536.</exception>
         public static Sequence MoveRight(int amount) {
-            if ((amount < 1) || (amount > 65535)) { throw new ArgumentNullException(nameof(amount), "Amount must be a positive number less than 65536."); }
+            if (amount is < 1 or > 65535) { throw new ArgumentNullException(nameof(amount), "Amount must be a positive number less than 65536."); }
             return MoveHorizontally(amount);
         }
 
@@ -550,7 +551,7 @@ namespace Medo.IO {
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Amount must be a positive number less than 65536.</exception>
         public static Sequence MoveUp(int amount) {
-            if ((amount < 1) || (amount > 65535)) { throw new ArgumentNullException(nameof(amount), "Amount must be a positive number less than 65536."); }
+            if (amount is < 1 or > 65535) { throw new ArgumentNullException(nameof(amount), "Amount must be a positive number less than 65536."); }
             return MoveVertically(-amount);
         }
 
@@ -566,7 +567,7 @@ namespace Medo.IO {
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Amount must be a positive number less than 65536.</exception>
         public static Sequence MoveDown(int amount) {
-            if ((amount < 1) || (amount > 65535)) { throw new ArgumentNullException(nameof(amount), "Amount must be a positive number less than 65536."); }
+            if (amount is < 1 or > 65535) { throw new ArgumentNullException(nameof(amount), "Amount must be a positive number less than 65536."); }
             return MoveVertically(amount);
         }
 
@@ -612,8 +613,8 @@ namespace Medo.IO {
         /// <param name="y">Y coordinate; 0 ignores the parameter.</param>
         /// <exception cref="ArgumentOutOfRangeException">X must be either 0 or between 1 and 65535. -or- Y must be either 0 or between 1 and 65535.</exception>
         public static Sequence MoveTo(int x, int y) {
-            if ((x < 0) || (x > 65535)) { throw new ArgumentOutOfRangeException(nameof(x), "X must be either 0 or between 1 and 65535."); }
-            if ((y < 0) || (y > 65535)) { throw new ArgumentOutOfRangeException(nameof(y), "Y must be either 0 or between 1 and 65535."); }
+            if (x is < 0 or > 65535) { throw new ArgumentOutOfRangeException(nameof(x), "X must be either 0 or between 1 and 65535."); }
+            if (y is < 0 or > 65535) { throw new ArgumentOutOfRangeException(nameof(y), "Y must be either 0 or between 1 and 65535."); }
 
             var moveHor = (x > 0);
             var moveVer = (y > 0);

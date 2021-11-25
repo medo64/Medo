@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-11-08: Refactored for .NET 6
 //2021-03-05: Refactored for .NET 5
 //2017-08-15: Replacing ThreadStatic with Lazy<RandomNumberGenerator>
@@ -89,7 +90,7 @@ namespace Medo.Security.Cryptography {
         public override CipherMode Mode {
             get { return base.Mode; }
             set {
-                if ((value != CipherMode.CBC) && (value != CipherMode.ECB)) {
+                if (value is not CipherMode.CBC and not CipherMode.ECB) {
                     throw new CryptographicException("Cipher mode is not supported.");
                 }
                 base.Mode = value;
@@ -357,7 +358,7 @@ namespace Medo.Security.Cryptography {
         private static byte[] RemovePadding(byte[] outputBuffer, PaddingMode paddingMode) {
             if (paddingMode == PaddingMode.PKCS7) {
                 var padding = outputBuffer[^1];
-                if ((padding < 1) || (padding > 16)) { throw new CryptographicException("Invalid padding."); }
+                if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
                 for (var i = outputBuffer.Length - padding; i < outputBuffer.Length; i++) {
                     if (outputBuffer[i] != padding) { throw new CryptographicException("Invalid padding."); }
                 }
@@ -381,7 +382,7 @@ namespace Medo.Security.Cryptography {
                 }
             } else if (paddingMode == PaddingMode.ANSIX923) {
                 var padding = outputBuffer[^1];
-                if ((padding < 1) || (padding > 16)) { throw new CryptographicException("Invalid padding."); }
+                if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
                 for (var i = outputBuffer.Length - padding; i < outputBuffer.Length - 1; i++) {
                     if (outputBuffer[i] != 0) { throw new CryptographicException("Invalid padding."); }
                 }
@@ -390,7 +391,7 @@ namespace Medo.Security.Cryptography {
                 return newOutputBuffer;
             } else if (paddingMode == PaddingMode.ISO10126) {
                 var padding = outputBuffer[^1];
-                if ((padding < 1) || (padding > 16)) { throw new CryptographicException("Invalid padding."); }
+                if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
                 var newOutputBuffer = new byte[outputBuffer.Length - padding];
                 Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
                 return newOutputBuffer;

@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-09-28: Added constructor for empty instance
 //2021-09-26: Initial version
 
@@ -197,24 +198,24 @@ namespace Medo.Configuration {
 
                                             switch (state) {
                                                 case State.Normal:
-                                                    if (ch == '\n') {  // done with parsing
+                                                    if (ch is '\n') {  // done with parsing
                                                         if (valueText.Length > 0) {  // just add trimmable text if there's any
                                                             valueParts.Add((valueText.ToString(), Trimmable: true));
                                                             valueText.Length = 0;
                                                         }
-                                                    } else if ((ch == '#') || (ch == ';')) {  // comment
+                                                    } else if (ch is '#' or ';') {  // comment
                                                         if (valueText.Length > 0) {  // just add trimmable text if there's any
                                                             valueParts.Add((valueText.ToString(), Trimmable: true));
                                                             valueText.Length = 0;
                                                         }
                                                         state = State.Done;
-                                                    } else if (ch == '\'') {  // single quote
+                                                    } else if (ch is '\'') {  // single quote
                                                         if (valueText.Length > 0) {  // just add trimmable text if there's any
                                                             valueParts.Add((valueText.ToString(), Trimmable: true));
                                                             valueText.Length = 0;
                                                         }
                                                         state = State.Single;
-                                                    } else if (ch == '"') {  // double quote
+                                                    } else if (ch is '"') {  // double quote
                                                         if (valueText.Length > 0) {  // just add trimmable text if there's any
                                                             valueParts.Add((valueText.ToString(), Trimmable: true));
                                                             valueText.Length = 0;
@@ -226,9 +227,9 @@ namespace Medo.Configuration {
                                                     break;
 
                                                 case State.Single:
-                                                    if (ch == '\n') {  // done with parsing
+                                                    if (ch is '\n') {  // done with parsing
                                                         valueParts.Add((valueText.ToString(), Trimmable: false));  // just add whatever you have
-                                                    } else if (ch == '\'') {
+                                                    } else if (ch is '\'') {
                                                         if (valueChars.Peek() == '\'') {  // double apostrophe
                                                             valueChars.Dequeue();
                                                             valueText.Append('\'');
@@ -243,13 +244,13 @@ namespace Medo.Configuration {
                                                     break;
 
                                                 case State.Double:
-                                                    if (ch == '\n') {  // done with parsing
+                                                    if (ch is '\n') {  // done with parsing
                                                         valueParts.Add((valueText.ToString(), Trimmable: false));  // just add whatever you have
-                                                    } else if (ch == '"') {
+                                                    } else if (ch is '"') {
                                                         valueParts.Add((valueText.ToString(), Trimmable: false));  // add to list
                                                         valueText.Length = 0;
                                                         state = State.Normal;
-                                                    } else if (ch == '\\') {
+                                                    } else if (ch is '\\') {
                                                         ch = valueChars.Dequeue();  // get next char
                                                         switch (ch) {
                                                             case '\n': break;  // ignore escape
@@ -298,7 +299,7 @@ namespace Medo.Configuration {
                                                                             number = -1;  // abandon parse
                                                                         }
                                                                     }
-                                                                    if ((number >= 0) && (number <= 0x00FFFFFF)) {  // don't add if not fully parsed
+                                                                    if (number is >= 0 and <= 0x00FFFFFF) {  // don't add if not fully parsed
                                                                         valueText.Append(char.ConvertFromUtf32(number));
                                                                     }
                                                                 }

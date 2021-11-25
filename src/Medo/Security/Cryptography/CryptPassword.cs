@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2021-11-25: Refactored to use pattern matching
 //2021-07-06: Refactored for .NET 5
 //2013-03-26: Initial version
 
@@ -122,7 +123,7 @@ namespace Medo.Security.Cryptography {
         /// <exception cref="ArgumentNullException">Password cannot be null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Unknown algorithm. -or- Salt size must be between 0 and 16 bytes. -or- Iteration count must be between 1000 and 999999999.</exception>
         public static string Create(byte[] password, CryptPasswordAlgorithm algorithm, int saltSize, int iterationCount) {
-            if ((saltSize != DefaultSaltSize) && ((saltSize < 0) || (saltSize > 16))) { throw new ArgumentOutOfRangeException(nameof(saltSize), "Salt size must be between 0 and 16 bytes."); }
+            if (saltSize is not DefaultSaltSize and (< 0 or > 16)) { throw new ArgumentOutOfRangeException(nameof(saltSize), "Salt size must be between 0 and 16 bytes."); }
 
             if (saltSize == DefaultSaltSize) {
                 saltSize = algorithm switch {
@@ -167,7 +168,7 @@ namespace Medo.Security.Cryptography {
         public static string Create(byte[] password, CryptPasswordAlgorithm algorithm, byte[] salt, int iterationCount) {
             if (password == null) { throw new ArgumentNullException(nameof(password), "Password cannot be null."); }
             if (salt == null) { throw new ArgumentNullException(nameof(salt), "Salt cannot be null."); }
-            if ((iterationCount != DefaultIterationCount) && ((iterationCount < 1000) || (iterationCount > 999999999))) { throw new ArgumentOutOfRangeException(nameof(iterationCount), "Iteration count must be between 1000 and 999999999."); }
+            if (iterationCount is not DefaultIterationCount and (< 1000 or > 999999999)) { throw new ArgumentOutOfRangeException(nameof(iterationCount), "Iteration count must be between 1000 and 999999999."); }
 
             return algorithm switch {
                 CryptPasswordAlgorithm.MD5 => CreateMd5Basic(password, salt, iterationCount),
