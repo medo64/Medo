@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-01-04: ShowQuestion uses YesNo buttons by default
 //2021-11-25: Renamed to MsgBox
 //2021-02-27: Refactored for .NET 5
 //2012-11-24: Suppressing bogus CA5122 warning (http://connect.microsoft.com/VisualStudio/feedback/details/729254/bogus-ca5122-warning-about-p-invoke-declarations-should-not-be-safe-critical)
@@ -247,7 +248,7 @@ namespace Medo.Windows.Forms {
         /// <param name="owner">An implementation of IWin32Window that will own the modal dialog box.</param>
         /// <param name="text">The text to display in the message box.</param>
         public static DialogResult ShowQuestion(IWin32Window? owner, string text) {
-            return ShowQuestion(owner, text, Application.ProductName, MessageBoxButtons.OK, MessageBoxDefaultButton.Button1);
+            return ShowQuestion(owner, text, Application.ProductName, MessageBoxButtons.YesNo, MessageBoxDefaultButton.Button1);
         }
 
         /// <summary>
@@ -278,7 +279,7 @@ namespace Medo.Windows.Forms {
         /// <param name="text">The text to display in the message box.</param>
         /// <param name="caption">The text to display in the title bar of the message box.</param>
         public static DialogResult ShowQuestion(IWin32Window? owner, string text, string caption) {
-            return ShowQuestion(owner, text, caption, MessageBoxButtons.OK, MessageBoxDefaultButton.Button1);
+            return ShowQuestion(owner, text, caption, MessageBoxButtons.YesNo, MessageBoxDefaultButton.Button1);
         }
 
         /// <summary>
