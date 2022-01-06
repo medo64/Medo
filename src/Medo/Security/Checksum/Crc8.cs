@@ -18,9 +18,9 @@ namespace Medo.Security.Checksum {
     /// <summary>
     /// Computes hash using the 8-bit CRC algorithm.
     /// The following CRC-8 variants are supported: AUTOSAR, BLUETOOTH, CCITT,
-    /// CDMA2000, DALLAS, DARC, DVB-S2, GSM-A, GSM-B, HITAG, I-432-1, ITU, LTE,
-    /// MAXIM, MAXIM-DOW, MIFARE, MIFARE-MAD, NRSC-5, OpenSAFETY, ROHC,
-    /// SAE-J1850, SMBUS, TECH-3250, and WCDMA2000.
+    /// CDMA2000, DALLAS, DARC, DVB-S2, GSM-A, GSM-B, HITAG, I-432-1, I-CODE,
+    /// ITU, LTE, MAXIM, MAXIM-DOW, MIFARE, MIFARE-MAD, NRSC-5, OpenSAFETY,
+    /// ROHC, SAE-J1850, SMBUS, TECH-3250, and WCDMA2000.
     /// </summary>
     /// <example>
     /// <code>
@@ -67,7 +67,7 @@ namespace Medo.Security.Checksum {
         /// GSM-B                0x49 (x⁸ + x⁶ + x³ + 1)            0x00  0xFF  -
         /// HITAG                0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0x00  -
         /// I-432-1 / ITU        0x07 (x⁸ + x² + x + 1)             0x00  0x55  -
-        /// I-CODE               0x1D (x⁸ + x⁴ + x³ + 1)            0xFD  0x00  -
+        /// I-CODE               0x1D (x⁸ + x⁴ + x³ + 1)            0xBF  0x00  -
         /// LTE                  0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
         /// MAXIM-DOW / MAXIM    0x31 (x⁸ + x⁵ + x⁴ + 1)            0x00  0x00  In/Out
         /// MIFARE-MAD / MIFARE  0x1D (x⁸ + x⁴ + x³ + 1)            0xE3  0x00  -

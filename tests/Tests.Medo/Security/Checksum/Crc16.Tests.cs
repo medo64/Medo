@@ -78,6 +78,22 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(0xAEE7, (ushort)crc.HashAsInt16);
         }
 
+        [Fact(DisplayName = "Crc16: DDS-110")]
+        public void Dds110() {
+            string expected = "0x242A";
+            var crc = Crc16.GetDds110();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal(expected, $"0x{crc.HashAsInt16:X4}");
+            Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
+        }
+
+        [Fact(DisplayName = "Crc16: DDS-110 (2)")]
+        public void Dds110_2() {
+            var crc = Crc16.GetDds110();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
+            Assert.Equal(0x9ECF, (ushort)crc.HashAsInt16);
+        }
+
         [Fact(DisplayName = "Crc16: DECT-R")]
         public void DectR() {
             string expected = "0x55C3";
@@ -108,6 +124,22 @@ namespace Tests.Medo.Security.Checksum {
             var crc = Crc16.GetDectX();
             crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
             Assert.Equal(0x007F, (ushort)crc.HashAsInt16);
+        }
+
+        [Fact(DisplayName = "Crc16: DNP")]
+        public void Dnp() {
+            string expected = "0xE7BC";
+            var crc = Crc16.GetDnp();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal(expected, $"0x{crc.HashAsInt16:X4}");
+            Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
+        }
+
+        [Fact(DisplayName = "Crc16: DNP (2)")]
+        public void Dnp_2() {
+            var crc = Crc16.GetDnp();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
+            Assert.Equal(0xEA82, (ushort)crc.HashAsInt16);
         }
 
         [Fact(DisplayName = "Crc16: EN-13757")]
@@ -439,6 +471,45 @@ namespace Tests.Medo.Security.Checksum {
             var crc = Crc16.GetIec611582();
             crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
             Assert.Equal(0xA819, (ushort)crc.HashAsInt16);
+        }
+
+        [Fact(DisplayName = "Crc16: RIELLO")]
+        public void Riello() {
+            string expected = "0x2231";
+            var crc = Crc16.GetRiello();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal(expected, $"0x{crc.HashAsInt16:X4}");
+            Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
+        }
+
+        [Fact(DisplayName = "Crc16: RIELLO (2)")]
+        public void Riello_2() {
+            var crc = Crc16.GetRiello();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
+            Assert.Equal(0x63D0, (ushort)crc.HashAsInt16);
+        }
+
+        [Fact(DisplayName = "Crc16: SPI-FUJITSU")]
+        public void SpiFujitsu() {
+            string expected = "0x1044";
+            var crc = Crc16.GetSpiFujitsu();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal(expected, $"0x{crc.HashAsInt16:X4}");
+            Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
+        }
+
+        [Fact(DisplayName = "Crc16: SPI-FUJITSU (2)")]
+        public void SpiFujitsu_2() {
+            var crc = Crc16.GetSpiFujitsu();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
+            Assert.Equal(0xE5CC, (ushort)crc.HashAsInt16);
+        }
+
+        [Fact(DisplayName = "Crc16: SPI-FUJITSU / AUG-CCITT (A)")]
+        public void SpiAugCcitt_A() {
+            var crc = Crc16.GetSpiFujitsu();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
+            Assert.Equal(0xE5CC, (ushort)crc.HashAsInt16);
         }
 
         [Fact(DisplayName = "Crc16: T10-DIF")]

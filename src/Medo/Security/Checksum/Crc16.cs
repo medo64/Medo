@@ -19,14 +19,14 @@ namespace Medo.Security.Checksum {
 
     /// <summary>
     /// Computes hash using 16-bit CRC algorithm.
-    /// The following CRC-16 variants are supported: ACORN, ARC, AUTOSAR,
-    /// BUYPASS, CDMA2000, CCITT, CCITT-FALSE, CCITT-TRUE, CMS, DARC, DECT-R,
-    /// DECT-X, EN-13757, EPC, EPC-C1G2, GENIBUS, GSM, I-CODE, IBM-3740,
-    /// ISO-HDLD, IBM-SDLC, IEC-61158-2, IEEE 802.3, ISO-IEC-14443-3-A,
-    /// ISO-IEC-14443-3-B, KERMIT, LHA, LJ1200, LTE, MAXIM, MAXIM-DOW, MCRF4XX,
-    /// MODBUS, NRSC-5, OPENSAFETY-A, OPENSAFETY-B, PROFIBUS, T10-DIF, TELEDISK,
-    /// TMS37157, UMTS, USB, V-41-LSB, V-41-MSB, VERIFONE, X-25, XMODEM, and
-    /// ZMODEM.
+    /// The following CRC-16 variants are supported: ACORN, ARC, AUG-CCITT,
+    /// AUTOSAR, BUYPASS, CDMA2000, CCITT, CCITT-FALSE, CCITT-TRUE, CMS, DARC,
+    /// DDS-110, DECT-R, DECT-X, DNP, EN-13757, EPC, EPC-C1G2, GENIBUS, GSM,
+    /// I-CODE, IBM-3740, ISO-HDLD, IBM-SDLC, IEC-61158-2, IEEE 802.3,
+    /// ISO-IEC-14443-3-A, ISO-IEC-14443-3-B, KERMIT, LHA, LJ1200, LTE, MAXIM,
+    /// MAXIM-DOW, MCRF4XX, MODBUS, NRSC-5, OPENSAFETY-A, OPENSAFETY-B,
+    /// PROFIBUS, RIELLO, SPI-FUJITSU, T10-DIF, TELEDISK, TMS37157, UMTS, USB,
+    /// V-41-LSB, V-41-MSB, VERIFONE, X-25, XMODEM, and ZMODEM.
     /// </summary>
     /// <example>
     /// <code>
@@ -65,8 +65,10 @@ namespace Medo.Security.Checksum {
         /// ARC / IEEE 802.3 / LHA                          0x8005  0x0000  0x0000  In/Out
         /// CDMA2000                                        0xC867  0xFFFF  0x0000  -
         /// CMS                                             0x8005  0xFFFF  0x0000  -
+        /// DDS-110                                         0x8005  0xB001  0x0000  -
         /// DECT-R                                          0x0589  0x0000  0x0001  -
         /// DECT-X                                          0x0589  0x0000  0x0000  -
+        /// DNP                                             0x3D65  0x0000  0xFFFF  In/Out
         /// EN-13757                                        0x3D65  0x0000  0xFFFF  -
         /// GENIBUS / DARC / EPC / EPC-C1G2                 0x1021  0xFFFF  0xFFFF  -
         /// GSM                                             0x1021  0x0000  0xFFFF  -
@@ -83,6 +85,8 @@ namespace Medo.Security.Checksum {
         /// OPENSAFETY-A                                    0x5935  0x0000  0x0000  -
         /// OPENSAFETY-B                                    0x755B  0x0000  0x0000  -
         /// PROFIBUS / IEC-61158-2                          0x1DCF  0xFFFF  0xFFFF  -
+        /// RIELLO                                          0x1021  0x554D  0x0000  In/Out
+        /// SPI-FUJITSU / AUG-CCITT                         0x1021  0xF0B8  0x0000  -
         /// T10-DIF                                         0x8BB7  0x0000  0x0000  -
         /// TELEDISK                                        0xA097  0x0000  0x0000  -
         /// TMS37157                                        0x1021  0x3791  0x0000  In/Out
@@ -190,6 +194,19 @@ namespace Medo.Security.Checksum {
             return new Crc16((ushort)0x8005, 0xFFFF, false, false, 0x0000);
         }
 
+        /// <summary>
+        /// Returns CRC-16/DDS-110 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0xB001
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetDds110() {
+            return new Crc16((ushort)0x8005, 0xB001, false, false, 0x0000);
+        }
 
         /// <summary>
         /// Returns CRC-16/DECT-R variant.
@@ -217,6 +234,20 @@ namespace Medo.Security.Checksum {
         /// </remarks>
         public static Crc16 GetDectX() {
             return new Crc16((ushort)0x0589, 0x0000, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/DNP variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x3D65
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetDnp() {
+            return new Crc16((ushort)0x3D65, 0x0000, true, true, 0xFFFF);
         }
 
         /// <summary>
@@ -636,6 +667,49 @@ namespace Medo.Security.Checksum {
         /// </remarks>
         public static Crc16 GetIec611582() {
             return GetProfibus();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/RIELLO variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x554D
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetRiello() {
+            return new Crc16((ushort)0x1021, 0x554D, true, true, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/SPI-FUJITSU variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xF0B8
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetSpiFujitsu() {
+            return new Crc16((ushort)0x1021, 0xF0B8, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/AUG-CCITT variant.
+        /// More widely known as CRC-16/SPI-FUJITSU.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetAugCcitt() {
+            return GetSpiFujitsu();
         }
 
         /// <summary>
