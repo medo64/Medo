@@ -71,6 +71,10 @@ namespace Medo.Security.Checksum {
         /// JAMCRC                                             0x04C11DB7  0xFFFFFFFF  0x00000000  In/Out
         /// MPEG-2                                             0x04C11DB7  0xFFFFFFFF  0x00000000  -
         /// XFER                                               0x000000AF  0x00000000  0x00000000  -
+        ///
+        /// See also:
+        /// - https://reveng.sourceforge.io/crc-catalogue/17plus.htm
+        /// - https://users.ece.cmu.edu/~koopman/crc/index.html
         /// </remarks>
         public Crc32(int polynomial, int initialValue, bool reflectIn, bool reflectOut, int finalXorValue)
             : this(unchecked((uint)polynomial), unchecked((uint)initialValue), reflectIn, reflectOut, unchecked((uint)finalXorValue)) {
