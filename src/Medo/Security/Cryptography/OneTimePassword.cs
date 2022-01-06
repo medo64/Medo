@@ -17,6 +17,16 @@ namespace Medo.Security.Cryptography {
     /// <summary>
     /// Implementation of HOTP (RFC 4226) and TOTP (RFC 6238) one-time password algorithms.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var otp = new OneTimePassword("MZxw6\tyTboI=");
+    /// // or otp = new OneTimePassword();
+    /// // var secret = otp.GetBase32Secret(SecretFormatFlags.None));
+    /// if (otp.IsCodeValid(755224)) {
+    ///     // do something
+    /// }
+    /// </code>
+    /// </example>
     public sealed class OneTimePassword : IDisposable {
 
         /// <summary>

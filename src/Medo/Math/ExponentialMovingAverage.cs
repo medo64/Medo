@@ -17,6 +17,14 @@ namespace Medo.Math {
     /// <summary>
     /// Calculates exponential moving average for added items.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var stats = new ExponentialMovingAverage();
+    /// stats.Add(4);
+    /// stats.Add(2);
+    /// var output = stats.Average;
+    /// </code>
+    /// </example>
     public sealed class ExponentialMovingAverage {
 
         /// <summary>

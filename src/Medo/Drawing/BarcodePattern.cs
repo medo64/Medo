@@ -22,6 +22,12 @@ namespace Medo.Drawing {
     /// <summary>
     /// Barcode drawing.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var bp = BarcodePattern.GetNewCode128("1234");
+    /// bp.SaveAsPng("myimage.png", Color.Blue, Color.Transparent);
+    /// </code>
+    /// </example>
     public sealed class BarcodePattern {
 
         private BarcodePattern(IBarcodeImpl barcodeImpl, string text) {

@@ -15,6 +15,14 @@ namespace Medo.Math {
     /// <summary>
     /// Calculates weighted moving average for the added items.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var stats = new WeightedMovingAverage();
+    /// stats.Add(4);
+    /// stats.Add(2);
+    /// var output = stats.Average;
+    /// </code>
+    /// </example>
     public sealed class WeightedMovingAverage {
 
         /// <summary>

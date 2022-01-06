@@ -21,6 +21,17 @@ namespace Medo.Diagnostics {
     /// Handling of unhandled errors.
     /// This class is thread-safe.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// UnhandledCatch.UnhandledException += UnhandledCatch_UnhandledException;
+    /// UnhandledCatch.Attach();
+    ///
+    /// private static void UnhandledCatch_UnhandledException(object? sender, UnhandledCatchEventArgs e) {
+    ///     // TODO Something with exception;
+    ///     throw e.Exception;
+    /// }
+    /// </code>
+    /// </example>
     public static class UnhandledCatch {
 
         /// <summary>

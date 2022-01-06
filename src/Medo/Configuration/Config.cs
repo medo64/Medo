@@ -34,6 +34,14 @@ namespace Medo.Configuration {
     /// * key and value are colon (:) separated although equals (=) is also supported.
     /// * backslash (\) is used for escaping.
     /// </remarks>
+    /// <example>
+    /// <code>
+    /// var value1 = Config.Read("MyString", "DefaultValue");
+    /// var value2 = Config.Read("MyNumber", 41);
+    /// Config.Write("MyNumber", 42);
+    /// Config.Save()
+    /// </code>
+    /// </example>
     public static class Config {
 
         /// <summary>

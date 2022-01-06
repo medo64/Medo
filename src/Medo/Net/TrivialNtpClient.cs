@@ -15,6 +15,12 @@ namespace Medo.Net {
     /// <summary>
     /// Simple NTP client.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// using var client = new TrivialNtpClient("time.medo64.com");
+    /// var time = client.RetrieveTime();
+    /// </code>
+    /// </example>
     /// <remarks>RFC 5905</remarks>
     public class TrivialNtpClient : IDisposable {
 

@@ -11,6 +11,13 @@ namespace Medo.Diagnostics {
     /// <summary>
     /// Timer that fires upon creation of object and stops with it's disposal.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// using (var myTimer = new LifetimeWatch()) {
+    ///     // DO SOMETHING
+    /// }  // prints time once disposed
+    /// </code>
+    /// </example>
     public sealed class LifetimeWatch : IDisposable {
 
         /// <summary>

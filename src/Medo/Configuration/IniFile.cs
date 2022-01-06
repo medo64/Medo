@@ -15,6 +15,12 @@ namespace Medo.Configuration {
     /// Provides read-only access for to a configuration file.
     /// File should follow Microsoft's INI file format but other variations are supported too.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var ini = new IniFile("Test.ini");
+    /// var value = ini.Read("Section", "Key");
+    /// </code>
+    /// </example>
     public class IniFile {
 
         /// <summary>

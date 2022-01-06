@@ -16,6 +16,16 @@ namespace Medo.Security.Cryptography {
     /// <summary>
     /// Twofish algorithm implementation.
     /// </summary>
+    /// <code>
+    /// using var algorithm = new TwofishManaged() {
+    ///    KeySize = test.KeySize,
+    ///    Mode = CipherMode.ECB,
+    ///    Padding = PaddingMode.None
+    /// };
+    /// using var transform = algorithm.CreateEncryptor(key, iv);
+    /// using var cs = new CryptoStream(outStream, transform, CryptoStreamMode.Write);
+    /// cs.Write(inStream, 0, inStream.Length);
+    /// </code>
     /// <remarks>https://www.schneier.com/twofish.html</remarks>
     public sealed class TwofishManaged : SymmetricAlgorithm {
 

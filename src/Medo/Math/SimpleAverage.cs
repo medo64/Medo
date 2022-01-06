@@ -16,6 +16,14 @@ namespace Medo.Math {
     /// <summary>
     /// Calculates average for added items.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var stats = new SimpleAverage();
+    /// stats.Add(4);
+    /// stats.Add(2);
+    /// var output = stats.Average;
+    /// </code>
+    /// </example>
     public sealed class SimpleAverage {
 
         /// <summary>

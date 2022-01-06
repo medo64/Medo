@@ -12,6 +12,19 @@ namespace Medo.Math {
     /// <summary>
     /// Calculating variance and standard deviation from the streaming data using Welford's online algorithm.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var stats = new WelfordVariance();
+    /// stats.Add(4);
+    /// stats.Add(2);
+    /// var mean = stats.Mean;
+    /// var stdev = stats.StandardDeviation;
+    /// var variance = stats.Variance;
+    /// var sampleStdev = stats.SampleStandardDeviation;
+    /// var sampleVariance = stats.SampleVariance;
+    /// var relativeStDev = stats.RelativeStandardDeviation;
+    /// </code>
+    /// </example>
     public sealed class WelfordVariance {
 
         /// <summary>

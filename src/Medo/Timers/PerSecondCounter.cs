@@ -13,6 +13,16 @@ namespace Medo.Timers {
     /// <summary>
     /// Measures throughput per second.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var counter = new TpsCounter();
+    //  var limiter = new PerSecondLimiter(42);
+    /// if (limiter.Wait(cancelToken)) {
+    ///     counter.Increment(1);
+    ///     // do work
+    /// }
+    /// </code>
+    /// </example>
     public sealed class PerSecondCounter : IDisposable {
 
         /// <summary>

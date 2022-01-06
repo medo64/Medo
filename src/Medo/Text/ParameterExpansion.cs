@@ -34,6 +34,12 @@ namespace Medo.Text {
     ///     ${parameter@u}
     ///     ${parameter@L}
     /// </remarks>
+    /// <example>
+    /// <code>
+    /// var shell = new ParameterExpansion();
+    /// var output = shell.Expand("$USERNAME");
+    /// </code>
+    /// </example>
     public sealed class ParameterExpansion {
 
         /// <summary>

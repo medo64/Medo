@@ -27,9 +27,11 @@ namespace Medo.Security.Checksum {
     /// V-42, XFER, and XZ.
     /// </summary>
     /// <example>
+    /// <code>
     /// var crc = Crc32.GetIsoHdlc();
     /// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
     /// var hashValue = crc.HashAsByte;
+    /// </code>
     /// </example>
     public sealed class Crc32 : HashAlgorithm {
 

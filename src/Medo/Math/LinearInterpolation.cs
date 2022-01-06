@@ -10,7 +10,18 @@ namespace Medo.Math {
 
     /// <summary>
     /// Returns adjusted value based on given points.
+    /// Value is interpolated between two nearest points.
+    /// If interpolation needs to use all the points, check LinearCalibration.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var cal = new LinearInterpolation();
+    /// cal.AddReferencePoint(0, 1);     // actual value is 0°C but we measure 1°C
+    /// cal.AddReferencePoint(40, 42);   // actual value is 40°C but we measure 42°C
+    /// cal.AddReferencePoint(100, 99);  // actual value is 100°C but we measure 99
+    /// var output = target.GetAdjustedValue(26);  // gets actual value when we measure 26°C - interpolated between 40°C and 100°C points
+    /// </code>
+    /// </example>
     public class LinearInterpolation {
 
         /// <summary>

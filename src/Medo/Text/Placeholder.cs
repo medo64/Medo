@@ -16,6 +16,15 @@ namespace Medo.Text {
     /// <summary>
     /// Composite formatting based on placeholder name.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var dict = new Dictionary<string, object> {
+    ///     { "Number", "42" },
+    ///     { "Text", "Fortytwo" }
+    /// };
+    /// var out = Placeholder.Format("Test: {Number} ({Text}).", dict));
+    /// </code>
+    /// </example>
     public static class Placeholder {
 
         /// <summary>

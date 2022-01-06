@@ -16,6 +16,16 @@ namespace Medo.Drawing {
     /// A simple PNG image reader/writer.
     /// Does not support reading interlaced files.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var bmp = new SimplePngImage(2, 2);
+    /// bmp.SetPixel(0, 0, Color.Red);
+    /// bmp.SetPixel(0, 1, Color.Green);
+    /// bmp.SetPixel(1, 0, Color.Blue);
+    /// bmp.SetPixel(1, 1, Color.FromArgb(128, Color.Purple));
+    /// bmp.Save("image.png");
+    /// </code>
+    /// </example>
     /// <remarks>https://www.w3.org/TR/2003/REC-PNG-20031110/</remarks>
     public sealed class SimplePngImage {
 

@@ -10,9 +10,15 @@ namespace Medo.Security.Checksum {
     using System.Text;
 
     /// <summary>
-    /// Computes hash using ISO 7064 algorithm.
-    /// Only numerical data is supported.
+    /// Computes hash using ISO 7064 algorithm from numerical input.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var checksum = new Iso7064();
+    /// checksum.ComputeHash(Encoding.ASCII.GetBytes("42"));
+    /// var checkDigit = crc.HashAsChar;
+    /// </code>
+    /// </example>
     public sealed class Iso7064 : HashAlgorithm {
 
         /// <summary>

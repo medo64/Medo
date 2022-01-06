@@ -13,6 +13,11 @@ namespace Medo.IO {
     /// <summary>
     /// Basic terminal operations.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// Terminal.Blue().Write("In blue").NoColor().Write(" not in blue");
+    /// </code>
+    /// </example>
     public static class Terminal {
 
         /// <summary>

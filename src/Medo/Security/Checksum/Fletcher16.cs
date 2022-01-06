@@ -8,7 +8,15 @@ namespace Medo.Security.Checksum {
 
     /// <summary>
     /// Computes checksum using Fletcher-16 algorithm.
+    /// Only numbers 0 to 9 are supported.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var checksum = new Fletcher16();
+    /// checksum.ComputeHash(new byte[] { 0x01, 0x02 });
+    /// var checksumValue = checksum.HashAsInt16;
+    /// </code>
+    /// </example>
     public sealed class Fletcher16 : HashAlgorithm {
 
         /// <summary>

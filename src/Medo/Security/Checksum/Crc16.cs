@@ -29,9 +29,11 @@ namespace Medo.Security.Checksum {
     /// ZMODEM.
     /// </summary>
     /// <example>
+    /// <code>
     /// var crc = Crc16.GetArc();
     /// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
     /// var hashValue = crc.HashAsByte;
+    /// </code>
     /// </example>
     public sealed class Crc16 : HashAlgorithm {
 

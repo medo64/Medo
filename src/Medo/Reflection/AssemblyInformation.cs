@@ -10,6 +10,13 @@ namespace Medo.Reflection {
     /// <summary>
     /// Returns various info about the assembly that started process.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var name = AssemblyInformation.Entry.Name;
+    /// var version = AssemblyInformation.Entry.Version;
+    /// var product = AssemblyInformation.Entry.Product;
+    /// </code>
+    /// </example>
     public class AssemblyInformation {
 
         /// <summary>

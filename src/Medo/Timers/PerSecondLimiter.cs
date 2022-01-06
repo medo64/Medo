@@ -27,6 +27,16 @@ namespace Medo.Timers {
     /// Limits per-second throughput.
     /// Class is thread-safe.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var counter = new TpsCounter();
+    //  var limiter = new PerSecondLimiter(42);
+    /// if (limiter.Wait(cancelToken)) {
+    ///     counter.Increment(1);
+    ///     // do work
+    /// }
+    /// </code>
+    /// </example>
     public sealed class PerSecondLimiter : IDisposable {
 
         /// <summary>

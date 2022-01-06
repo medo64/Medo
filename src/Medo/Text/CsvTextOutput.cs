@@ -12,6 +12,14 @@ namespace Medo.Text {
     /// <summary>
     /// Writing comma separated values.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// using var csv = new CsvTextOutput(stream);
+    /// csv.WriteHeader("A", "B", "C");
+    /// csv.WriteData("11", "12", "13");
+    /// csv.WriteData("21", "22", "23");
+    /// </code>
+    /// <example>
     public sealed class CsvTextOutput : IDisposable {
 
         /// <summary>

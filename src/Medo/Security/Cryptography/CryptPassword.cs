@@ -17,6 +17,14 @@ namespace Medo.Security.Cryptography {
     ///     http://www.freebsd.org/cgi/cvsweb.cgi/~checkout~/src/lib/libcrypt/crypt.c?rev=1.2
     ///     http://httpd.apache.org/docs/2.2/misc/password_encryptions.html
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var hash = CryptPassword.Create("Test", CryptPasswordAlgorithm.Sha256);
+    /// if (CryptPassword.Verify("Test", hash)) {
+    ///     // DO SOMETHING
+    /// }
+    /// </code>
+    /// </example>
     public static class CryptPassword {
 
         private static readonly UTF8Encoding Utf8WithoutBom = new(false);

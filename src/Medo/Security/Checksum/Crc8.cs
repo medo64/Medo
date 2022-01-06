@@ -23,9 +23,11 @@ namespace Medo.Security.Checksum {
     /// SAE-J1850, SMBUS, TECH-3250, and WCDMA2000.
     /// </summary>
     /// <example>
+    /// <code>
     /// var crc = Crc8.GetLte();
     /// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
     /// var hashValue = crc.HashAsByte;
+    /// </code>
     /// </example>
     public sealed class Crc8 : HashAlgorithm {
 

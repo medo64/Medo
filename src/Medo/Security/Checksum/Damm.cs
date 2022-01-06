@@ -12,14 +12,21 @@ namespace Medo.Security.Checksum {
     using System.Text;
 
     /// <summary>
-    /// Computes checksum using Damm's algorithm.
-    /// This algorithm allows detection of all single-digit errors and all adjancent transposition errors.
+    /// Computes checksum using Damm's algorithm from numerical input.
+    /// This algorithm allows detection of all single-digit errors and all adjacent transposition errors.
     /// Additionally, it will detect all phonetic errors associated with the English language (e.g. 13 to 30, 14 to 40, etc.)
-    /// Only number 0 to 9 are supported.
+    /// Only numbers 0 to 9 are supported.
     /// </summary>
     /// <remarks>
     /// https://en.wikipedia.org/wiki/Damm_algorithm
     /// </remarks>
+    /// <example>
+    /// <code>
+    /// using var checksum = new Damm();
+    /// checksum.ComputeHash(Encoding.ASCII.GetBytes("42"));
+    /// var checksumChar = checksum.HashAsChar;
+    /// </code>
+    /// </example>
     public sealed class Damm : HashAlgorithm {
 
         /// <summary>

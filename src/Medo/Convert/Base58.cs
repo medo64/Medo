@@ -12,6 +12,13 @@ namespace Medo.Convert {
     /// <summary>
     /// Base58 encoder/decoder with leading-zero preservation.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var inString = "1LQX";
+    /// var outBytes = Base58.AsBytes(inString);
+    /// var outString = Base58.ToString(outBytes);
+    /// </code>
+    /// </example>
     public static class Base58 {
 
         private static readonly char[] Map = new char[] {

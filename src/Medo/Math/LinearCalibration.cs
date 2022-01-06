@@ -9,11 +9,27 @@ namespace Medo.Math {
     /// <summary>
     /// Linear calibration using a least square regression.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// var cal = new LinearCalibration();
+    /// cal.AddCalibrationPoint(0, 1);     // actual value is 0°C but we measure 1°C
+    /// cal.AddCalibrationPoint(40, 42);   // actual value is 40°C but we measure 42°C
+    /// cal.AddCalibrationPoint(100, 99);  // actual value is 100°C but we measure 99
+    /// var output = target.GetAdjustedValue(26);  // gets presumed value when we measure 26°C
+    /// </code>
+    /// </example>
     public sealed class LinearCalibration {
 
         /// <summary>
         /// Creates new instance.
         /// </summary>
+        /// <example>
+        /// var cal = new LinearCalibration();
+        /// cal.AddCalibrationPoint(0, 1);     // actual value is 0°C but we measure 1°C
+        /// cal.AddCalibrationPoint(40, 42);   // actual value is 40°C but we measure 42°C
+        /// cal.AddCalibrationPoint(100, 99);  // actual value is 100°C but we measure 99°C
+        /// var output = target.GetAdjustedValue(26);  // gets actual value when we measure 26°C
+        /// </example>
         public LinearCalibration() {
         }
 
