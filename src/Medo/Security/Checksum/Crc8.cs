@@ -30,8 +30,16 @@ namespace Medo.Security.Checksum {
     public sealed class Crc8 : HashAlgorithm {
 
         /// <summary>
-        /// Creates new instance.
+        /// Creates a new instance using the CRC-8/LTE variant.
+        /// Returns the default CRC-8 variant.
         /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁷ +  x⁴ + x³ + x + 1 (0x9B)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
         public Crc8()
             : this(0x9B, 0x00, false, false, 0x00) {
         }
@@ -79,22 +87,6 @@ namespace Medo.Security.Checksum {
             _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
             _finalXorValue = finalXorValue;
             ProcessInitialization();
-        }
-
-
-        /// <summary>
-        /// Returns the default CRC-8 variant.
-        /// Also known as CRC-8/LTE.
-        /// </summary>
-        /// <remarks>
-        /// Polynom: x⁸ + x⁷ +  x⁴ + x³ + x + 1 (0x9B)
-        /// Initial value: 0x00
-        /// Reflect In: No
-        /// Reflect Out: No
-        /// Output XOR: 0x00
-        /// </remarks>
-        public static Crc8 GetDefault() {
-            return new Crc8();
         }
 
 

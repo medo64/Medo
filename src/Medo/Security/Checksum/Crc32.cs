@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-01-05: Added more variants
+//            Fixed big-endian system operation
 //2021-03-06: Refactored for .NET 5
 //            Adjusted to work on big-endian platform too
 //2008-06-07: Replaced ShiftRight function with right shift (>>) operator
@@ -19,14 +21,30 @@ namespace Medo.Security.Checksum {
 
     /// <summary>
     /// Computes hash using 32-bit CRC algorithm.
+    /// The following CRC-16 variants are supported: AAL5, ADCCP, AIXM, AUTOSAR,
+    /// BASE91-C, BASE91-D, BZIP2, CASTAGNOLI, CD-ROM-EDC, CKSUM, DECT-B,
+    /// IEEE-802.3, INTERLAKEN, ISCSI, ISO-HDLC, JAMCRC, MPEG-2, PKZIP, POSIX,
+    /// V-42, XFER, and XZ.
     /// </summary>
+    /// <example>
+    /// var crc = Crc32.GetIsoHdlc();
+    /// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
+    /// var hashValue = crc.HashAsByte;
+    /// </example>
     public sealed class Crc32 : HashAlgorithm {
 
         /// <summary>
-        /// Creates new instance using standard IEEE 802.3 implementation.
+        /// Creates a new instance using the CRC-32/ISO-HDLC variant.
         /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
         public Crc32()
-            : this(0x04C11DB7, unchecked((int)0xFFFFFFFF), unchecked((int)0xFFFFFFFF), true, true) {
+            : this((uint)0x04C11DB7, (uint)0xFFFFFFFF, true, true, (uint)0xFFFFFFFF) {
         }
 
         /// <summary>
@@ -34,61 +52,383 @@ namespace Medo.Security.Checksum {
         /// </summary>
         /// <param name="polynomial">Polynomial value.</param>
         /// <param name="initialValue">Starting digest.</param>
-        /// <param name="finalXorValue">Final XOR value.</param>
         /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
         /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
+        /// <param name="finalXorValue">Final XOR value.</param>
         /// <remarks>
-        /// Name        Poly        Init        XorOut      RefIn  RefOut
-        /// -------------------------------------------------------------
-        /// Castagnoli  0x1EDC6F41  0xFFFFFFFF  0xFFFFFFFF  true   true
-        /// IEEE 802.3  0x04C11DB7  0xFFFFFFFF  0xFFFFFFFF  true   true
-        /// JamCRC      0x04C11DB7  0xFFFFFFFF  0x00000000  true   true
-        /// POSIX       0x04C11DB7  0x00000000  0xFFFFFFFF  false  false
-        /// XFER        0x000000AF  0x00000000  0x00000000  false  false
+        /// Name                                               Polynomial  Init        Xor         Reflect
+        /// ----------------------------------------------------------------------------------------------
+        /// AIXM                                               0x814141AB  0x00000000  0x00000000  -
+        /// AUTOSAR                                            0xF4ACFB13  0xFFFFFFFF  0xFFFFFFFF  In/Out
+        /// BASE91-D                                           0xA833982B  0xFFFFFFFF  0xFFFFFFFF  In/Out
+        /// BZIP2 / AAL5 / DECT-B                              0x04C11DB7  0xFFFFFFFF  0xFFFFFFFF  -
+        /// CD-ROM-EDC                                         0x8001801B  0x00000000  0x00000000  In/Out
+        /// CKSUM / POSIX                                      0x04C11DB7  0x00000000  0xFFFFFFFF  -
+        /// ISCSI / BASE91-C / CASTAGNOLI / INTERLAKEN         0x1EDC6F41  0xFFFFFFFF  0xFFFFFFFF  In/Out
+        /// ISO-HDLC / ADCCP / IEEE-802.3 / V-42 / XZ / PKZIP  0x04C11DB7  0xFFFFFFFF  0xFFFFFFFF  In/Out
+        /// JAMCRC                                             0x04C11DB7  0xFFFFFFFF  0x00000000  In/Out
+        /// MPEG-2                                             0x04C11DB7  0xFFFFFFFF  0x00000000  -
+        /// XFER                                               0x000000AF  0x00000000  0x00000000  -
         /// </remarks>
-        public Crc32(int polynomial, int initialValue, int finalXorValue, bool reflectIn, bool reflectOut) {
-            _polynomial = (uint)polynomial;
-            _initialValue = (uint)initialValue;
-            _finalXorValue = (uint)finalXorValue;
-            _reverseIn = !reflectIn;
-            _reverseOut = !reflectOut;
+        public Crc32(int polynomial, int initialValue, bool reflectIn, bool reflectOut, int finalXorValue)
+            : this(unchecked((uint)polynomial), unchecked((uint)initialValue), reflectIn, reflectOut, unchecked((uint)finalXorValue)) {
+        }
+
+        private Crc32(uint polynomial, uint initialValue, bool reflectIn, bool reflectOut, uint finalXorValue) {
+            _polynomial = polynomial;
+            _initialValue = initialValue;
+            _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
+            _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
+            _finalXorValue = finalXorValue;
             ProcessInitialization();
         }
 
 
         /// <summary>
-        /// Returns IEEE 802.3 implementation.
+        /// Returns CRC-32/AIXM variant.
         /// </summary>
-        public static Crc32 GetCastagnoli() {  // 0xE3069283
-            return new Crc32(0x1EDC6F41, unchecked((int)0xFFFFFFFF), unchecked((int)0xFFFFFFFF), true, true);
+        /// <remarks>
+        /// Polynom: 0x814141AB
+        /// Initial value: 0x00000000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00000000
+        /// </remarks>
+        public static Crc32 GetAixm() {
+            return new Crc32((uint)0x814141AB, 0x00000000, false, false, 0x00000000);
         }
 
         /// <summary>
-        /// Returns IEEE 802.3 implementation.
+        /// Returns CRC-32/AUTOSAR variant.
         /// </summary>
-        public static Crc32 GetIeee() {  // 0xCBF43926
-            return new Crc32(0x04C11DB7, unchecked((int)0xFFFFFFFF), unchecked((int)0xFFFFFFFF), true, true);
+        /// <remarks>
+        /// Polynom: 0xF4ACFB13
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetAutosar() {
+            return new Crc32((uint)0xF4ACFB13, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
         }
 
         /// <summary>
-        /// Returns JamCRC implementation.
+        /// Returns CRC-32/BASE91-D variant.
         /// </summary>
-        public static Crc32 GetJam() {  // 0x340BC6D9
-            return new Crc32(0x04C11DB7, unchecked((int)0xFFFFFFFF), 0x00000000, true, true);
+        /// <remarks>
+        /// Polynom: 0xA833982B
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetBase91D() {
+            return new Crc32((uint)0xA833982B, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
         }
 
         /// <summary>
-        /// Returns POSIX implementation.
+        /// Returns CRC-32/BZIP2 variant.
         /// </summary>
-        public static Crc32 GetPosix() {  // 0x765E7680
-            return new Crc32(0x04C11DB7, 0x00000000, unchecked((int)0xFFFFFFFF), false, false);
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetBZip2() {
+            return new Crc32((uint)0x04C11DB7, 0xFFFFFFFF, false, false, 0xFFFFFFFF);
         }
 
         /// <summary>
-        /// Returns XFER implementation.
+        /// Returns CRC-32/AAL5 variant.
+        /// More widely known as CRC-32/BZIP2.
         /// </summary>
-        public static Crc32 GetXfer() {  // 0xBD0BE338
-            return new Crc32(0x000000AF, 0x00000000, 0x00000000, false, false);
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetAal5() {
+            return GetBZip2();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/DECT-B variant.
+        /// More widely known as CRC-32/BZIP2.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetDectB() {
+            return GetBZip2();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/CD-ROM-EDC variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8001801B
+        /// Initial value: 0x00000000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00000000
+        /// </remarks>
+        public static Crc32 GetCdromEdc() {
+            return new Crc32((uint)0x8001801B, 0x00000000, true, true, 0x00000000);
+        }
+
+        /// <summary>
+        /// Returns CRC-32/CKSUM variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0x00000000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetCksum() {
+            return new Crc32((uint)0x04C11DB7, 0x00000000, false, false, 0xFFFFFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-32/POSIX variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0x00000000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetPosix() {
+            return GetCksum();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/ISCSI variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1EDC6F41
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetIScsi() {
+            return new Crc32((uint)0x1EDC6F41, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-32/BASE91-C variant.
+        /// More widely known as CRC-32/ISCSI.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1EDC6F41
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetBase91C() {
+            return GetIScsi();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/CASTAGNOLI variant.
+        /// More widely known as CRC-32/ISCSI.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1EDC6F41
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetCastagnoli() {
+            return GetIScsi();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/INTERLAKEN variant.
+        /// More widely known as CRC-32/ISCSI.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1EDC6F41
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetInterlaken() {
+            return GetIScsi();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/ISO-HDLC variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetIsoHdlc() {
+            return new Crc32((uint)0x04C11DB7, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-32/ADCCP variant.
+        /// More widely known as CRC-32/ISO-HDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetAdccp() {
+            return GetIsoHdlc();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/IEEE-802.3 variant.
+        /// More widely known as CRC-32/ISO-HDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetIeee() {
+            return GetIsoHdlc();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/IEEE-802.3 variant.
+        /// More widely known as CRC-32/ISO-HDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetIeee8023() {
+            return GetIsoHdlc();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/V-42 variant.
+        /// More widely known as CRC-32/ISO-HDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetV42() {
+            return GetIsoHdlc();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/XZ variant.
+        /// More widely known as CRC-32/ISO-HDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetXZ() {
+            return GetIsoHdlc();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/PKZIP variant.
+        /// More widely known as CRC-32/ISO-HDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetPkZip() {
+            return GetIsoHdlc();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/JAMCRC variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00000000
+        /// </remarks>
+        public static Crc32 GetJamCrc() {
+            return new Crc32((uint)0x04C11DB7, 0xFFFFFFFF, true, true, 0x00000000);
+        }
+
+        /// <summary>
+        /// Returns CRC-32/JAMCRC variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFFFFFF
+        /// </remarks>
+        public static Crc32 GetJam() {
+            return GetJamCrc();
+        }
+
+        /// <summary>
+        /// Returns CRC-32/MPEG-2 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x04C11DB7
+        /// Initial value: 0xFFFFFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00000000
+        /// </remarks>
+        public static Crc32 GetMpeg2() {
+            return new Crc32((uint)0x04C11DB7, 0xFFFFFFFF, false, false, 0x00000000);
+        }
+
+        /// <summary>
+        /// Returns CRC-32/XFER variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x000000AF
+        /// Initial value: 0x00000000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00000000
+        /// </remarks>
+        public static Crc32 GetXfer() {
+            return new Crc32((uint)0x000000AF, 0x00000000, false, false, 0x00000000);
         }
 
 

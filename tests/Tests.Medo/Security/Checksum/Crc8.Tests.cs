@@ -15,15 +15,6 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
         }
 
-        [Fact(DisplayName = "Crc8: Default (2)")]
-        public void Default_2() {
-            string expected = "0xDF";
-            var crc = Crc8.GetDefault();
-            crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-            Assert.Equal(expected, $"0x{crc.HashAsByte:X2}");
-            Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
-        }
-
 
         [Fact(DisplayName = "Crc8: AUTOSAR")]
         public void Autosar() {
