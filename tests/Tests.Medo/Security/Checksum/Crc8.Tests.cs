@@ -174,6 +174,56 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(0xA1, crc.HashAsByte);
         }
 
+        [Fact(DisplayName = "Crc8: I-CODE")]
+        public void ICode() {
+            string expected = "0xA4";
+            var crc = Crc8.GetICode();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal(expected, $"0x{crc.HashAsByte:X2}");
+            Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
+        }
+
+        [Fact(DisplayName = "Crc8: I-CODE (2)")]
+        public void ICode_2() {
+            var crc = Crc8.GetICode();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
+            Assert.Equal(0x7E, crc.HashAsByte);
+        }
+
+        [Fact(DisplayName = "Crc8: I-CODE (3)")]
+        public void ICode_3() {
+            var crc = Crc8.GetICode();
+            Assert.Equal(0xFD, crc.HashAsByte);
+        }
+
+        [Fact(DisplayName = "Crc8: I-CODE (4)")]
+        public void ICode_4() {
+            var crc = Crc8.GetICode();
+            crc.ComputeHash(new byte[] { 0x30 });
+            Assert.Equal(0xB4, crc.HashAsByte);
+        }
+
+        [Fact(DisplayName = "Crc8: I-CODE (5)")]
+        public void ICode_5() {
+            var crc = Crc8.GetICode();
+            crc.ComputeHash(new byte[] { 0x30, 0x00 });
+            Assert.Equal(0x18, crc.HashAsByte);
+        }
+
+        [Fact(DisplayName = "Crc8: I-CODE (6)")]
+        public void ICode_6() {
+            var crc = Crc8.GetICode();
+            crc.ComputeHash(new byte[] { 0x30, 0x00, 0x00 });
+            Assert.Equal(0x25, crc.HashAsByte);
+        }
+
+        [Fact(DisplayName = "Crc8: I-CODE (7)")]
+        public void ICode_7() {
+            var crc = Crc8.GetICode();
+            crc.ComputeHash(new byte[] { 0x30, 0x00, 0x00, 0x25 });
+            Assert.Equal(0x00, crc.HashAsByte);
+        }
+
         [Fact(DisplayName = "Crc8: LTE")]
         public void Lte() {
             string expected = "0xDF";

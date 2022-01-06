@@ -67,6 +67,7 @@ namespace Medo.Security.Checksum {
         /// GSM-B                0x49 (x⁸ + x⁶ + x³ + 1)            0x00  0xFF  -
         /// HITAG                0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0x00  -
         /// I-432-1 / ITU        0x07 (x⁸ + x² + x + 1)             0x00  0x55  -
+        /// I-CODE               0x1D (x⁸ + x⁴ + x³ + 1)            0xFD  0x00  -
         /// LTE                  0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
         /// MAXIM-DOW / MAXIM    0x31 (x⁸ + x⁵ + x⁴ + 1)            0x00  0x00  In/Out
         /// MIFARE-MAD / MIFARE  0x1D (x⁸ + x⁴ + x³ + 1)            0xE3  0x00  -
@@ -246,6 +247,21 @@ namespace Medo.Security.Checksum {
         /// </remarks>
         public static Crc8 GetItu() {
             return GetI4321();
+        }
+
+        /// <summary>
+        /// Returns CRC-8/I-CODE variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁴ + x³ + 1 (0x1D)
+        /// Initial value: 0xFD
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetICode() {
+            return new Crc8(0x1D, 0xBF, false, false, 0x00);
+            //return new Crc8(0x1D, 0xFD, true, false, 0x00);
         }
 
         /// <summary>
