@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-01-05: Added more variants
+//            Fixed big-endian system operation
 //2021-03-06: Refactored for .NET 5
 //            Adjusted to work on big-endian platform too
 //2008-06-07: Replaced ShiftRight function with right shift (>>) operator
@@ -16,15 +18,35 @@ namespace Medo.Security.Checksum {
     using System.Security.Cryptography;
 
     /// <summary>
-    /// Computes hash using standard 16-bit CRC algorithm.
+    /// Computes hash using 16-bit CRC algorithm.
+    /// The following CRC-16 variants are supported: ACORN, ARC, AUTOSAR,
+    /// BUYPASS, CDMA2000, CCITT, CCITT-FALSE, CCITT-TRUE, CMS, DARC, DECT-R,
+    /// DECT-X, EN-13757, EPC, EPC-C1G2, GENIBUS, GSM, I-CODE, IBM-3740,
+    /// ISO-HDLD, IBM-SDLC, IEC-61158-2, IEEE 802.3, ISO-IEC-14443-3-A,
+    /// ISO-IEC-14443-3-B, KERMIT, LHA, LJ1200, LTE, MAXIM, MAXIM-DOW, MCRF4XX,
+    /// MODBUS, NRSC-5, OPENSAFETY-A, OPENSAFETY-B, PROFIBUS, T10-DIF, TELEDISK,
+    /// TMS37157, UMTS, USB, V-41-LSB, V-41-MSB, VERIFONE, X-25, XMODEM, and
+    /// ZMODEM.
     /// </summary>
+    /// <example>
+    /// var crc = Crc16.GetArc();
+    /// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
+    /// var hashValue = crc.HashAsByte;
+    /// </example>
     public sealed class Crc16 : HashAlgorithm {
 
         /// <summary>
-        /// Creates new instance using standard IEEE 802.3 implementation.
+        /// Creates a new instance using the CRC-16/ARC variant.
         /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
         public Crc16()
-            : this(unchecked((short)0x8005), 0x0000, 0x0000, true, true) {
+            : this((ushort)0x8005, 0x0000, true, true, 0x0000) {
         }
 
         /// <summary>
@@ -32,80 +54,760 @@ namespace Medo.Security.Checksum {
         /// </summary>
         /// <param name="polynomial">Polynomial value.</param>
         /// <param name="initialValue">Starting digest.</param>
-        /// <param name="finalXorValue">Final XOR value.</param>
         /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
         /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
+        /// <param name="finalXorValue">Final XOR value.</param>
         /// <remarks>
-        /// Name        Poly    Init    XorOut  RefIn  RefOut
-        /// -------------------------------------------------
-        /// ARC         0x8005  0x0000  0x0000  true   true  
-        /// CCITT       0x1021  0xffff  0x0000  false  false 
-        /// IEEE 802.3  0x8005  0x0000  0x0000  true   true  
-        /// Kermit      0x1021  0x0000  0x0000  true   true  
-        /// X-25        0x1021  0xffff  0xffff  true   true  
-        /// X-Modem     0x8408  0x0000  0x0000  true   true  
-        /// Z-Modem     0x1021  0x0000  0x0000  false  false 
-        /// 
-        /// DNP         0x3D65
-        /// IBM         0xC503
+        /// Name                                            Poly    Init    Xor     Reflect
+        /// -------------------------------------------------------------------------------
+        /// ARC / IEEE 802.3 / LHA                          0x8005  0x0000  0x0000  In/Out
+        /// CDMA2000                                        0xC867  0xFFFF  0x0000  -
+        /// CMS                                             0x8005  0xFFFF  0x0000  -
+        /// DECT-R                                          0x0589  0x0000  0x0001  -
+        /// DECT-X                                          0x0589  0x0000  0x0000  -
+        /// EN-13757                                        0x3D65  0x0000  0xFFFF  -
+        /// GENIBUS / DARC / EPC / EPC-C1G2 / I-CODE        0x1021  0xFFFF  0xFFFF  -
+        /// GSM                                             0x1021  0x0000  0xFFFF  -
+        /// IBM-3740 / AUTOSAR / CCITT-FALSE                0x1021  0xFFFF  0x0000  -
+        /// IBM-SDLC / ISO-HDLD / ISO-IEC-14443-3-B / X-25  0x1021  0xFFFF  0xFFFF  In/Out
+        /// ISO-IEC-14443-3-A                               0x1021  0xC6C6  0x0000  In/Out
+        /// KERMIT / CCITT / CCITT-TRUE / V-41-LSB          0x1021  0x0000  0x0000  In/Out
+        /// LJ1200                                          0x6F63  0x0000  0x0000  -
+        /// MAXIM-DOW / MAXIM                               0x8005  0x0000  0xFFFF  In/Out
+        //  MCRF4XX                                         0x1021  0xFFFF  0x0000  In/Out
+        /// MODBUS                                          0x8005  0xFFFF  0x0000  In/Out
+        /// NRSC-5                                          0x800B  0xFFFF  0x0000  In/Out
+        /// OPENSAFETY-A                                    0x5935  0x0000  0x0000  -
+        /// OPENSAFETY-B                                    0x755B  0x0000  0x0000  -
+        /// PROFIBUS / IEC-61158-2                          0x1DCF  0xFFFF  0xFFFF  -
+        /// T10-DIF                                         0x8BB7  0x0000  0x0000  -
+        /// TELEDISK                                        0xA097  0x0000  0x0000  -
+        /// TMS37157                                        0x1021  0x3791  0x0000  In/Out
+        /// UMTS / BUYPASS / VERIFONE                       0x8005  0x0000  0x0000  -
+        /// USB                                             0x8005  0xFFFF  0xFFFF  In/Out
+        /// XMODEM / ACORN / LTE / V-41-MSB / ZMODEM        0x1021  0x0000  0x0000  -
+        ///
+        /// See also:
+        /// - https://reveng.sourceforge.io/crc-catalogue/16.htm
+        /// - https://users.ece.cmu.edu/~koopman/crc/index.html
         /// </remarks>
-        public Crc16(short polynomial, short initialValue, short finalXorValue, bool reflectIn, bool reflectOut) {
-            _polynomial = (ushort)polynomial;
-            _initialValue = (ushort)initialValue;
-            _finalXorValue = (ushort)finalXorValue;
-            _reverseIn = !reflectIn;
-            _reverseOut = !reflectOut;
+        /// </remarks>
+        public Crc16(short polynomial, short initialValue, bool reflectIn, bool reflectOut, short finalXorValue)
+            : this(unchecked((ushort)polynomial), unchecked((ushort)initialValue), reflectIn, reflectOut, unchecked((ushort)finalXorValue)) {
+        }
+
+        private Crc16(ushort polynomial, ushort initialValue, bool reflectIn, bool reflectOut, ushort finalXorValue) {
+            _polynomial = polynomial;
+            _initialValue = initialValue;
+            _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
+            _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
+            _finalXorValue = finalXorValue;
             ProcessInitialization();
         }
 
 
         /// <summary>
-        /// Returns ARC implementation.
+        /// Returns the default CRC-16 variant.
+        /// Also known as CRC-16/ARC.
         /// </summary>
-        public static Crc16 GetArc() {  // 0xBB3D
-            return new Crc16(unchecked((short)0x8005), 0x0000, 0x0000, true, true);
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetDefault() {
+            return new Crc16();
+        }
+
+
+        /// <summary>
+        /// Returns CRC-16/ARC variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetArc() {
+            return new Crc16((ushort)0x8005, 0x0000, true, true, 0x0000);
         }
 
         /// <summary>
-        /// Returns CCITT implementation.
+        /// Returns CRC-16/IEEE-802.3 variant.
+        /// More widely known as CRC-16/ARC.
         /// </summary>
-        public static Crc16 GetCcitt() {  // 0x29B1
-            return new Crc16(0x1021, unchecked((short)0xFFFF), 0x0000, false, false);
+        public static Crc16 GetIeee8023() {
+            return GetArc();
         }
 
         /// <summary>
-        /// Returns IEEE 802.3 implementation.
+        /// Returns CRC-16/LHA variant.
+        /// More widely known as CRC-16/ARC.
         /// </summary>
-        public static Crc16 GetIeee() {  // 0xBB3D
-            return new Crc16(unchecked((short)0x8005), 0x0000, 0x0000, true, true);
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetLha() {
+            return GetArc();
         }
 
         /// <summary>
-        /// Returns Kermit implementation.
+        /// Returns CRC-16/CDMA2000 variant.
         /// </summary>
-        public static Crc16 GetKermit() {  // 0x2189
-            return new Crc16(0x1021, 0x0000, 0x0000, true, true);
+        /// <remarks>
+        /// Polynom: 0xC867
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetCdma2000() {
+            return new Crc16((ushort)0xC867, 0xFFFF, false, false, 0x0000);
         }
 
         /// <summary>
-        /// Returns X-25 implementation.
+        /// Returns CRC-16/CMS variant.
         /// </summary>
-        public static Crc16 GetX25() {  // 0x906E
-            return new Crc16(0x1021, unchecked((short)0xffff), unchecked((short)0xffff), true, true);
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetCms() {
+            return new Crc16((ushort)0x8005, 0xFFFF, false, false, 0x0000);
+        }
+
+
+        /// <summary>
+        /// Returns CRC-16/DECT-R variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x0589
+        /// Initial value: 0x800D
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0001
+        /// </remarks>
+        public static Crc16 GetDectR() {
+            return new Crc16((ushort)0x0589, 0x0000, false, false, 0x0001);
         }
 
         /// <summary>
-        /// Returns X-Modem implementation.
+        /// Returns CRC-16/DECT-X variant.
         /// </summary>
-        public static Crc16 GetXmodem() {  // 0x0C73
-            return new Crc16(unchecked((short)0x8408), 0x0000, 0x0000, true, true);
+        /// <remarks>
+        /// Polynom: 0x0589
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetDectX() {
+            return new Crc16((ushort)0x0589, 0x0000, false, false, 0x0000);
         }
 
         /// <summary>
-        /// Returns X-25 implementation.
+        /// Returns CRC-16/EN-13757 variant.
         /// </summary>
-        public static Crc16 GetZmodem() {  // 0x31C3
-            return new Crc16(0x1021, 0x0000, 0x0000, false, false);
+        /// <remarks>
+        /// Polynom: 0x3D65
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetEn13757() {
+            return new Crc16((ushort)0x3D65, 0x0000, false, false, 0xFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/GENIBUS variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetGenibus() {
+            return new Crc16((ushort)0x1021, 0xFFFF, false, false, 0xFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/DARC variant.
+        /// More widely known as CRC-16/GENIBUS.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetDarc() {
+            return GetGenibus();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/EPC variant.
+        /// More widely known as CRC-16/GENIBUS.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetEpc() {
+            return GetGenibus();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/EPC-C1G2 variant.
+        /// More widely known as CRC-16/GENIBUS.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetEpcC1G2() {
+            return GetGenibus();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/I-CODE variant.
+        /// More widely known as CRC-16/GENIBUS.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetICode() {
+            return GetGenibus();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/GSM variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetGsm() {
+            return new Crc16((ushort)0x1021, 0x0000, false, false, 0xFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/IBM-3740 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetIbm3740() {
+            return new Crc16((ushort)0x1021, 0xFFFF, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/AUTOSAR variant.
+        /// More widely known as CRC-16/IBM-3740.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetAutosar() {
+            return GetIbm3740();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/CCITT-FALSE variant.
+        /// More widely known as CRC-16/IBM-3740.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetCcittFalse() {
+            return GetIbm3740();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/IBM-SDLC variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetIbmSdlc() {
+            return new Crc16((ushort)0x1021, 0xFFFF, true, true, 0xFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/ISO-HDLD variant.
+        /// More widely known as CRC-16/IBM-SDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetIsoHdld() {
+            return GetIbmSdlc();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/ISO-IEC-14443-3-B variant.
+        /// More widely known as CRC-16/IBM-SDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetIsoIec144433B() {
+            return GetIbmSdlc();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/X-25 variant.
+        /// More widely known as CRC-16/IBM-SDLC.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetX25() {
+            return GetIbmSdlc();
+        }
+
+        /// <summary>
+        /// Returns ISO-IEC-14443-3-A CRC-16 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xC6C6
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetIsoIec144433A() {
+            return new Crc16((ushort)0x1021, 0xC6C6, true, true, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/KERMIT variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetKermit() {
+            return new Crc16((ushort)0x1021, 0x0000, true, true, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/CCITT variant.
+        /// More widely known as CRC-16/KERMIT.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetCcitt() {
+            return GetKermit();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/CCITT-TRUE variant.
+        /// More widely known as CRC-16/KERMIT.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetCcittTrue() {
+            return GetKermit();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/V-41-LSB variant.
+        /// More widely known as CRC-16/KERMIT.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xC6C6
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetV41Lsb() {
+            return GetKermit();
+        }
+
+        /// <summary>
+        /// Returns LJ1200 CRC-16 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x6F63
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetLj1200() {
+            return new Crc16((ushort)0x6F63, 0x0000, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns Maxim CRC-16 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetMaximDow() {
+            return new Crc16((ushort)0x8005, 0x0000, true, true, 0xFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/MAXIM variant.
+        /// More widely known as CRC-16/MAXIM-DOW.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetMaxim() {
+            return GetMaximDow();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/MCRF4XX variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0xFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetMcrf4xx() {
+            return new Crc16((ushort)0x1021, 0xFFFF, true, true, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/MODBUS variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0xFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetModbus() {
+            return new Crc16((ushort)0x8005, 0xFFFF, true, true, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/NRSC-5 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x800B
+        /// Initial value: 0xFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetNrsc5() {
+            return new Crc16((ushort)0x080B, 0xFFFF, true, true, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/OPENSAFETY-A variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x5935
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetOpenSafetyA() {
+            return new Crc16((ushort)0x5935, 0x0000, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/OPENSAFETY-B variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x755B
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetOpenSafetyB() {
+            return new Crc16((ushort)0x755B, 0x0000, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/PROFIBUS variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1DCF
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetProfibus() {
+            return new Crc16((ushort)0x1DCF, 0xFFFF, false, false, 0xFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/IEC-61158-2 variant.
+        /// More widely known as CRC-16/PROFIBUS.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1DCF
+        /// Initial value: 0xFFFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetIec611582() {
+            return GetProfibus();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/T10-DIF variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8BB7
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetT10Dif() {
+            return new Crc16((ushort)0x8BB7, 0x0000, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/TELEDISK variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetTeledisk() {
+            return new Crc16((ushort)0xA097, 0x0000, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/TMS37157 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x3791
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetTms37157() {
+            return new Crc16((ushort)0x1021, 0x3791, true, true, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/UMTS variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetUmts() {
+            return new Crc16((ushort)0x8005, 0x0000, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/BUYPASS variant.
+        /// More widely known as CRC-16/UMTS.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetBuypass() {
+            return GetUmts();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/VERIFONE variant.
+        /// More widely known as CRC-16/UMTS.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetVerifone() {
+            return GetUmts();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/USB variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x8005
+        /// Initial value: 0xFFFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0xFFFF
+        /// </remarks>
+        public static Crc16 GetUsb() {
+            return new Crc16((ushort)0x8005, 0xFFFF, true, true, 0xFFFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/XMODEM variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetXModem() {
+            return new Crc16(unchecked((short)0x1021), 0x0000, false, false, 0x0000);
+        }
+
+        /// <summary>
+        /// Returns CRC-16/ACORN variant.
+        /// More widely known as CRC-16/XMODEM.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetAcorn() {
+            return GetXModem();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/LTE variant.
+        /// More widely known as CRC-16/XMODEM.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetLte() {
+            return GetXModem();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/V-41-MSB variant.
+        /// More widely known as CRC-16/XMODEM.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetV41Msb() {
+            return GetXModem();
+        }
+
+        /// <summary>
+        /// Returns CRC-16/ZMODEM variant.
+        /// More widely known as CRC-16/XMODEM.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: 0x1021
+        /// Initial value: 0x0000
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x0000
+        /// </remarks>
+        public static Crc16 GetZModem() {
+            return GetXModem();
         }
 
 
