@@ -163,13 +163,6 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(0xD64E, (ushort)crc.HashAsInt16);
         }
 
-        [Fact(DisplayName = "Crc16: GENIBUS / I-CODE (A)")]
-        public void ICode_A() {
-            var crc = Crc16.GetICode();
-            crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
-            Assert.Equal(0xD64E, (ushort)crc.HashAsInt16);
-        }
-
         [Fact(DisplayName = "Crc16: GSM")]
         public void Gsm() {
             string expected = "0xA1E4";
@@ -251,6 +244,22 @@ namespace Tests.Medo.Security.Checksum {
             var crc = Crc16.GetX25();
             crc.ComputeHash(Encoding.ASCII.GetBytes("123456789"));
             Assert.Equal(0x906E, (ushort)crc.HashAsInt16);
+        }
+
+        [Fact(DisplayName = "Crc16: I-CODE")]
+        public void ICode() {
+            string expected = "0xCB47";
+            var crc = Crc16.GetIbmSdlc();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal(expected, $"0x{crc.HashAsInt16:X4}");
+            Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
+        }
+
+        [Fact(DisplayName = "Crc16: I-CODE (2)")]
+        public void ICode_2() {
+            var crc = Crc16.GetICode();
+            crc.ComputeHash(new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x64, 0x32 });
+            Assert.Equal(0x1D0F, (ushort)crc.HashAsInt16);
         }
 
         [Fact(DisplayName = "Crc16: KERMIT")]

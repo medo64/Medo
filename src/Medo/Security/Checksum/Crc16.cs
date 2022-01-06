@@ -68,10 +68,11 @@ namespace Medo.Security.Checksum {
         /// DECT-R                                          0x0589  0x0000  0x0001  -
         /// DECT-X                                          0x0589  0x0000  0x0000  -
         /// EN-13757                                        0x3D65  0x0000  0xFFFF  -
-        /// GENIBUS / DARC / EPC / EPC-C1G2 / I-CODE        0x1021  0xFFFF  0xFFFF  -
+        /// GENIBUS / DARC / EPC / EPC-C1G2                 0x1021  0xFFFF  0xFFFF  -
         /// GSM                                             0x1021  0x0000  0xFFFF  -
         /// IBM-3740 / AUTOSAR / CCITT-FALSE                0x1021  0xFFFF  0x0000  -
         /// IBM-SDLC / ISO-HDLD / ISO-IEC-14443-3-B / X-25  0x1021  0xFFFF  0xFFFF  In/Out
+        /// I-CODE                                          0x1021  0xFFFF  0x0000  -
         /// ISO-IEC-14443-3-A                               0x1021  0xC6C6  0x0000  In/Out
         /// KERMIT / CCITT / CCITT-TRUE / V-41-LSB          0x1021  0x0000  0x0000  In/Out
         /// LJ1200                                          0x6F63  0x0000  0x0000  -
@@ -293,7 +294,6 @@ namespace Medo.Security.Checksum {
 
         /// <summary>
         /// Returns CRC-16/I-CODE variant.
-        /// More widely known as CRC-16/GENIBUS.
         /// </summary>
         /// <remarks>
         /// Polynom: 0x1021
@@ -303,7 +303,7 @@ namespace Medo.Security.Checksum {
         /// Output XOR: 0xFFFF
         /// </remarks>
         public static Crc16 GetICode() {
-            return GetGenibus();
+            return new Crc16((ushort)0x1021, 0xFFFF, false, false, 0x0000);
         }
 
         /// <summary>
