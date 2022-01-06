@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-01-05: Renamed Add to AddReferencePoint
 //2021-03-06: Refactored for .NET 5
 //2011-03-13: Changed Add method
 //            Line is approximated between two points when calculating adjustments below or above
@@ -31,11 +32,11 @@ namespace Medo.Math {
 
 
         /// <summary>
-        /// Adds new calibration point.
+        /// Adds a new reference point.
         /// </summary>
         /// <param name="referenceValue">Reference value.</param>
         /// <param name="measuredValue">Value as measured by target device.</param>
-        public void Add(double referenceValue, double measuredValue) {
+        public void AddReferencePoint(double referenceValue, double measuredValue) {
             ReferencePoints.Add(referenceValue, measuredValue);
         }
 
