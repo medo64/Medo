@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-01-05: Added more variants
+//            Fixed big-endian system operation
 //2021-03-06: Refactored for .NET 5
 //2008-06-07: Replaced ShiftRight function with right shift (>>) operator
 //            Implemented bit reversal via lookup table (http://graphics.stanford.edu/~seander/bithacks.html)
@@ -8,54 +10,433 @@
 //2008-01-05: Added resources
 //2007-10-31: New version
 
+using System;
+
 namespace Medo.Security.Checksum {
     using System.Security.Cryptography;
 
     /// <summary>
-    /// Computes hash using standard 8-bit CRC algorithm.
+    /// Computes hash using the 8-bit CRC algorithm.
+    /// The following CRC-8 variants are supported: AUTOSAR, BLUETOOTH, CCITT,
+    /// CDMA2000, DALLAS, DARC, DVB-S2, GSM-A, GSM-B, HITAG, I-432-1, ITU, LTE,
+    /// MAXIM, MAXIM-DOW, MIFARE, MIFARE-MAD, NRSC-5, OpenSAFETY, ROHC,
+    /// SAE-J1850, SMBUS, TECH-3250, and WCDMA2000.
     /// </summary>
+    /// <example>
+    /// var crc = Crc8.GetLte();
+    /// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
+    /// var hashValue = crc.HashAsByte;
+    /// </example>
     public sealed class Crc8 : HashAlgorithm {
 
         /// <summary>
         /// Creates new instance.
         /// </summary>
-        /// <param name="polynomial">Polynomial value.</param>
-        /// <param name="initialValue">Starting digest.</param>
-        /// <param name="finalXorValue">Final XOR value.</param>
-        /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
-        /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
+        public Crc8()
+            : this(0x9B, 0x00, false, false, 0x00) {
+        }
+
+        /// <summary>
+        /// Creates new instance.
+        /// </summary>
+        /// <param name="polynomial">The polynomial value.</param>
+        /// <param name="initialValue">The starting digest value.</param>
+        /// <param name="reflectIn">If true, input byte is in the reflected (LSB first) bit order.</param>
+        /// <param name="reflectOut">If true, digest is in the reflected (LSB first) bit order.</param>
+        /// <param name="finalXorValue">The final XOR value.</param>
         /// <remarks>
-        /// Name        Poly  Init  XorOut  RefIn  RefOut
-        /// ---------------------------------------------
-        /// Dallas      0x31  0x00  0x00    true   true  
-        /// Maxim       0x31  0x00  0x00    true   true  
+        /// Name                 Polynomial                         Init  Xor   Reflect
+        /// ---------------------------------------------------------------------------
+        /// Default              0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
+        /// AUTOSAR              0x2F (x⁸ + x⁵ + x³ + x² + x + 1)   0xFF  0xFF  -
+        /// BLUETOOTH            0xA7 (x⁸ + x⁷ + x⁵ + x² + x + 1)   0x00  0x00  In/Out
+        /// CDMA2000             0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0xFF  0x00  -
+        /// DARC                 0x39 (x⁸ + x⁵ + x⁴ + x³ + 1)       0x00  0x00  In/Out
+        /// DVB-S2               0xD5 (x⁸ + x⁷ + x⁶ + x⁴ + x² + 1)  0x00  0x00  -
+        /// GSM-A                0x1D (x⁸ + x⁴ + x³ + 1)            0x00  0x00  -
+        /// GSM-B                0x49 (x⁸ + x⁶ + x³ + 1)            0x00  0xFF  -
+        /// HITAG                0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0x00  -
+        /// I-432-1 / ITU        0x07 (x⁸ + x² + x + 1)             0x00  0x55  -
+        /// LTE                  0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
+        /// MAXIM-DOW / MAXIM    0x31 (x⁸ + x⁵ + x⁴ + 1)            0x00  0x00  In/Out
+        /// MIFARE-MAD / MIFARE  0x1D (x⁸ + x⁴ + x³ + 1)            0xE3  0x00  -
+        /// NRSC-5               0x31 (x⁸ + x⁵ + x⁴ + 1)            0xFF  0x00  -
+        /// OPENSAFETY           0x2F (x⁸ + x⁵ + x³ + x² + x + 1)   0x00  0x00  -
+        /// ROHC                 0x07 (x⁸ + x² + x + 1)             0xFF  0x00  In/Out
+        /// SAE-J1850            0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0xFF  -
+        /// SMBUS                0x07 (x⁸ + x² + x + 1)             0x00  0x00  -
+        /// TECH-3250            0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0x00  In/Out
+        /// WCDMA2000            0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  In/Out
         /// 
-        /// ATM         0x07  (x^8 + x^2 + x^1 + 1)
-        /// CCITT       0x87  (x^8 + x^7 + x^3 + x^2 + 1)
-        ///             0xD5  (x^8 + x^7 + x^6 + x^4 + x^2 + 1)
+        /// See also:
+        /// - https://reveng.sourceforge.io/crc-catalogue/1-15.htm
+        /// - https://users.ece.cmu.edu/~koopman/crc/index.html
         /// </remarks>
-        public Crc8(byte polynomial, byte initialValue, byte finalXorValue, bool reflectIn, bool reflectOut) {
+        public Crc8(byte polynomial, byte initialValue, bool reflectIn, bool reflectOut, byte finalXorValue) {
             _polynomial = polynomial;
             _initialValue = initialValue;
+            _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
+            _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
             _finalXorValue = finalXorValue;
-            _reverseIn = !reflectIn;
-            _reverseOut = !reflectOut;
             ProcessInitialization();
         }
 
 
         /// <summary>
-        /// Returns Dallas semiconductors implementation.
+        /// Returns the default CRC-8 variant.
+        /// Also known as CRC-8/LTE.
         /// </summary>
-        public static Crc8 GetDallas() {  // 0x1e
-            return new Crc8(0x31, 0x00, 0x00, true, true);
+        /// <remarks>
+        /// Polynom: x⁸ + x⁷ +  x⁴ + x³ + x + 1 (0x9B)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetDefault() {
+            return new Crc8();
+        }
+
+
+        /// <summary>
+        /// Returns CRC-8/AUTOSAR variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁵ + x³ + x² + x + 1 (0x2F)
+        /// Initial value: 0xFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFF
+        /// </remarks>
+        public static Crc8 GetAutosar() {
+            return new Crc8(0x2F, 0xFF, false, false, 0xFF);
         }
 
         /// <summary>
-        /// Returns Maxim implementation.
+        /// Returns CRC-8/BLUETOOTH variant.
         /// </summary>
-        public static Crc8 GetMaxim() {  // 0x1e
-            return new Crc8(0x31, 0x00, 0x00, true, true);
+        /// <remarks>
+        /// Polynom: x⁸ + x⁷ + x⁵ + x² + x + 1 (0xA7)
+        /// Initial value: 0x00
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetBluetooth() {
+            return new Crc8(0xA7, 0x00, true, true, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/CDMA2000 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁷ +  x⁴ + x³ + x + 1 (0x9B)
+        /// Initial value: 0xFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetCdma2000() {
+            return new Crc8(0x9B, 0xFF, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/DARC variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁵ + x⁴ + x³ + 1 (0x39)
+        /// Initial value: 0x00
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetDarc() {
+            return new Crc8(0x39, 0x00, true, true, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/DVB-S2 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁷ + x⁶ + x⁴ + x² + 1 (0xD5)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetDvbS2() {
+            return new Crc8(0xD5, 0x00, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/GSM-A variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁴ + x³ + 1 (0x1D)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetGsmA() {
+            return new Crc8(0x1D, 0x00, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/GSM-B variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁶ + x³ + 1 (0x49)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFF
+        /// </remarks>
+        public static Crc8 GetGsmB() {
+            return new Crc8(0x49, 0x00, false, false, 0xFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/HITAG variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁴ + x³ + 1 (0x1D)
+        /// Initial value: 0xFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetHitag() {
+            return new Crc8(0x1D, 0xFF, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/I-432-1 / CRC-8/ITU / CRC-8/CCITT variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x² + x + 1 (0x07)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x55
+        /// </remarks>
+        public static Crc8 GetI4321() {
+            return new Crc8(0x07, 0x00, false, false, 0x55);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/CCITT variant.
+        /// More widely known as CRC-8/I-432-1.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x² + x + 1 (0x07)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x55
+        /// </remarks>
+        public static Crc8 GetCcitt() {
+            return GetI4321();
+        }
+
+        /// <summary>
+        /// Returns CRC-8/ITU variant.
+        /// More widely known as CRC-8/I-432-1.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x² + x + 1 (0x07)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x55
+        /// </remarks>
+        public static Crc8 GetItu() {
+            return GetI4321();
+        }
+
+        /// <summary>
+        /// Returns the CRC-8/LTE variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁷ +  x⁴ + x³ + x + 1 (0x9B)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetLte() {
+            return new Crc8(0x9B, 0x00, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/MAXIM-DOW / CRC-8/MAXIM variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁵ + x⁴ + 1 (0x31)
+        /// Initial value: 0x00
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetMaximDow() {
+            return new Crc8(0x31, 0x00, true, true, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/DALLAS variant.
+        /// More widely known as CRC-8/MAXIM-DOW.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁵ + x⁴ + 1 (0x31)
+        /// Initial value: 0x00
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetDallas() {
+            return GetMaximDow();
+        }
+
+        /// <summary>
+        /// Returns CRC-8/MAXIM variant.
+        /// More widely known as CRC-8/MAXIM-DOW.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁵ + x⁴ + 1 (0x31)
+        /// Initial value: 0x00
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetMaxim() {
+            return GetMaximDow();
+        }
+
+        /// <summary>
+        /// Returns the CRC-8/MIFARE-MAD variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁴ + x³ + 1 (0x1D)
+        /// Initial value: 0xE3
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetMifareMad() {
+            return new Crc8(0x1D, 0xE3, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns the CRC-8/MIFARE variant.
+        /// More widely known as CRC-8/MIFARE-MAD.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁴ + x³ + 1 (0x1D)
+        /// Initial value: 0xE3
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetMifare() {
+            return GetMifareMad();
+        }
+
+        /// <summary>
+        /// Returns the CRC-8/NRSC-5 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁵ + x⁴ + 1 (0x31)
+        /// Initial value: 0xFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetNrsc5() {
+            return new Crc8(0x31, 0xFF, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns the CRC-8/OPENSAFETY CRC-8 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁵ + x³ + x² + x + 1 (0x2F)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetOpenSafety() {
+            return new Crc8(0x2F, 0x00, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/ROHC variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x² + x + 1 (0x07)
+        /// Initial value: 0xFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetRohc() {
+            return new Crc8(0x07, 0xFF, true, true, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/SAE-J1850 CRC-8 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁴ + x³ + 1 (0x1D)
+        /// Initial value: 0xFF
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0xFF
+        /// </remarks>
+        public static Crc8 GetSaeJ1850() {
+            return new Crc8(0x1D, 0xFF, false, false, 0xFF);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/SMBUS variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x² + x + 1 (0x07)
+        /// Initial value: 0x00
+        /// Reflect In: No
+        /// Reflect Out: No
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetSMBus() {
+            return new Crc8(0x07, 0x00, false, false, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/TECH-3250 variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁴ + x³ + 1 (0x1D)
+        /// Initial value: 0xFF
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetTech3250() {
+            return new Crc8(0x1D, 0xFF, true, true, 0x00);
+        }
+
+        /// <summary>
+        /// Returns CRC-8/WCDMA variant.
+        /// </summary>
+        /// <remarks>
+        /// Polynom: x⁸ + x⁷ +  x⁴ + x³ + x + 1 (0x9B)
+        /// Initial value: 0x00
+        /// Reflect In: Yes
+        /// Reflect Out: Yes
+        /// Output XOR: 0x00
+        /// </remarks>
+        public static Crc8 GetWcdma2000() {
+            return new Crc8(0x9B, 0x00, true, true, 0x00);
         }
 
 
