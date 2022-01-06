@@ -47,12 +47,13 @@ SOLUTION_FILES="Medo.sln"
 OUTPUT_FILES="Medo.dll Medo.pdb"
 
 if [[ `uname -o` == "Msys" ]]; then  # assume Windows
-    SOLUTION_FILES="$SOLUTION_FILES Medo.Windows.Forms.sln"
+    SOLUTION_FILES="Medo.Windows.sln"
     OUTPUT_FILES="$OUTPUT_FILES Medo.Windows.Forms.dll Medo.Windows.Forms.pdb"
 fi
 
 
 function clean() {
+    if [[ "$BASE_DIRECTORY" == "~" ]] || [[ "$BASE_DIRECTORY" == "/" ]]; then return 1; fi
     rm -r "$BASE_DIRECTORY/bin/" 2>/dev/null
     rm -r "$BASE_DIRECTORY/build/" 2>/dev/null
     rm -r "$BASE_DIRECTORY/src/**/bin/" 2>/dev/null
