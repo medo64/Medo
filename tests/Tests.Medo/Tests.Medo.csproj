@@ -13,85 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="_Resources\Configuration\Config\CommentsOnly.cfg" />
-    <None Remove="_Resources\Configuration\Config\CommentsOnly.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\CommentsWithValues.cfg" />
-    <None Remove="_Resources\Configuration\Config\Empty.cfg" />
-    <None Remove="_Resources\Configuration\Config\EmptyLinesCR.cfg" />
-    <None Remove="_Resources\Configuration\Config\EmptyLinesCRLF.cfg" />
-    <None Remove="_Resources\Configuration\Config\EmptyLinesLF.cfg" />
-    <None Remove="_Resources\Configuration\Config\EmptyLinesMixed.cfg" />
-    <None Remove="_Resources\Configuration\Config\EmptyLinesMixed.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\KeyWhitespace.cfg" />
-    <None Remove="_Resources\Configuration\Config\KeyWhitespace.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\Remove.cfg" />
-    <None Remove="_Resources\Configuration\Config\Remove.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\RemoveMulti.cfg" />
-    <None Remove="_Resources\Configuration\Config\RemoveMulti.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\Replace.cfg" />
-    <None Remove="_Resources\Configuration\Config\Replace.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\ReplaceOnlyLast.cfg" />
-    <None Remove="_Resources\Configuration\Config\ReplaceOnlyLast.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\SpacingCorrections.cfg" />
-    <None Remove="_Resources\Configuration\Config\SpacingCorrections.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\SpacingEscape.cfg" />
-    <None Remove="_Resources\Configuration\Config\SpacingEscape.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\SpacingPreserved.cfg" />
-    <None Remove="_Resources\Configuration\Config\SpacingPreserved.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\SpacingPreservedOnAdd.cfg" />
-    <None Remove="_Resources\Configuration\Config\SpacingPreservedOnAdd.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteBasic.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteConverted.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteMulti.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteMulti.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteNoEmptyLine.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteNoEmptyLine.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteSameSeparatorEquals.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteSameSeparatorEquals.Good.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteSameSeparatorSpace.cfg" />
-    <None Remove="_Resources\Configuration\Config\WriteSameSeparatorSpace.Good.cfg" />
-    <None Remove="_Resources\Configuration\IniFile\Comment.ini" />
-    <None Remove="_Resources\Configuration\IniFile\Conversions.ini" />
-    <None Remove="_Resources\Configuration\IniFile\DoubleQuote.ini" />
-    <None Remove="_Resources\Configuration\IniFile\Empty.ini" />
-    <None Remove="_Resources\Configuration\IniFile\EmptyKey.ini" />
-    <None Remove="_Resources\Configuration\IniFile\IgnoreEmptySections.ini" />
-    <None Remove="_Resources\Configuration\IniFile\IgnoreIncompleteProperties.ini" />
-    <None Remove="_Resources\Configuration\IniFile\MergeSections.ini" />
-    <None Remove="_Resources\Configuration\IniFile\Mixed.ini" />
-    <None Remove="_Resources\Configuration\IniFile\SectionCharactersAfterEnd.ini" />
-    <None Remove="_Resources\Configuration\IniFile\SectionIgnoresInnerBrackets.ini" />
-    <None Remove="_Resources\Configuration\IniFile\SectionImplicitEnd.ini" />
-    <None Remove="_Resources\Configuration\IniFile\SingleQuote.ini" />
-    <None Remove="_Resources\Configuration\IniFile\WhitespaceAtEnd.ini" />
-    <None Remove="_Resources\Configuration\IniFile\WhitespaceAtStart.ini" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example16-Color24.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example16-Color32.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example16-Color4.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example16-Color8.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example2-Color1.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example2-Color2.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example2-Color24.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example2-Color32.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example2-Color4.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example2-Color8.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example256-Color24.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example256-Color32.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example256-Color8.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example256-Mono24.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example256-Mono32.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example256-Mono8.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example4-Color2.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example4-Color24.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example4-Color32.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example4-Color4.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example4-Color8.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example64-Color24.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example64-Color32.png" />
-    <None Remove="_Resources\Drawing\SimplePngImage\Example64-Color8.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -185,6 +106,20 @@
     <EmbeddedResource Include="_Resources\Drawing\SimplePngImage\Example4-Color32.png" />
     <EmbeddedResource Include="_Resources\Drawing\SimplePngImage\Example4-Color4.png" />
     <EmbeddedResource Include="_Resources\Drawing\SimplePngImage\Example4-Color8.png" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector128B.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector192B.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector256B.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector256A.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector192A.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector128A.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector40B.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector56B.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector64B.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector80B.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector80A.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector64A.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector56A.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector40A.txt" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_D_M.TXT" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_E_M.TXT" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_D_M.TXT" />
@@ -232,6 +167,7 @@
     <Resource Include="_Resources\Configuration\Config\WriteSameSeparatorEquals.Good.cfg" />
     <Resource Include="_Resources\Configuration\Config\WriteSameSeparatorSpace.cfg" />
     <Resource Include="_Resources\Configuration\Config\WriteSameSeparatorSpace.Good.cfg" />
+    <Resource Include="_Resources\Security\Cryptography\RivestCipher4\Vector40A.txt" />
   </ItemGroup>
 
 </Project>
