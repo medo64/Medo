@@ -134,6 +134,11 @@ Computes checksum using Fletcher-16 algorithm.
 Computes hash using ISO 7064 algorithm from numerical input.
 
 
+## RivestCipher4Managed (Medo.Security.Cryptography)
+
+Rivest Cipher 4 (RC4) algorithm implementation.
+
+
 ## CryptPassword (Medo.Security.Cryptography)
 
 Various password generation algorithms compatible with Unix crypt.
