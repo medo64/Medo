@@ -45,18 +45,16 @@ public sealed class RivestCipher4Managed : SymmetricAlgorithm {
         return new RivestCipher4ManagedTransform(rgbKey, rgbIV);
     }
 
-    private static readonly Lazy<RandomNumberGenerator> Rng = new(() => RandomNumberGenerator.Create());
-
     /// <inheritdoc />
     public override void GenerateIV() {
         IVValue = new byte[KeySizeValue / 8];
-        Rng.Value.GetBytes(IVValue);
+        RandomNumberGenerator.Fill(IVValue);
     }
 
     /// <inheritdoc />
     public override void GenerateKey() {
         KeyValue = new byte[KeySizeValue / 8];
-        Rng.Value.GetBytes(KeyValue);
+        RandomNumberGenerator.Fill(KeyValue);
     }
 
 }
@@ -71,6 +69,8 @@ internal sealed class RivestCipher4ManagedTransform : ICryptoTransform {
         var key = new byte[rgbKey.Length + (rgbIV?.Length ?? 0)];
         Buffer.BlockCopy(rgbKey, 0, key, 0, rgbKey.Length);
         if (rgbIV != null) { Buffer.BlockCopy(rgbIV, 0, key, rgbKey.Length, rgbIV.Length); }  // just append IV to a key as Arc4 doesn't really do IV
+
+        SBox = GC.AllocateUninitializedArray<byte>(256, pinned: true);
 
         for (var i = 0; i < 256; i++) {
             SBox[i] = (byte)i;
@@ -88,7 +88,7 @@ internal sealed class RivestCipher4ManagedTransform : ICryptoTransform {
         Array.Clear(key);
     }
 
-    private readonly byte[] SBox = new byte[256];
+    private readonly byte[] SBox;
     private byte I, J;
 
 
