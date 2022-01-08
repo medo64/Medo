@@ -32,15 +32,17 @@ public sealed class RivestCipher4Managed : SymmetricAlgorithm {
 
 
     /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIV) {
         if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
-        return new Arc4ManagedTransform(rgbKey, rgbIV);
+        return new RivestCipher4ManagedTransform(rgbKey, rgbIV);
     }
 
     /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV) {
         if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
-        return new Arc4ManagedTransform(rgbKey, rgbIV);
+        return new RivestCipher4ManagedTransform(rgbKey, rgbIV);
     }
 
     private static readonly Lazy<RandomNumberGenerator> Rng = new(() => RandomNumberGenerator.Create());
@@ -61,16 +63,14 @@ public sealed class RivestCipher4Managed : SymmetricAlgorithm {
 
 
 /// <summary>
-/// Performs a cryptographic transformation of data using the Arc4 algorithm.
+/// Performs a cryptographic transformation of data using the RC4 algorithm.
 /// This class cannot be inherited.
 /// </summary>
-public sealed class Arc4ManagedTransform : ICryptoTransform {
-    internal Arc4ManagedTransform(byte[] key, byte[]? iv) {
-        var fullKey = new byte[key.Length + (iv?.Length ?? 0)];
-        Buffer.BlockCopy(key, 0, fullKey, 0, key.Length);
-        if (iv != null) { Buffer.BlockCopy(iv, 0, fullKey, key.Length, iv.Length); }  // just append IV to a key as Arc4 doesn't really do IV
-
-        #region Key Setup
+internal sealed class RivestCipher4ManagedTransform : ICryptoTransform {
+    internal RivestCipher4ManagedTransform(byte[] rgbKey, byte[]? rgbIV) {
+        var key = new byte[rgbKey.Length + (rgbIV?.Length ?? 0)];
+        Buffer.BlockCopy(rgbKey, 0, key, 0, rgbKey.Length);
+        if (rgbIV != null) { Buffer.BlockCopy(rgbIV, 0, key, rgbKey.Length, rgbIV.Length); }  // just append IV to a key as Arc4 doesn't really do IV
 
         for (var i = 0; i < 256; i++) {
             SBox[i] = (byte)i;
@@ -79,44 +79,30 @@ public sealed class Arc4ManagedTransform : ICryptoTransform {
         var j = 0;
         byte x;
         for (var i = 0; i < 256; i++) {
-            j = (j + SBox[i] + fullKey[i % fullKey.Length]) % 256;
+            j = (j + SBox[i] + key[i % key.Length]) % 256;
             x = SBox[i];
             SBox[i] = SBox[j];
             SBox[j] = x;
         }
 
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-        x = 0;  // just to clear it's value from memory
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-
-        #endregion Key Setup
-
-        Array.Clear(fullKey);
+        Array.Clear(key);
     }
 
     private readonly byte[] SBox = new byte[256];
     private byte I, J;
 
 
-    /// <summary>
-    /// Gets a value indicating whether the current transform can be reused.
-    /// </summary>
-    public bool CanReuseTransform { get { return false; } }
+    /// <inheritdoc />
+    public bool CanReuseTransform => false;
 
-    /// <summary>
-    /// Gets a value indicating whether multiple blocks can be transformed.
-    /// </summary>
-    public bool CanTransformMultipleBlocks { get { return true; } }
+    /// <inheritdoc />
+    public bool CanTransformMultipleBlocks => true;
 
-    /// <summary>
-    /// Gets the input block size (in bytes).
-    /// </summary>
-    public int InputBlockSize { get { return 1; } }  // block is always 8 bits
+    /// <inheritdoc />
+    public int InputBlockSize => 1;  // in bytes
 
-    /// <summary>
-    /// Gets the output block size (in bytes).
-    /// </summary>
-    public int OutputBlockSize { get { return 1; } }  // block is always 8 bits
+    /// <inheritdoc />
+    public int OutputBlockSize => 1;  // in bytes
 
     /// <summary>
     /// Releases resources.
@@ -132,23 +118,17 @@ public sealed class Arc4ManagedTransform : ICryptoTransform {
     }
 
 
-    /// <summary>
-    /// Transforms the specified region of the input byte array and copies the resulting transform to the specified region of the output byte array.
-    /// </summary>
-    /// <param name="inputBuffer">The input for which to compute the transform.</param>
-    /// <param name="inputOffset">The offset into the input byte array from which to begin using data.</param>
-    /// <param name="inputCount">The number of bytes in the input byte array to use as data.</param>
-    /// <param name="outputBuffer">The output to which to write the transform.</param>
-    /// <param name="outputOffset">The offset into the output byte array from which to begin writing data.</param>
+    /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Input buffer cannot be null. -or- Output buffer cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Input offset must be non-negative number. -or- Output offset must be non-negative number. -or- Invalid input count. -or- Invalid input length. -or- Insufficient output buffer.</exception>
     public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset) {
         if (inputBuffer == null) { throw new ArgumentNullException(nameof(inputBuffer), "Input buffer cannot be null."); }
-        if (inputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(inputOffset), "Offset must be non-negative number."); }
+        if (outputBuffer == null) { throw new ArgumentNullException(nameof(outputBuffer), "Output buffer cannot be null."); }
+        if (inputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(inputOffset), "Input offset must be non-negative number."); }
+        if (outputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(outputOffset), "Output offset must be non-negative number."); }
         if ((inputCount <= 0) || (inputCount > inputBuffer.Length)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
         if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
-        if (outputBuffer == null) { throw new ArgumentNullException(nameof(outputBuffer), "Output buffer cannot be null."); }
-        if (outputOffset + inputCount > outputBuffer.Length) { throw new ArgumentOutOfRangeException(nameof(outputOffset), "Insufficient buffer."); }
-
-        #region Data Encryption
+        if (outputOffset + inputCount > outputBuffer.Length) { throw new ArgumentOutOfRangeException(nameof(outputOffset), "Insufficient output buffer."); }
 
         byte x;
         for (var n = 0; n < inputCount; n++) {
@@ -159,26 +139,21 @@ public sealed class Arc4ManagedTransform : ICryptoTransform {
             SBox[J] = x;
             outputBuffer[outputOffset + n] = (byte)(inputBuffer[inputOffset + n] ^ SBox[(SBox[I] + SBox[J]) % 256]);
         }
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-        x = 0;  // just to clear it's value from memory
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-
-        #endregion Data Encryption
-
         return inputCount;
     }
 
-    /// <summary>
-    /// Transforms the specified region of the specified byte array.
-    /// </summary>
-    /// <param name="inputBuffer">The input for which to compute the transform.</param>
-    /// <param name="inputOffset">The offset into the byte array from which to begin using data.</param>
-    /// <param name="inputCount">The number of bytes in the byte array to use as data.</param>
+    /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Input buffer cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Input offset must be non-negative number. -or- Invalid input count. -or- Invalid input length.</exception>
     public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount) {
-        if (inputCount < 0) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
+        if (inputBuffer == null) { throw new ArgumentNullException(nameof(inputBuffer), "Input buffer cannot be null."); }
+        if (inputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(inputOffset), "Input offset must be non-negative number."); }
+        if ((inputCount < 0) || (inputCount > inputBuffer.Length)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
+        if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
 
         var outputBuffer = new byte[inputCount];
         if (inputCount > 0) { TransformBlock(inputBuffer, inputOffset, inputCount, outputBuffer, 0); }
         return outputBuffer;
     }
+
 }
