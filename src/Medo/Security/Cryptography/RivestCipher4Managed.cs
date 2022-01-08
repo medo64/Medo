@@ -34,14 +34,12 @@ public sealed class RivestCipher4Managed : SymmetricAlgorithm {
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIV) {
-        if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
         return new RivestCipher4ManagedTransform(rgbKey, rgbIV);
     }
 
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV) {
-        if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
         return new RivestCipher4ManagedTransform(rgbKey, rgbIV);
     }
 
@@ -65,6 +63,13 @@ public sealed class RivestCipher4Managed : SymmetricAlgorithm {
 /// This class cannot be inherited.
 /// </summary>
 internal sealed class RivestCipher4ManagedTransform : ICryptoTransform {
+
+    /// <summary>
+    /// Creates a new instance.
+    /// </summary>
+    /// <param name="rgbKey">Key.</param>
+    /// <param name="rgbIV">Optional IV.</param>
+    /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     internal RivestCipher4ManagedTransform(byte[] rgbKey, byte[]? rgbIV) {
         var key = new byte[rgbKey.Length + (rgbIV?.Length ?? 0)];
         Buffer.BlockCopy(rgbKey, 0, key, 0, rgbKey.Length);
