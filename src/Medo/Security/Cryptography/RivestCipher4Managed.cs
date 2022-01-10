@@ -31,6 +31,8 @@ public sealed class RivestCipher4Managed : SymmetricAlgorithm {
     }
 
 
+    #region SymmetricAlgorithm
+
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIV) {
@@ -54,6 +56,53 @@ public sealed class RivestCipher4Managed : SymmetricAlgorithm {
         KeyValue = new byte[KeySizeValue / 8];
         RandomNumberGenerator.Fill(KeyValue);
     }
+
+    #endregion SymmetricAlgorithm
+
+
+    #region SymmetricAlgorithm Overrides
+
+    /// <inheritdoc />
+    /// <exception cref="ArgumentOutOfRangeException">Block size must be 8 bits.</exception>
+    public override int BlockSize {
+        get => base.BlockSize;
+        set {
+            if (value != 8) { throw new CryptographicException("Block size must be 8 bits."); }
+            base.BlockSize = value;
+        }
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="ArgumentOutOfRangeException">Feedback size must be 8 bits.</exception>
+    public override int FeedbackSize {
+        get => base.FeedbackSize;
+        set {
+            if (value != 8) { throw new CryptographicException("Feedback size must be 8 bits."); }
+            base.FeedbackSize = value;
+        }
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="CryptographicException">Cipher mode is not supported.</exception>
+    public override CipherMode Mode {
+        get => base.Mode;
+        set {  // stream cipher is closest to CBC
+            if (value is not CipherMode.CBC) { throw new CryptographicException("Cipher mode is not supported."); }
+            base.Mode = value;
+        }
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="CryptographicException">Padding mode is not supported.</exception>
+    public override PaddingMode Padding {
+        get => base.Padding;
+        set {  // no padding makes sense with RC4
+            if (value is not PaddingMode.None) { throw new CryptographicException("Padding mode is not supported."); }
+            base.Padding = value;
+        }
+    }
+
+    #endregion SymmetricAlgorithm Overrides
 
 }
 

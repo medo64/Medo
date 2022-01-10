@@ -93,6 +93,27 @@ public class RivestCipher4ManagedTests {
     }
 
 
+    [Theory(DisplayName = "RivestCipher4Managed: Only CBC supported")]
+    [InlineData(CipherMode.ECB)]
+    [InlineData(CipherMode.CFB)]
+    [InlineData(CipherMode.CTS)]
+    public void OnlyCbcSupported(CipherMode mode) {
+        Assert.Throws<CryptographicException>(() => {
+            var _ = new RivestCipher4Managed() { Mode = mode };
+        });
+    }
+
+    [Theory(DisplayName = "RivestCipher4Managed: No padding supported")]
+    [InlineData(PaddingMode.PKCS7)]
+    [InlineData(PaddingMode.Zeros)]
+    [InlineData(PaddingMode.ANSIX923)]
+    [InlineData(PaddingMode.ISO10126)]
+    public void NoPaddingSupported(PaddingMode padding) {
+        Assert.Throws<CryptographicException>(() => {
+            var _ = new RivestCipher4Managed() { Padding = padding };
+        });
+    }
+
     #region Private helper
 
     private static byte[] Encrypt(SymmetricAlgorithm algorithm, byte[] key, byte[] iv, byte[] pt) {
