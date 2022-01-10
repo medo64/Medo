@@ -134,6 +134,11 @@ Computes checksum using Fletcher-16 algorithm.
 Computes hash using ISO 7064 algorithm from numerical input.
 
 
+## RabbitManaged (Medo.Security.Cryptography)
+
+Rabbit stream cipher implementation.
+
+
 ## RivestCipher4Managed (Medo.Security.Cryptography)
 
 Rivest Cipher 4 (RC4) algorithm implementation.

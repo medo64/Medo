@@ -106,6 +106,15 @@
     <EmbeddedResource Include="_Resources\Drawing\SimplePngImage\Example4-Color32.png" />
     <EmbeddedResource Include="_Resources\Drawing\SimplePngImage\Example4-Color4.png" />
     <EmbeddedResource Include="_Resources\Drawing\SimplePngImage\Example4-Color8.png" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorA6.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorA5.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorA4.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorA3.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorA2.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorA1.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorB3.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorB2.txt" />
+    <EmbeddedResource Include="_Resources\Security\Cryptography\Rabbit\VectorB1.txt" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector128B.txt" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector192B.txt" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector256B.txt" />
