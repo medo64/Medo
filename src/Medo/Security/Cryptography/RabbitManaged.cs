@@ -31,11 +31,11 @@ public sealed class RabbitManaged : SymmetricAlgorithm {
     /// </summary>
     public RabbitManaged()
         : base() {
-        base.KeySizeValue = 128;
-        base.BlockSizeValue = 128;
+        base.KeySizeValue = KeySizeInBits;
+        base.BlockSizeValue = BlockSizeInBits;
         base.FeedbackSizeValue = base.BlockSizeValue;
-        base.LegalBlockSizesValue = new KeySizes[] { new KeySizes(128, 128, 0) };  // 128-bit
-        base.LegalKeySizesValue = new KeySizes[] { new KeySizes(128, 128, 0) };  // 128-bit
+        base.LegalBlockSizesValue = new KeySizes[] { new KeySizes(BlockSizeInBits, BlockSizeInBits, 0) };  // 128-bit
+        base.LegalKeySizesValue = new KeySizes[] { new KeySizes(KeySizeInBits, KeySizeInBits, 0) };  // 128-bit
 
         base.Mode = CipherMode.CBC;  // same as default
         base.Padding = PaddingMode.None;
@@ -60,18 +60,17 @@ public sealed class RabbitManaged : SymmetricAlgorithm {
 
     /// <inheritdoc />
     public override void GenerateIV() {
-        IVValue = new byte[8];  // IV is always 64 bits
+        IVValue = new byte[IVSizeInBits / 8];  // IV is always 64 bits
         RandomNumberGenerator.Fill(IVValue);
     }
 
     /// <inheritdoc />
     public override void GenerateKey() {
-        KeyValue = new byte[16];  // Key is always 128 bits
+        KeyValue = new byte[KeySizeInBits / 8];  // Key is always 128 bits
         RandomNumberGenerator.Fill(IVValue);
     }
 
     #endregion SymmetricAlgorithm
-
 
     #region SymmetricAlgorithm Overrides
 
@@ -80,7 +79,7 @@ public sealed class RabbitManaged : SymmetricAlgorithm {
     public override int BlockSize {
         get => base.BlockSize;
         set {
-            if (value != 128) { throw new CryptographicException("Block size must be 128 bits."); }
+            if (value != BlockSizeInBits) { throw new CryptographicException("Block size must be 128 bits."); }
             base.BlockSize = value;
         }
     }
@@ -90,7 +89,7 @@ public sealed class RabbitManaged : SymmetricAlgorithm {
     public override int FeedbackSize {
         get => base.FeedbackSize;
         set {
-            if (value != 128) { throw new CryptographicException("Feedback size must be 128 bits."); }
+            if (value != BlockSizeInBits) { throw new CryptographicException("Feedback size must be 128 bits."); }
             base.FeedbackSize = value;
         }
     }
@@ -122,6 +121,14 @@ public sealed class RabbitManaged : SymmetricAlgorithm {
     }
 
     #endregion SymmetricAlgorithm Overrides
+
+    #region Constants
+
+    private const int KeySizeInBits = 128;
+    private const int IVSizeInBits = 64;
+    private const int BlockSizeInBits = 128;
+
+    #endregion Constants
 
 }
 
