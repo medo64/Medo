@@ -364,6 +364,11 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
 
     #endregion IDisposable
 
+    #region Helpers
+
+    private readonly byte[] DecryptionBuffer; // used to store last block under decrypting as to work around CryptoStream implementation details
+    private bool DecryptionBufferInUse;
+
     private void ProcessBytes(byte[] inputBuffer, int inputOffset, int count, byte[] outputBuffer, int outputOffset) {
         CounterUpdate();
         NextState();
@@ -418,6 +423,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         }
     }
 
+    #endregion Helpers
 
     #region Implementation
 
@@ -428,8 +434,6 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
     private readonly DWord[] G;   // temporary state - to avoid allocating new array every time
     private readonly DWord[] S;   // temporary state - to avoid allocating new array every time
     private readonly byte[] Sb;    // output block - to avoid allocating new array every time
-    private readonly byte[] DecryptionBuffer; // used to store last block under decrypting as to work around CryptoStream implementation details
-    private bool DecryptionBufferInUse;
 
     private void SetupKey(byte[] key) {
         var k = GC.AllocateUninitializedArray<DWord>(4, pinned: true);

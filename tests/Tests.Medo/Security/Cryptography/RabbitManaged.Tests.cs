@@ -198,10 +198,15 @@ public class RabbitManagedTests {
             crypto.GenerateKey();
             crypto.GenerateIV();
             var data = new byte[Random.Shared.Next(100)];
+            RandomNumberGenerator.Fill(data);
             if ((padding == PaddingMode.Zeros) && (data.Length > 0)) { data[^1] = 1; }  // zero padding needs to have the last number non-zero
 
             var ct = Encrypt(crypto, crypto.Key, crypto.IV, data);
-            Assert.True(data.Length <= ct.Length);
+            if (padding is PaddingMode.None or PaddingMode.Zeros) {
+                Assert.True(data.Length <= ct.Length);
+            } else {
+                Assert.True(data.Length < ct.Length);
+            }
 
             var pt = Decrypt(crypto, crypto.Key, crypto.IV, ct);
             Assert.Equal(data.Length, pt.Length);
