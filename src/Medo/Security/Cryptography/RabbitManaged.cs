@@ -86,12 +86,11 @@ public sealed class RabbitManaged : SymmetricAlgorithm {
     }
 
     /// <inheritdoc />
-    /// <exception cref="ArgumentOutOfRangeException">Feedback size must be 128 bits.</exception>
+    /// <exception cref="CryptographicException">Feedback not supported.</exception>
     public override int FeedbackSize {
         get => base.FeedbackSize;
         set {
-            if (value != BlockSizeInBits) { throw new CryptographicException("Feedback size must be 128 bits."); }
-            base.FeedbackSize = value;
+            throw new CryptographicException("Feedback not supported.");
         }
     }
 
@@ -176,6 +175,8 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
     private readonly RabbitManagedTransformMode TransformMode;
     private readonly PaddingMode PaddingMode;
 
+    #region ICryptoTransform
+
     /// <inheritdoc />
     public bool CanReuseTransform => false;
 
@@ -187,26 +188,6 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
 
     /// <inheritdoc />
     public int OutputBlockSize => 16;  // in bytes
-
-    /// <summary>
-    /// Releases resources.
-    /// </summary>
-    public void Dispose() {
-        Dispose(true);
-    }
-
-    private void Dispose(bool disposing) {
-        if (disposing) {
-            Array.Clear(X, 0, X.Length);
-            Array.Clear(C, 0, C.Length);
-            Carry = 0;
-            Array.Clear(G, 0, G.Length);
-            Array.Clear(S, 0, S.Length);
-            Array.Clear(Sb, 0, Sb.Length);
-            Array.Clear(DecryptionBuffer, 0, DecryptionBuffer.Length);
-        }
-    }
-
 
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Input buffer cannot be null. -or- Output buffer cannot be null.</exception>
@@ -357,6 +338,31 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
 
         }
     }
+
+    #endregion ICryptoTransform
+
+    #region IDisposable
+
+    /// <summary>
+    /// Releases resources.
+    /// </summary>
+    public void Dispose() {
+        Dispose(true);
+    }
+
+    private void Dispose(bool disposing) {
+        if (disposing) {
+            Array.Clear(X, 0, X.Length);
+            Array.Clear(C, 0, C.Length);
+            Carry = 0;
+            Array.Clear(G, 0, G.Length);
+            Array.Clear(S, 0, S.Length);
+            Array.Clear(Sb, 0, Sb.Length);
+            Array.Clear(DecryptionBuffer, 0, DecryptionBuffer.Length);
+        }
+    }
+
+    #endregion IDisposable
 
     private void ProcessBytes(byte[] inputBuffer, int inputOffset, int count, byte[] outputBuffer, int outputOffset) {
         CounterUpdate();
