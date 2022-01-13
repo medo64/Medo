@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-01-12: Fixed large final block transformation
 //2022-01-09: Initial version
 
 namespace Medo.Security.Cryptography;
@@ -166,6 +167,8 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         S = GC.AllocateUninitializedArray<DWord>(4, pinned: true);
         Sb = GC.AllocateUninitializedArray<byte>(16, pinned: true);
 
+        DecryptionBuffer = GC.AllocateArray<byte>(16, pinned: true);
+
         SetupKey(rgbKey);
         if (rgbIV != null) { SetupIV(rgbIV); }
     }
@@ -200,7 +203,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
             Array.Clear(G, 0, G.Length);
             Array.Clear(S, 0, S.Length);
             Array.Clear(Sb, 0, Sb.Length);
-            if (PaddingBuffer != null) { Array.Clear(PaddingBuffer, 0, PaddingBuffer.Length); }
+            Array.Clear(DecryptionBuffer, 0, DecryptionBuffer.Length);
         }
     }
 
@@ -228,8 +231,9 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
 
             var bytesWritten = 0;
 
-            if (PaddingBuffer != null) {
-                ProcessBytes(PaddingBuffer, 0, 16, outputBuffer, outputOffset);
+            if (DecryptionBufferInUse) {  // process the last block of previous round
+                ProcessBytes(DecryptionBuffer, 0, 16, outputBuffer, outputOffset);
+                DecryptionBufferInUse = false;
                 outputOffset += 16;
                 bytesWritten += 16;
             }
@@ -244,8 +248,8 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
                 ProcessBytes(inputBuffer, inputOffset + bytesWritten, inputCount - bytesWritten, outputBuffer, outputOffset);
                 return inputCount;
             } else {  // save last block without processing because decryption otherwise cannot detect padding in CryptoStream
-                if (PaddingBuffer == null) { PaddingBuffer = new byte[16]; }
-                Buffer.BlockCopy(inputBuffer, inputOffset + inputCount - 16, PaddingBuffer, 0, 16);
+                Buffer.BlockCopy(inputBuffer, inputOffset + inputCount - 16, DecryptionBuffer, 0, 16);
+                DecryptionBufferInUse = true;
             }
 
             return bytesWritten;
@@ -262,81 +266,91 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         if ((inputCount < 0) || (inputCount > inputBuffer.Length)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
         if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
 
-        if (inputCount > 16) {
-            var tempOutput = new byte[16];
-            while (inputCount >= 16) {
-                TransformBlock(inputBuffer, inputOffset, 16, tempOutput, 0);
-                inputOffset += 16;
-                inputCount -= 16;
-            }
-        }
-
         if (TransformMode == RabbitManagedTransformMode.Encrypt) {
 
             int paddedLength;
             byte[] paddedInputBuffer;
             int paddedInputOffset;
-            if (PaddingMode == PaddingMode.PKCS7) {
-                paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
-                paddedInputBuffer = new byte[paddedLength];
-                paddedInputOffset = 0;
-                Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
-                var added = (byte)(paddedLength - inputCount);
-                for (var i = inputCount; i < inputCount + added; i++) {
-                    paddedInputBuffer[i] = added;
-                }
-            } else if (PaddingMode == PaddingMode.Zeros) {
-                paddedLength = (inputCount + 15) / 16 * 16; //to round to next whole block
-                paddedInputBuffer = new byte[paddedLength];
-                paddedInputOffset = 0;
-                Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
-            } else if (PaddingMode == PaddingMode.ANSIX923) {
-                paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
-                paddedInputBuffer = new byte[paddedLength];
-                paddedInputOffset = 0;
-                Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
-                paddedInputBuffer[^1] = (byte)(paddedLength - inputCount);
-            } else if (PaddingMode == PaddingMode.ISO10126) {
-                paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
-                paddedInputBuffer = new byte[paddedLength];
-                RandomNumberGenerator.Fill(paddedInputBuffer);
-                paddedInputOffset = 0;
-                Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
-                paddedInputBuffer[^1] = (byte)(paddedLength - inputCount);
-            } else {  // None
-                var outputBufferWithoutPadding = new byte[inputCount];
-                ProcessBytes(inputBuffer, inputOffset, inputCount, outputBufferWithoutPadding, 0);
-                return outputBufferWithoutPadding;
+            switch (PaddingMode) {
+                case PaddingMode.None:
+                    paddedLength = inputCount;
+                    paddedInputBuffer = inputBuffer;
+                    paddedInputOffset = inputOffset;
+                    break;
+
+                case PaddingMode.PKCS7:
+                    paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
+                    paddedInputBuffer = new byte[paddedLength];
+                    paddedInputOffset = 0;
+                    Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
+                    var added = (byte)(paddedLength - inputCount);
+                    for (var i = inputCount; i < inputCount + added; i++) {
+                        paddedInputBuffer[i] = added;
+                    }
+                    break;
+
+                case PaddingMode.Zeros:
+                    paddedLength = (inputCount + 15) / 16 * 16; //to round to next whole block
+                    paddedInputBuffer = new byte[paddedLength];
+                    paddedInputOffset = 0;
+                    Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
+                    break;
+
+                case PaddingMode.ANSIX923:
+                    paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
+                    paddedInputBuffer = new byte[paddedLength];
+                    paddedInputOffset = 0;
+                    Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
+                    paddedInputBuffer[^1] = (byte)(paddedLength - inputCount);
+                    break;
+
+                case PaddingMode.ISO10126:
+                    paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
+                    paddedInputBuffer = new byte[paddedLength];
+                    RandomNumberGenerator.Fill(paddedInputBuffer.AsSpan(inputCount));
+                    paddedInputOffset = 0;
+                    Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
+                    paddedInputBuffer[^1] = (byte)(paddedLength - inputCount);
+                    break;
+
+                default: throw new CryptographicException("Unsupported padding mode.");
             }
 
             var outputBuffer = new byte[paddedLength];
 
+            int remainingBytes = 16;
             for (var i = 0; i < paddedLength; i += 16) {
-                ProcessBytes(paddedInputBuffer, paddedInputOffset + i, 16, outputBuffer, i);
+                if (PaddingMode == PaddingMode.None) {  // padding None is special as it doesn't extend buffer
+                    remainingBytes = (i + 16 > inputCount) ? inputCount % 16 : 16;
+                }
+                ProcessBytes(paddedInputBuffer, paddedInputOffset + i, remainingBytes, outputBuffer, i);
             }
 
             return outputBuffer;
 
         } else {  // Decrypt
 
+            byte[] outputBuffer;
+
             if (PaddingMode == PaddingMode.None) {
-                var outputBufferWithoutPadding = new byte[inputCount];
-                ProcessBytes(inputBuffer, inputOffset, inputCount, outputBufferWithoutPadding, 0);
-                return outputBufferWithoutPadding;
+                outputBuffer = new byte[inputCount];
+            } else if (inputCount % 16 != 0) {
+                throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count.");
+            } else {
+                outputBuffer = new byte[inputCount + (DecryptionBufferInUse ? 16 : 0)];
             }
 
-            if (inputCount % 16 != 0) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
-
-            var outputBuffer = new byte[inputCount + ((PaddingBuffer != null) ? 16 : 0)];
             var outputOffset = 0;
 
-            if (PaddingBuffer != null) {  // process leftover padding buffer to keep CryptoStream happy
-                ProcessBytes(PaddingBuffer, 0, 16, outputBuffer, 0);
+            if (DecryptionBufferInUse) {  // process leftover padding buffer to keep CryptoStream happy
+                ProcessBytes(DecryptionBuffer, 0, 16, outputBuffer, 0);
+                DecryptionBufferInUse = false;
                 outputOffset = 16;
             }
 
             for (var i = 0; i < inputCount; i += 16) {
-                ProcessBytes(inputBuffer, inputOffset + i, 16, outputBuffer, outputOffset + i);
+                var remainingBytes = (i + 16 > inputCount) ? inputCount % 16 : 16;
+                ProcessBytes(inputBuffer, inputOffset + i, remainingBytes, outputBuffer, outputOffset + i);
             }
 
             return RemovePadding(outputBuffer, PaddingMode);
@@ -365,7 +379,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
             return newOutputBuffer;
         } else if (paddingMode == PaddingMode.Zeros) {
             var newOutputLength = outputBuffer.Length;
-            for (var i = outputBuffer.Length - 1; i >= outputBuffer.Length - 16; i--) {
+            for (var i = outputBuffer.Length - 1; i >= Math.Max(outputBuffer.Length - 16, 0); i--) {
                 if (outputBuffer[i] != 0) {
                     newOutputLength = i + 1;
                     break;
@@ -393,7 +407,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
             var newOutputBuffer = new byte[outputBuffer.Length - padding];
             Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
             return newOutputBuffer;
-        } else {
+        } else {  // None
             return outputBuffer;
         }
     }
@@ -408,7 +422,8 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
     private readonly DWord[] G;   // temporary state - to avoid allocating new array every time
     private readonly DWord[] S;   // temporary state - to avoid allocating new array every time
     private readonly byte[] Sb;    // output block - to avoid allocating new array every time
-    private byte[]? PaddingBuffer; // used to store last block under decrypting as to work around CryptoStream implementation details.
+    private readonly byte[] DecryptionBuffer; // used to store last block under decrypting as to work around CryptoStream implementation details
+    private bool DecryptionBufferInUse;
 
     private void SetupKey(byte[] key) {
         var k = GC.AllocateUninitializedArray<DWord>(4, pinned: true);

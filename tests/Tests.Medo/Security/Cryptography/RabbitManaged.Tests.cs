@@ -1,16 +1,22 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
-using Xunit;
-using Medo.Security.Cryptography;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using Xunit;
+using Medo.Security.Cryptography;
+using System.Diagnostics;
+using Xunit.Abstractions;
 
 namespace Tests.Medo.Security.Cryptography;
 
 public class RabbitManagedTests {
+
+    public RabbitManagedTests(ITestOutputHelper output) => Output = output;
+    private readonly ITestOutputHelper Output;
+
 
     [Theory(DisplayName = "RabbitManaged: Test Vectors")]
     [InlineData("VectorA1.txt")]
@@ -118,6 +124,118 @@ public class RabbitManagedTests {
         Assert.Throws<CryptographicException>(() => {
             var _ = new RabbitManaged() { Mode = mode };
         });
+    }
+
+    [Theory(DisplayName = "RabbitManaged: Large Final Block")]
+    [InlineData(PaddingMode.None)]
+    [InlineData(PaddingMode.PKCS7)]
+    [InlineData(PaddingMode.Zeros)]
+    [InlineData(PaddingMode.ANSIX923)]
+    [InlineData(PaddingMode.ISO10126)]
+    public void LargeFinalBlock(PaddingMode padding) {
+        var crypto = new RabbitManaged() { Padding = padding };
+        crypto.GenerateKey();
+        crypto.GenerateIV();
+        var text = "This is a final block wider than block size.";  // more than 128 bits of data
+        var bytes = Encoding.ASCII.GetBytes(text);
+
+        using var encryptor = crypto.CreateEncryptor();
+        var ct = encryptor.TransformFinalBlock(bytes, 0, bytes.Length);
+
+        Assert.Equal(padding == PaddingMode.None ? bytes.Length : 48, ct.Length);
+
+        using var decryptor = crypto.CreateDecryptor();
+        var pt = decryptor.TransformFinalBlock(ct, 0, ct.Length);
+
+        Assert.Equal(bytes.Length, pt.Length);
+        Assert.Equal(text, Encoding.ASCII.GetString(pt));
+    }
+
+    [Theory(DisplayName = "RabbitManaged: BlockSizeRounding")]
+    [InlineData(PaddingMode.None)]
+    [InlineData(PaddingMode.PKCS7)]
+    [InlineData(PaddingMode.Zeros)]
+    [InlineData(PaddingMode.ANSIX923)]
+    [InlineData(PaddingMode.ISO10126)]
+    public void BlockSizeRounding(PaddingMode padding) {
+        var key = new byte[16]; RandomNumberGenerator.Fill(key);
+        var iv = new byte[8]; RandomNumberGenerator.Fill(iv);
+
+        for (int n = 0; n < 50; n++) {
+            var data = new byte[n];
+            RandomNumberGenerator.Fill(data);
+            if ((padding == PaddingMode.Zeros) && (data.Length > 0)) { data[^1] = 1; }  // zero padding needs to have the last number non-zero
+
+            var algorithm = new RabbitManaged() { Padding = padding, };
+
+            var expectedCryptLength = padding switch {
+                PaddingMode.None => data.Length,
+                PaddingMode.PKCS7 => ((data.Length / 16) + 1) * 16,
+                PaddingMode.Zeros => (data.Length / 16 + (data.Length % 16 > 0 ? 1 : 0)) * 16,
+                PaddingMode.ANSIX923 => ((data.Length / 16) + 1) * 16,
+                PaddingMode.ISO10126 => ((data.Length / 16) + 1) * 16,
+                _ => -1
+
+            };
+            var ct = Encrypt(algorithm, key, iv, data);
+            Assert.Equal(expectedCryptLength, ct.Length);
+
+            var pt = Decrypt(algorithm, key, iv, ct);
+            Assert.Equal(data.Length, pt.Length);
+            Assert.Equal(BitConverter.ToString(data), BitConverter.ToString(pt));
+        }
+    }
+
+    [Theory(DisplayName = "RabbitManaged: Random Testing")]
+    [InlineData(PaddingMode.None)]
+    [InlineData(PaddingMode.PKCS7)]
+    [InlineData(PaddingMode.Zeros)]
+    [InlineData(PaddingMode.ANSIX923)]
+    [InlineData(PaddingMode.ISO10126)]
+    public void Randomised(PaddingMode padding) {
+        for (var n = 0; n < 1000; n++) {
+            var crypto = new RabbitManaged() { Padding = padding };
+            crypto.GenerateKey();
+            crypto.GenerateIV();
+            var data = new byte[Random.Shared.Next(100)];
+            if ((padding == PaddingMode.Zeros) && (data.Length > 0)) { data[^1] = 1; }  // zero padding needs to have the last number non-zero
+
+            var ct = Encrypt(crypto, crypto.Key, crypto.IV, data);
+            Assert.True(data.Length <= ct.Length);
+
+            var pt = Decrypt(crypto, crypto.Key, crypto.IV, ct);
+            Assert.Equal(data.Length, pt.Length);
+            Assert.Equal(BitConverter.ToString(data), BitConverter.ToString(pt));
+        }
+    }
+
+    [Theory(DisplayName = "RabbitManaged: Encrypt/Decrypt")]
+    [InlineData(PaddingMode.None)]
+    [InlineData(PaddingMode.PKCS7)]
+    [InlineData(PaddingMode.Zeros)]
+    [InlineData(PaddingMode.ANSIX923)]
+    [InlineData(PaddingMode.ISO10126)]
+    public void EncryptDecrypt(PaddingMode padding) {
+        var crypto = new RabbitManaged() { Padding = padding };
+        crypto.GenerateKey();
+        crypto.GenerateIV();
+        var bytes = RandomNumberGenerator.GetBytes(1024);
+        var bytesEnc = new byte[bytes.Length];
+        var bytesDec = new byte[bytes.Length];
+
+        var sw = Stopwatch.StartNew();
+        using var encryptor = crypto.CreateEncryptor();
+        using var decryptor = crypto.CreateDecryptor();
+        for (var n = 0; n < 1024; n++) {
+            encryptor.TransformBlock(bytes, 0, bytes.Length, bytesEnc, 0);
+            decryptor.TransformBlock(bytesEnc, 0, bytesEnc.Length, bytesDec, 0);
+        }
+
+        var lastBytesEnc = encryptor.TransformFinalBlock(new byte[10], 0, 10);
+        var lastBytesDec = decryptor.TransformFinalBlock(lastBytesEnc, 0, lastBytesEnc.Length);
+        sw.Stop();
+
+        Output.WriteLine($"Duration: {sw.ElapsedMilliseconds} ms");
     }
 
 
