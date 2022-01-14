@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-01-13: Optimizing a bit
 //2022-01-12: Fixed large final block transformation
 //2022-01-09: Initial version
 
@@ -164,7 +165,6 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
 
         G = GC.AllocateUninitializedArray<DWord>(8, pinned: true);
         S = GC.AllocateUninitializedArray<DWord>(4, pinned: true);
-        Sb = GC.AllocateUninitializedArray<byte>(16, pinned: true);
 
         DecryptionBuffer = GC.AllocateArray<byte>(16, pinned: true);
 
@@ -352,13 +352,12 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
 
     private void Dispose(bool disposing) {
         if (disposing) {
-            Array.Clear(X, 0, X.Length);
-            Array.Clear(C, 0, C.Length);
-            Carry = 0;
-            Array.Clear(G, 0, G.Length);
-            Array.Clear(S, 0, S.Length);
-            Array.Clear(Sb, 0, Sb.Length);
-            Array.Clear(DecryptionBuffer, 0, DecryptionBuffer.Length);
+            Array.Clear(X);
+            Array.Clear(C);
+            Carry = DWord.False;
+            Array.Clear(G);
+            Array.Clear(S);
+            Array.Clear(DecryptionBuffer);
         }
     }
 
@@ -374,7 +373,8 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         NextState();
         ExtractOutput();
         for (int i = 0; i < count; i++) {
-            outputBuffer[outputOffset + i] = (Byte)(inputBuffer[inputOffset + i] ^ Sb[i]);
+            var s = (Byte)(S[i / 4] >> ((i % 4) * 8));
+            outputBuffer[outputOffset + i] = (Byte)(inputBuffer[inputOffset + i] ^ s);
         }
     }
 
@@ -433,32 +433,24 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
     private static readonly DWord[] A = new DWord[8] { 0x4D34D34D, 0xD34D34D3, 0x34D34D34, 0x4D34D34D, 0xD34D34D3, 0x34D34D34, 0x4D34D34D, 0xD34D34D3 };
     private readonly DWord[] G;   // temporary state - to avoid allocating new array every time
     private readonly DWord[] S;   // temporary state - to avoid allocating new array every time
-    private readonly byte[] Sb;    // output block - to avoid allocating new array every time
 
     private void SetupKey(byte[] key) {
         var k = GC.AllocateUninitializedArray<DWord>(4, pinned: true);
-        k[0] = new DWord(key, 0);
-        k[1] = new DWord(key, 4);
-        k[2] = new DWord(key, 8);
-        k[3] = new DWord(key, 12);
+        for (var j = 0; j < 4; j++) {
+            k[j] = new DWord(key, j * 4);
+        }
 
-        X[0] = k[0];
-        X[2] = k[1];
-        X[4] = k[2];
-        X[6] = k[3];
-        X[1] = (k[3] << 16) | (k[2] >> 16);
-        X[3] = (k[0] << 16) | (k[3] >> 16);
-        X[5] = (k[1] << 16) | (k[0] >> 16);
-        X[7] = (k[2] << 16) | (k[1] >> 16);
-
-        C[0] = k[2].RotateLeft(16);
-        C[2] = k[3].RotateLeft(16);
-        C[4] = k[0].RotateLeft(16);
-        C[6] = k[1].RotateLeft(16);
-        C[1] = (k[0] & 0xFFFF0000) | (k[1] & 0xFFFF);
-        C[3] = (k[1] & 0xFFFF0000) | (k[2] & 0xFFFF);
-        C[5] = (k[2] & 0xFFFF0000) | (k[3] & 0xFFFF);
-        C[7] = (k[3] & 0xFFFF0000) | (k[0] & 0xFFFF);
+        for (var j = 0; j < 8; j++) {
+            var j2 = j / 2;
+            if (j % 2 == 0) {
+                X[j] = k[j2];
+                C[j] = k[(j2 + 2) & 0x3].RotateLeft(16);
+            } else {
+                X[j] = (k[(j2 + 3) & 0x3] << 16) | (k[(j2 + 2) & 0x3] >> 16);
+                C[j] = k[j2].MaskUpper() | k[(j2 + 1) & 0x3].MaskLower();
+            }
+        }
+        Carry = DWord.False;
 
         Array.Clear(k, 0, k.Length);  // we might as well clean-up temporary key state
 
@@ -470,7 +462,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
 
         // reinitialize counter variables
         for (var j = 0; j < 8; j++) {
-            C[j] = C[j] ^ X[(j + 4) % 8];
+            C[j] = C[j] ^ X[(j + 4) & 0x7];
         }
     }
 
@@ -478,17 +470,12 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         var i = GC.AllocateUninitializedArray<DWord>(4, pinned: true);
         i[0] = new DWord(iv, 0);
         i[2] = new DWord(iv, 4);
-        i[1] = (i[0] >> 16) | (i[2] & 0xFFFF0000);
-        i[3] = (i[2] << 16) | (i[0] & 0x0000FFFF);
+        i[1] = (i[0] >> 16) | i[2].MaskUpper();
+        i[3] = (i[2] << 16) | i[0].MaskLower();
 
-        C[0] ^= i[0];
-        C[1] ^= i[1];
-        C[2] ^= i[2];
-        C[3] ^= i[3];
-        C[4] ^= i[0];
-        C[5] ^= i[1];
-        C[6] ^= i[2];
-        C[7] ^= i[3];
+        for (var j = 0; j < 8; j++) {
+            C[j] ^= i[j & 0x3];
+        }
 
         Array.Clear(i, 0, i.Length);  // we might as well clean-up temporary IV expansion
 
@@ -500,9 +487,10 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
     }
 
     private void CounterUpdate() {
-        var b = Carry;
+        DWord b = Carry;
+        DWord temp;
         for (int j = 0; j < 8; j++) {
-            var temp = C[j] + A[j] + b;
+            temp = C[j] + A[j] + b;
             b = (temp <= C[j]) ? DWord.True : DWord.False;  // same as temp div WORDSIZE
             C[j] = temp;
         }
@@ -510,18 +498,21 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
     }
 
     private void NextState() {
-        for (int j = 0; j < 8; j++) {
-            G[j] = GFunc(X[j], C[j]);
+        // g_func
+        UInt64 temp;
+        for (int i = 0; i < 8; i++) {
+            temp = (UInt32)(X[i] + C[i]);
+            temp *= temp;
+            G[i] = (UInt32)(temp ^ (temp >> 32));
         }
 
-        X[0] = G[0] + G[7].RotateLeft(16) + G[6].RotateLeft(16);
-        X[1] = G[1] + G[0].RotateLeft(8) + G[7];
-        X[2] = G[2] + G[1].RotateLeft(16) + G[0].RotateLeft(16);
-        X[3] = G[3] + G[2].RotateLeft(8) + G[1];
-        X[4] = G[4] + G[3].RotateLeft(16) + G[2].RotateLeft(16);
-        X[5] = G[5] + G[4].RotateLeft(8) + G[3];
-        X[6] = G[6] + G[5].RotateLeft(16) + G[4].RotateLeft(16);
-        X[7] = G[7] + G[6].RotateLeft(8) + G[5];
+        for (int j = 0; j < 8; j++) {
+            if (j % 2 == 0) {
+                X[j] = G[j] + G[(j + 7) & 0x7].RotateLeft(16) + G[(j + 6) & 0x7].RotateLeft(16);
+            } else {
+                X[j] = G[j] + G[(j + 7) & 0x7].RotateLeft(8) + G[(j + 6) & 0x7];
+            }
+        }
     }
 
     private void ExtractOutput() {
@@ -529,55 +520,22 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         S[1] = X[2] ^ (X[7] >> 16) ^ (X[5] << 16);
         S[2] = X[4] ^ (X[1] >> 16) ^ (X[7] << 16);
         S[3] = X[6] ^ (X[3] >> 16) ^ (X[1] << 16);
-
-        Sb[0] = S[0].B0;
-        Sb[1] = S[0].B1;
-        Sb[2] = S[0].B2;
-        Sb[3] = S[0].B3;
-        Sb[4] = S[1].B0;
-        Sb[5] = S[1].B1;
-        Sb[6] = S[1].B2;
-        Sb[7] = S[1].B3;
-        Sb[8] = S[2].B0;
-        Sb[9] = S[2].B1;
-        Sb[10] = S[2].B2;
-        Sb[11] = S[2].B3;
-        Sb[12] = S[3].B0;
-        Sb[13] = S[3].B1;
-        Sb[14] = S[3].B2;
-        Sb[15] = S[3].B3;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static DWord GFunc(DWord u, DWord v) {
-        UInt64 sum = (UInt32)(u + v);
-        UInt64 square = sum * sum;
-        return (UInt32)((square >> 32) ^ (square));
     }
 
     [DebuggerDisplay("{Value}")]
-    [StructLayout(LayoutKind.Explicit)]
     private struct DWord {  // makes extracting bytes from uint faster and looks nicer
-        [FieldOffset(0)]
-        public Byte B0;
-        [FieldOffset(1)]
-        public Byte B1;
-        [FieldOffset(2)]
-        public Byte B2;
-        [FieldOffset(3)]
-        public Byte B3;
-        [FieldOffset(0)]
         private readonly UInt32 Value;
 
         public DWord(UInt32 value) : this() {
             Value = value;
         }
 
+        public DWord(UInt64 value) : this() {
+            Value = (UInt32)value;
+        }
+
         public DWord(Byte[] buffer, int offset) : this() {
-            B0 = buffer[offset + 0];
-            B1 = buffer[offset + 1];
-            B2 = buffer[offset + 2];
-            B3 = buffer[offset + 3];
+            Value = (UInt32)((buffer[offset + 3] << 24) | (buffer[offset + 2] << 16) | (buffer[offset + 1] << 8) | buffer[offset]);
         }
 
         public static implicit operator DWord(UInt32 value) {
@@ -621,13 +579,22 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         }
 
         public static readonly DWord False = 0;
-        public static readonly DWord True = 1U;
+        public static readonly DWord True = 1;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DWord RotateLeft(int n) {
-            return ((Value << n) | (Value >> (32 - n)));
+            return (Value << n) | (Value >> (32 - n));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public DWord MaskUpper() {
+            return Value & 0xFFFF0000;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public DWord MaskLower() {
+            return Value & 0x0000FFFF;
+        }
     }
 
     #endregion
