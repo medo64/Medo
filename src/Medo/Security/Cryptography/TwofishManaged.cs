@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-01-13: Fixing up padding support
 //2021-11-25: Refactored to use pattern matching
 //2021-11-08: Refactored for .NET 6
 //2021-03-05: Refactored for .NET 5
@@ -7,296 +8,286 @@
 //2016-01-08: Added ANSIX923 and ISO10126 padding modes
 //2015-12-27: Initial version
 
-namespace Medo.Security.Cryptography {
-    using System;
-    using System.Diagnostics;
-    using System.Runtime.InteropServices;
-    using System.Security.Cryptography;
+namespace Medo.Security.Cryptography;
+
+using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+
+/// <summary>
+/// Twofish algorithm implementation.
+/// </summary>
+/// <code>
+/// using var algorithm = new TwofishManaged() {
+///    KeySize = test.KeySize,
+///    Mode = CipherMode.CBC,
+///    Padding = PaddingMode.None
+/// };
+/// using var transform = algorithm.CreateEncryptor(key, iv);
+/// using var cs = new CryptoStream(outStream, transform, CryptoStreamMode.Write);
+/// cs.Write(inStream, 0, inStream.Length);
+/// </code>
+/// <remarks>https://www.schneier.com/twofish.html</remarks>
+public sealed class TwofishManaged : SymmetricAlgorithm {
 
     /// <summary>
-    /// Twofish algorithm implementation.
+    /// Initializes a new instance.
     /// </summary>
-    /// <code>
-    /// using var algorithm = new TwofishManaged() {
-    ///    KeySize = test.KeySize,
-    ///    Mode = CipherMode.ECB,
-    ///    Padding = PaddingMode.None
-    /// };
-    /// using var transform = algorithm.CreateEncryptor(key, iv);
-    /// using var cs = new CryptoStream(outStream, transform, CryptoStreamMode.Write);
-    /// cs.Write(inStream, 0, inStream.Length);
-    /// </code>
-    /// <remarks>https://www.schneier.com/twofish.html</remarks>
-    public sealed class TwofishManaged : SymmetricAlgorithm {
+    public TwofishManaged()
+        : base() {
+        base.KeySizeValue = KeySizeInBits;
+        base.BlockSizeValue = BlockSizeInBits;
+        base.FeedbackSizeValue = base.BlockSizeValue;
+        base.LegalBlockSizesValue = new KeySizes[] { new KeySizes(BlockSizeInBits, BlockSizeInBits, 0) };
+        base.LegalKeySizesValue = new KeySizes[] { new KeySizes(128, 256, 64) };  // 128, 192, or 256
 
-        /// <summary>
-        /// Initializes a new instance.
-        /// </summary>
-        public TwofishManaged()
-            : base() {
-            base.KeySizeValue = 256;
-            base.BlockSizeValue = 128;
-            base.FeedbackSizeValue = base.BlockSizeValue;
-            base.LegalBlockSizesValue = new KeySizes[] { new KeySizes(128, 128, 0) };
-            base.LegalKeySizesValue = new KeySizes[] { new KeySizes(128, 256, 64) };
-
-            base.Mode = CipherMode.CBC; //same as default
-            base.Padding = PaddingMode.PKCS7;
-        }
-
-
-        /// <summary>
-        /// Creates a symmetric decryptor object.
-        /// </summary>
-        /// <param name="rgbKey">The secret key to be used for the symmetric algorithm. The key size must be 128, 192, or 256 bits.</param>
-        /// <param name="rgbIV">The IV to be used for the symmetric algorithm.</param>
-        public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIV) {
-            if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
-            if (rgbKey.Length != KeySize / 8) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "Key size mismatch."); }
-            if (Mode == CipherMode.CBC) {
-                if (rgbIV == null) { throw new ArgumentNullException(nameof(rgbIV), "IV cannot be null."); }
-                if (rgbIV.Length != 16) { throw new ArgumentOutOfRangeException(nameof(rgbIV), "Invalid IV size."); }
-            }
-
-            return NewEncryptor(rgbKey, Mode, rgbIV, TwofishManagedTransformMode.Decrypt);
-        }
-
-        /// <summary>
-        /// Creates a symmetric encryptor object.
-        /// </summary>
-        /// <param name="rgbKey">The secret key to be used for the symmetric algorithm. The key size must be 128, 192, or 256 bits.</param>
-        /// <param name="rgbIV">The IV to be used for the symmetric algorithm.</param>
-        public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV) {
-            if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
-            if (rgbKey.Length != KeySize / 8) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "Key size mismatch."); }
-            if (Mode == CipherMode.CBC) {
-                if (rgbIV == null) { throw new ArgumentNullException(nameof(rgbIV), "IV cannot be null."); }
-                if (rgbIV.Length != 16) { throw new ArgumentOutOfRangeException(nameof(rgbIV), "Invalid IV size."); }
-            }
-
-            return NewEncryptor(rgbKey, Mode, rgbIV, TwofishManagedTransformMode.Encrypt);
-        }
-
-        /// <summary>
-        /// Generates a random initialization vector to be used for the algorithm.
-        /// </summary>
-        public override void GenerateIV() {
-            IVValue = new byte[FeedbackSizeValue / 8];
-            Rng.Value.GetBytes(IVValue);
-        }
-
-        /// <summary>
-        /// Generates a random key to be used for the algorithm.
-        /// </summary>
-        public override void GenerateKey() {
-            KeyValue = new byte[KeySizeValue / 8];
-            Rng.Value.GetBytes(KeyValue);
-        }
-
-
-        /// <summary>
-        /// Gets or sets the mode for operation of the symmetric algorithm.
-        /// </summary>
-        public override CipherMode Mode {
-            get { return base.Mode; }
-            set {
-                if (value is not CipherMode.CBC and not CipherMode.ECB) {
-                    throw new CryptographicException("Cipher mode is not supported.");
-                }
-                base.Mode = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the mode for operation of the symmetric algorithm.
-        /// </summary>
-        public override PaddingMode Padding {
-            get { return base.Padding; }
-            set {
-                base.Padding = value switch {
-                    PaddingMode.None => value,
-                    PaddingMode.PKCS7 => value,
-                    PaddingMode.Zeros => value,
-                    PaddingMode.ANSIX923 => value,
-                    PaddingMode.ISO10126 => value,
-                    _ => throw new CryptographicException("Padding mode is not supported."),
-                };
-            }
-        }
-
-
-        #region Private
-
-        private static readonly Lazy<RandomNumberGenerator> Rng = new(() => RandomNumberGenerator.Create());
-
-        private ICryptoTransform NewEncryptor(byte[] rgbKey, CipherMode mode, byte[]? rgbIV, TwofishManagedTransformMode encryptMode) {
-            if (rgbKey == null) {
-                rgbKey = new byte[KeySize / 8];
-                Rng.Value.GetBytes(rgbKey);
-            }
-
-            if ((mode != CipherMode.ECB) && (rgbIV == null)) {
-                rgbIV = new byte[KeySize / 8];
-                Rng.Value.GetBytes(rgbIV);
-            }
-
-            return new TwofishManagedTransform(rgbKey, mode, rgbIV, encryptMode, Padding);
-        }
-
-        #endregion
-
+        base.Mode = CipherMode.CBC;  // same as default
+        base.Padding = PaddingMode.PKCS7;
     }
 
 
+    #region SymmetricAlgorithm
+
+    /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Key must be either 128, 192, or 256 bits. -or- IV must be 128 bits.</exception>
+    public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIV) {
+        if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
+        if (rgbKey.Length != KeySize / 8) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "Key size mismatch."); }
+        if (Mode == CipherMode.CBC) {
+            if (rgbIV == null) { throw new ArgumentNullException(nameof(rgbIV), "IV cannot be null."); }
+            if (rgbIV.Length != 16) { throw new ArgumentOutOfRangeException(nameof(rgbIV), "Invalid IV size."); }
+        }
+
+        return new TwofishManagedTransform(rgbKey, rgbIV, TwofishManagedTransformMode.Decrypt, Mode, Padding);
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Key must be either 128, 192, or 256 bits. -or- IV must be 128 bits.</exception>
+    public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV) {
+        if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
+        if (rgbKey.Length != KeySize / 8) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "Key size mismatch."); }
+        if (Mode == CipherMode.CBC) {
+            if (rgbIV == null) { throw new ArgumentNullException(nameof(rgbIV), "IV cannot be null."); }
+            if (rgbIV.Length != 16) { throw new ArgumentOutOfRangeException(nameof(rgbIV), "Invalid IV size."); }
+        }
+
+        return new TwofishManagedTransform(rgbKey, rgbIV, TwofishManagedTransformMode.Encrypt, Mode, Padding);
+    }
+
+    /// <inheritdoc />
+    public override void GenerateIV() {
+        IVValue = RandomNumberGenerator.GetBytes(FeedbackSizeValue / 8);
+    }
+
+    /// <inheritdoc />
+    public override void GenerateKey() {
+        KeyValue = RandomNumberGenerator.GetBytes(KeySizeValue / 8);
+    }
+
+    #endregion SymmetricAlgorithm
+
+    #region SymmetricAlgorithm Overrides
+
+    /// <inheritdoc />
+    /// <exception cref="CryptographicException">Cipher mode is not supported.</exception>
+    public override CipherMode Mode {
+        get { return base.Mode; }
+        set {
+            if (value is not CipherMode.CBC and not CipherMode.ECB) {
+                throw new CryptographicException("Cipher mode is not supported.");
+            }
+            base.Mode = value;
+        }
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="CryptographicException">Padding mode is not supported.</exception>
+    public override PaddingMode Padding {
+        get { return base.Padding; }
+        set {
+            base.Padding = value switch {
+                PaddingMode.None => value,
+                PaddingMode.PKCS7 => value,
+                PaddingMode.Zeros => value,
+                PaddingMode.ANSIX923 => value,
+                PaddingMode.ISO10126 => value,
+                _ => throw new CryptographicException("Padding mode is not supported."),
+            };
+        }
+    }
+
+    #endregion SymmetricAlgorithm Overrides
+
+    #region Constants
+
+    private const int KeySizeInBits = 256;
+    private const int BlockSizeInBits = 128;
+
+    #endregion Constants
+
+}
+
+
+internal enum TwofishManagedTransformMode {
+    Encrypt = 0,
+    Decrypt = 1
+}
+
+
+/// <summary>
+/// Performs a cryptographic transformation of data using the Twofish algorithm.
+/// This class cannot be inherited.
+/// </summary>
+public sealed class TwofishManagedTransform : ICryptoTransform {
+    internal TwofishManagedTransform(byte[] rgbKey, byte[]? rgbIV, TwofishManagedTransformMode transformMode, CipherMode cipherMode, PaddingMode paddingMode) {
+        if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
+        if (rgbKey.Length is not 16 and not 24 and not 32) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "Key must be 128, 192, or 256 bits."); }
+        if ((rgbIV is not null) && (rgbIV.Length != 16)) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "IV must be 128 bits."); }
+        CipherMode = cipherMode;
+        TransformMode = transformMode;
+        PaddingMode = paddingMode;
+
+        DecryptionBuffer = GC.AllocateArray<byte>(16, pinned: true);
+
+        Key = GC.AllocateArray<DWord>(rgbKey.Length / 4, pinned: true);
+        SBoxKeys = GC.AllocateArray<DWord>(MaxKeyBits / 64, pinned: true);  // key bits used for S-boxes
+        SubKeys = GC.AllocateArray<DWord>(TotalSubkeys, pinned: true);  // round subkeys, input/output whitening bits
+
+        var key32 = GC.AllocateArray<uint>(Key.Length, pinned: true);
+        Buffer.BlockCopy(rgbKey, 0, key32, 0, rgbKey.Length);
+        for (var i = 0; i < Key.Length; i++) { Key[i] = (DWord)key32[i]; }
+        Array.Clear(key32);
+
+        if (rgbIV != null) {
+            IV = GC.AllocateArray<DWord>(rgbIV.Length / 4, pinned: true);
+            var iv32 = GC.AllocateArray<uint>(IV.Length, pinned: true);
+            Buffer.BlockCopy(rgbIV, 0, iv32, 0, rgbIV.Length);
+            for (var i = 0; i < IV.Length; i++) { IV[i] = (DWord)iv32[i]; }
+            Array.Clear(iv32);
+        }
+
+        ReKey();
+    }
+
+
+    private readonly TwofishManagedTransformMode TransformMode;
+    private readonly CipherMode CipherMode;
+    private readonly PaddingMode PaddingMode;
+
+
     /// <summary>
-    /// Performs a cryptographic transformation of data using the Twofish algorithm.
-    /// This class cannot be inherited.
+    /// Gets a value indicating whether the current transform can be reused.
     /// </summary>
-    public sealed class TwofishManagedTransform : ICryptoTransform {
-        internal TwofishManagedTransform(byte[] key, CipherMode mode, byte[]? iv, TwofishManagedTransformMode transformMode, PaddingMode paddingMode) {
-            TransformMode = transformMode;
-            PaddingMode = paddingMode;
+    public bool CanReuseTransform { get { return false; } }
 
-            var key32 = new uint[key.Length / 4];
-            Buffer.BlockCopy(key, 0, key32, 0, key.Length);
+    /// <summary>
+    /// Gets a value indicating whether multiple blocks can be transformed.
+    /// </summary>
+    public bool CanTransformMultipleBlocks { get { return true; } }
 
-            if (iv != null) {
-                var iv32 = new uint[iv.Length / 4];
-                Buffer.BlockCopy(iv, 0, iv32, 0, iv.Length);
-                Implementation = new TwofishImplementation(key32, iv32, mode);
-            } else {
-                Implementation = new TwofishImplementation(key32, null, mode);
+    /// <summary>
+    /// Gets the input block size (in bytes).
+    /// </summary>
+    public int InputBlockSize { get { return 16; } } //block is always 128 bits
+
+    /// <summary>
+    /// Gets the output block size (in bytes).
+    /// </summary>
+    public int OutputBlockSize { get { return 16; } } //block is always 128 bits
+
+    /// <summary>
+    /// Releases resources.
+    /// </summary>
+    public void Dispose() {
+        Dispose(true);
+    }
+
+    private void Dispose(bool disposing) {
+        if (disposing) {
+            Array.Clear(Key);
+            if (IV != null) { Array.Clear(IV); }
+            Array.Clear(SBoxKeys);
+            Array.Clear(SubKeys);
+            Array.Clear(DecryptionBuffer);
+        }
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Input buffer cannot be null. -or- Output buffer cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Input offset must be non-negative number. -or- Output offset must be non-negative number. -or- Invalid input count. -or- Invalid input length. -or- Insufficient output buffer.</exception>
+    public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset) {
+        if (inputBuffer == null) { throw new ArgumentNullException(nameof(inputBuffer), "Input buffer cannot be null."); }
+        if (outputBuffer == null) { throw new ArgumentNullException(nameof(outputBuffer), "Output buffer cannot be null."); }
+        if (inputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(inputOffset), "Input offset must be non-negative number."); }
+        if (outputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(outputOffset), "Output offset must be non-negative number."); }
+        if ((inputCount <= 0) || (inputCount % 16 != 0) || (inputCount > inputBuffer.Length)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
+        if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
+        if (outputOffset + inputCount > outputBuffer.Length) { throw new ArgumentOutOfRangeException(nameof(outputOffset), "Insufficient output buffer."); }
+
+        if (TransformMode == TwofishManagedTransformMode.Encrypt) {
+
+            for (var i = 0; i < inputCount; i += 16) {
+                BlockEncrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
             }
-        }
+            return inputCount;
 
+        } else {  // Decrypt
 
-        private readonly TwofishManagedTransformMode TransformMode;
-        private readonly PaddingMode PaddingMode;
+            var bytesWritten = 0;
 
-        private readonly TwofishImplementation Implementation;
-
-
-        /// <summary>
-        /// Gets a value indicating whether the current transform can be reused.
-        /// </summary>
-        public bool CanReuseTransform { get { return false; } }
-
-        /// <summary>
-        /// Gets a value indicating whether multiple blocks can be transformed.
-        /// </summary>
-        public bool CanTransformMultipleBlocks { get { return true; } }
-
-        /// <summary>
-        /// Gets the input block size (in bytes).
-        /// </summary>
-        public int InputBlockSize { get { return 16; } } //block is always 128 bits
-
-        /// <summary>
-        /// Gets the output block size (in bytes).
-        /// </summary>
-        public int OutputBlockSize { get { return 16; } } //block is always 128 bits
-
-        /// <summary>
-        /// Releases resources.
-        /// </summary>
-        public void Dispose() {
-            Dispose(true);
-        }
-
-        private void Dispose(bool disposing) {
-            if (disposing) {
-                Implementation.Dispose();
-                if (PaddingBuffer != null) { Array.Clear(PaddingBuffer, 0, PaddingBuffer.Length); }
+            if (DecryptionBufferInUse) {  // process the last block of previous round
+                BlockDecrypt(DecryptionBuffer, 0, outputBuffer, outputOffset);
+                DecryptionBufferInUse = false;
+                outputOffset += 16;
+                bytesWritten += 16;
             }
-        }
 
+            for (var i = 0; i < inputCount - 16; i += 16) {
+                BlockDecrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset);
+                outputOffset += 16;
+                bytesWritten += 16;
+            }
 
-        [ThreadStatic()]
-        private static readonly RandomNumberGenerator Rng = RandomNumberGenerator.Create();
-
-        private byte[]? PaddingBuffer; //used to store last block under decrypting as to work around CryptoStream implementation details.
-
-
-        /// <summary>
-        /// Transforms the specified region of the input byte array and copies the resulting transform to the specified region of the output byte array.
-        /// </summary>
-        /// <param name="inputBuffer">The input for which to compute the transform.</param>
-        /// <param name="inputOffset">The offset into the input byte array from which to begin using data.</param>
-        /// <param name="inputCount">The number of bytes in the input byte array to use as data.</param>
-        /// <param name="outputBuffer">The output to which to write the transform.</param>
-        /// <param name="outputOffset">The offset into the output byte array from which to begin writing data.</param>
-        public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset) {
-            if (inputBuffer == null) { throw new ArgumentNullException(nameof(inputBuffer), "Input buffer cannot be null."); }
-            if (inputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(inputOffset), "Offset must be non-negative number."); }
-            if ((inputCount <= 0) || (inputCount % 16 != 0) || (inputCount > inputBuffer.Length)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
-            if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
-            if (outputBuffer == null) { throw new ArgumentNullException(nameof(outputBuffer), "Output buffer cannot be null."); }
-            if (outputOffset + inputCount > outputBuffer.Length) { throw new ArgumentOutOfRangeException(nameof(outputOffset), "Insufficient buffer."); }
-
-            if (TransformMode == TwofishManagedTransformMode.Encrypt) {
-
-                #region Encrypt
-
-                for (var i = 0; i < inputCount; i += 16) {
-                    Implementation.BlockEncrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
-                }
+            if (PaddingMode == PaddingMode.None) {
+                BlockDecrypt(inputBuffer, inputOffset + inputCount - 16, outputBuffer, outputOffset);
                 return inputCount;
-
-                #endregion
-
-            } else {
-
-                #region Decrypt
-
-                var bytesWritten = 0;
-
-                if (PaddingBuffer != null) {
-                    Implementation.BlockDecrypt(PaddingBuffer, 0, outputBuffer, outputOffset);
-                    outputOffset += 16;
-                    bytesWritten += 16;
-                }
-
-                for (var i = 0; i < inputCount - 16; i += 16) {
-                    Implementation.BlockDecrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset);
-                    outputOffset += 16;
-                    bytesWritten += 16;
-                }
-
-                if (PaddingMode == PaddingMode.None) {
-                    Implementation.BlockDecrypt(inputBuffer, inputOffset + inputCount - 16, outputBuffer, outputOffset);
-                    bytesWritten += 16;
-                } else { //save last block without processing because decryption otherwise cannot detect padding in CryptoStream
-                    if (PaddingBuffer == null) { PaddingBuffer = new byte[16]; }
-                    Buffer.BlockCopy(inputBuffer, inputOffset + inputCount - 16, PaddingBuffer, 0, 16);
-                }
-
-                return bytesWritten;
-
-                #endregion
-
+            } else {  // save last block without processing because decryption otherwise cannot detect padding in CryptoStream
+                Buffer.BlockCopy(inputBuffer, inputOffset + inputCount - 16, DecryptionBuffer, 0, 16);
+                DecryptionBufferInUse = true;
             }
+
+            return bytesWritten;
+
         }
+    }
 
-        /// <summary>
-        /// Transforms the specified region of the specified byte array.
-        /// </summary>
-        /// <param name="inputBuffer">The input for which to compute the transform.</param>
-        /// <param name="inputOffset">The offset into the byte array from which to begin using data.</param>
-        /// <param name="inputCount">The number of bytes in the byte array to use as data.</param>
-        public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount) {
-            if (inputBuffer == null) { throw new ArgumentNullException(nameof(inputBuffer), "Input buffer cannot be null."); }
-            if (inputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(inputOffset), "Offset must be non-negative number."); }
-            if ((inputCount < 0) || (inputCount > inputBuffer.Length)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
-            if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
+    /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Input buffer cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Input offset must be non-negative number. -or- Invalid input count. -or- Invalid input length. -or- No padding for final block.</exception>
+    public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount) {
+        if (inputBuffer == null) { throw new ArgumentNullException(nameof(inputBuffer), "Input buffer cannot be null."); }
+        if (inputOffset < 0) { throw new ArgumentOutOfRangeException(nameof(inputOffset), "Input offset must be non-negative number."); }
+        if ((inputCount < 0) || (inputCount > inputBuffer.Length)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
+        if ((PaddingMode == PaddingMode.None) && (inputCount % 16 != 0)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "No padding for final block."); }
+        if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
 
-            if (TransformMode == TwofishManagedTransformMode.Encrypt) {
+        if (TransformMode == TwofishManagedTransformMode.Encrypt) {
 
-                #region Encrypt
+            int paddedLength;
+            byte[] paddedInputBuffer;
+            int paddedInputOffset;
+            switch (PaddingMode) {
+                case PaddingMode.None:
+                    paddedLength = inputCount;
+                    paddedInputBuffer = inputBuffer;
+                    paddedInputOffset = inputOffset;
+                    break;
 
-                int paddedLength;
-                byte[] paddedInputBuffer;
-                int paddedInputOffset;
-                if (PaddingMode == PaddingMode.PKCS7) {
+                case PaddingMode.PKCS7:
                     paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
                     paddedInputBuffer = new byte[paddedLength];
                     paddedInputOffset = 0;
@@ -305,333 +296,306 @@ namespace Medo.Security.Cryptography {
                     for (var i = inputCount; i < inputCount + added; i++) {
                         paddedInputBuffer[i] = added;
                     }
-                } else if (PaddingMode == PaddingMode.Zeros) {
+                    break;
+
+                case PaddingMode.Zeros:
                     paddedLength = (inputCount + 15) / 16 * 16; //to round to next whole block
                     paddedInputBuffer = new byte[paddedLength];
                     paddedInputOffset = 0;
                     Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
-                } else if (PaddingMode == PaddingMode.ANSIX923) {
+                    break;
+
+                case PaddingMode.ANSIX923:
                     paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
                     paddedInputBuffer = new byte[paddedLength];
                     paddedInputOffset = 0;
                     Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
                     paddedInputBuffer[^1] = (byte)(paddedLength - inputCount);
-                } else if (PaddingMode == PaddingMode.ISO10126) {
+                    break;
+
+                case PaddingMode.ISO10126:
                     paddedLength = inputCount / 16 * 16 + 16; //to round to next whole block
                     paddedInputBuffer = new byte[paddedLength];
-                    Rng.GetBytes(paddedInputBuffer);
+                    RandomNumberGenerator.Fill(paddedInputBuffer.AsSpan(inputCount));
                     paddedInputOffset = 0;
                     Buffer.BlockCopy(inputBuffer, inputOffset, paddedInputBuffer, 0, inputCount);
                     paddedInputBuffer[^1] = (byte)(paddedLength - inputCount);
-                } else {
-                    if (inputCount % 16 != 0) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count for a given padding."); }
-                    paddedLength = inputCount;
-                    paddedInputBuffer = inputBuffer;
-                    paddedInputOffset = inputOffset;
-                }
+                    break;
 
-                var outputBuffer = new byte[paddedLength];
+                default: throw new CryptographicException("Unsupported padding mode.");
+            }
 
-                for (var i = 0; i < paddedLength; i += 16) {
-                    Implementation.BlockEncrypt(paddedInputBuffer, paddedInputOffset + i, outputBuffer, i);
-                }
+            var outputBuffer = new byte[paddedLength];
 
-                return outputBuffer;
+            for (var i = 0; i < paddedLength; i += 16) {
+                BlockEncrypt(paddedInputBuffer, paddedInputOffset + i, outputBuffer, i);
+            }
 
-                #endregion
+            return outputBuffer;
 
+        } else {  // Decrypt
+
+            byte[] outputBuffer;
+
+            if (PaddingMode == PaddingMode.None) {
+                outputBuffer = new byte[inputCount];
+            } else if (inputCount % 16 != 0) {
+                throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count.");
             } else {
+                outputBuffer = new byte[inputCount + (DecryptionBufferInUse ? 16 : 0)];
+            }
 
-                #region Decrypt
+            var outputOffset = 0;
 
-                if (inputCount % 16 != 0) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
+            if (DecryptionBufferInUse) {  // process leftover padding buffer to keep CryptoStream happy
+                BlockDecrypt(DecryptionBuffer, 0, outputBuffer, 0);
+                DecryptionBufferInUse = false;
+                outputOffset = 16;
+            }
 
-                var outputBuffer = new byte[inputCount + ((PaddingBuffer != null) ? 16 : 0)];
-                var outputOffset = 0;
+            for (var i = 0; i < inputCount; i += 16) {
+                BlockDecrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
+            }
 
-                if (PaddingBuffer != null) { //process leftover padding buffer to keep CryptoStream happy
-                    Implementation.BlockDecrypt(PaddingBuffer, 0, outputBuffer, 0);
-                    outputOffset = 16;
+            return RemovePadding(outputBuffer, PaddingMode);
+
+        }
+    }
+
+    #region Helpers
+
+    private readonly byte[] DecryptionBuffer; // used to store last block under decrypting as to work around CryptoStream implementation details
+    private bool DecryptionBufferInUse;
+
+    private static byte[] RemovePadding(byte[] outputBuffer, PaddingMode paddingMode) {
+        if (paddingMode == PaddingMode.PKCS7) {
+            var padding = outputBuffer[^1];
+            if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
+            for (var i = outputBuffer.Length - padding; i < outputBuffer.Length; i++) {
+                if (outputBuffer[i] != padding) { throw new CryptographicException("Invalid padding."); }
+            }
+            var newOutputBuffer = new byte[outputBuffer.Length - padding];
+            Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
+            return newOutputBuffer;
+        } else if (paddingMode == PaddingMode.Zeros) {
+            var newOutputLength = outputBuffer.Length;
+            for (var i = outputBuffer.Length - 1; i >= Math.Max(outputBuffer.Length - 16, 0); i--) {
+                if (outputBuffer[i] != 0) {
+                    newOutputLength = i + 1;
+                    break;
                 }
+            }
+            if (newOutputLength == outputBuffer.Length) {
+                return outputBuffer;
+            } else {
+                var newOutputBuffer = new byte[newOutputLength];
+                Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
+                return newOutputBuffer;
+            }
+        } else if (paddingMode == PaddingMode.ANSIX923) {
+            var padding = outputBuffer[^1];
+            if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
+            for (var i = outputBuffer.Length - padding; i < outputBuffer.Length - 1; i++) {
+                if (outputBuffer[i] != 0) { throw new CryptographicException("Invalid padding."); }
+            }
+            var newOutputBuffer = new byte[outputBuffer.Length - padding];
+            Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
+            return newOutputBuffer;
+        } else if (paddingMode == PaddingMode.ISO10126) {
+            var padding = outputBuffer[^1];
+            if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
+            var newOutputBuffer = new byte[outputBuffer.Length - padding];
+            Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
+            return newOutputBuffer;
+        } else {  // None
+            return outputBuffer;
+        }
+    }
 
-                for (var i = 0; i < inputCount; i += 16) {
-                    Implementation.BlockDecrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
-                }
+    #endregion Helpers
 
-                return RemovePadding(outputBuffer, PaddingMode);
+    #region Implementation
 
-                #endregion
+    private const int BlockSize = 128; //number of bits per block
+    private const int Rounds = 16; //default number of rounds for 128/192/256-bit keys
+    private const int MaxKeyBits = 256; //max number of bits of key
 
+    private const int InputWhiten = 0;
+    private const int OutputWhiten = (InputWhiten + BlockSize / 32);
+    private const int RoundSubkeys = (OutputWhiten + BlockSize / 32);
+    private const int TotalSubkeys = (RoundSubkeys + 2 * Rounds);
+
+    private readonly DWord[] Key;
+    private readonly DWord[]? IV;
+    private readonly DWord[] SBoxKeys;
+    private readonly DWord[] SubKeys;
+
+    #region Key
+
+    private const int SubkeyStep = 0x02020202;
+    private const int SubkeyBump = 0x01010101;
+    private const int SubkeyRotateLeft = 9;
+
+    /// <summary>
+    /// Initialize the Twofish key schedule from key32
+    /// </summary>
+    private void ReKey() {
+        BuildMds(); //built only first time it is accessed
+
+        var k32e = new DWord[Key.Length / 2];
+        var k32o = new DWord[Key.Length / 2]; //even/odd key dwords
+
+        var k64Cnt = Key.Length / 2;
+        for (var i = 0; i < k64Cnt; i++) { //split into even/odd key dwords
+            k32e[i] = Key[2 * i];
+            k32o[i] = Key[2 * i + 1];
+            SBoxKeys[k64Cnt - 1 - i] = ReedSolomonMdsEncode(k32e[i], k32o[i]); //compute S-box keys using (12,8) Reed-Solomon code over GF(256)
+        }
+
+        var subkeyCnt = RoundSubkeys + 2 * Rounds;
+        var keyLen = Key.Length * 4 * 8;
+        for (var i = 0; i < subkeyCnt / 2; i++) { //compute round subkeys for PHT
+            var A = F32((DWord)(i * SubkeyStep), k32e, keyLen); //A uses even key dwords
+            var B = F32((DWord)(i * SubkeyStep + SubkeyBump), k32o, keyLen);   //B uses odd  key dwords
+            B = B.RotateLeft(8);
+            SubKeys[2 * i] = A + B; //combine with a PHT
+            SubKeys[2 * i + 1] = (A + 2 * B).RotateLeft(SubkeyRotateLeft);
+        }
+    }
+
+    #endregion Key
+
+    #region Encrypt/decrypt
+
+    /// <summary>
+    /// Encrypt block(s) of data using Twofish.
+    /// </summary>
+    internal void BlockEncrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputBufferOffset) {
+        var x = new DWord[BlockSize / 32];
+        for (var i = 0; i < BlockSize / 32; i++) { //copy in the block, add whitening
+            x[i] = new DWord(inputBuffer, inputOffset + i * 4) ^ SubKeys[InputWhiten + i];
+            if ((CipherMode == CipherMode.CBC) && (IV != null)) { x[i] ^= IV[i]; }
+        }
+
+        var keyLen = Key.Length * 4 * 8;
+        for (var r = 0; r < Rounds; r++) { //main Twofish encryption loop
+            var t0 = F32(x[0], SBoxKeys, keyLen);
+            var t1 = F32(x[1].RotateLeft(8), SBoxKeys, keyLen);
+
+            x[3] = x[3].RotateLeft(1);
+            x[2] ^= t0 + t1 + SubKeys[RoundSubkeys + 2 * r]; //PHT, round keys
+            x[3] ^= t0 + 2 * t1 + SubKeys[RoundSubkeys + 2 * r + 1];
+            x[2] = x[2].RotateRight(1);
+
+            if (r < Rounds - 1) { //swap for next round
+                (x[2], x[0]) = (x[0], x[2]);
+                (x[3], x[1]) = (x[1], x[3]);
             }
         }
 
-        private static byte[] RemovePadding(byte[] outputBuffer, PaddingMode paddingMode) {
-            if (paddingMode == PaddingMode.PKCS7) {
-                var padding = outputBuffer[^1];
-                if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
-                for (var i = outputBuffer.Length - padding; i < outputBuffer.Length; i++) {
-                    if (outputBuffer[i] != padding) { throw new CryptographicException("Invalid padding."); }
-                }
-                var newOutputBuffer = new byte[outputBuffer.Length - padding];
-                Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
-                return newOutputBuffer;
-            } else if (paddingMode == PaddingMode.Zeros) {
-                var newOutputLength = outputBuffer.Length;
-                for (var i = outputBuffer.Length - 1; i >= outputBuffer.Length - 16; i--) {
-                    if (outputBuffer[i] != 0) {
-                        newOutputLength = i + 1;
-                        break;
-                    }
-                }
-                if (newOutputLength == outputBuffer.Length) {
-                    return outputBuffer;
-                } else {
-                    var newOutputBuffer = new byte[newOutputLength];
-                    Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
-                    return newOutputBuffer;
-                }
-            } else if (paddingMode == PaddingMode.ANSIX923) {
-                var padding = outputBuffer[^1];
-                if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
-                for (var i = outputBuffer.Length - padding; i < outputBuffer.Length - 1; i++) {
-                    if (outputBuffer[i] != 0) { throw new CryptographicException("Invalid padding."); }
-                }
-                var newOutputBuffer = new byte[outputBuffer.Length - padding];
-                Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
-                return newOutputBuffer;
-            } else if (paddingMode == PaddingMode.ISO10126) {
-                var padding = outputBuffer[^1];
-                if (padding is < 1 or > 16) { throw new CryptographicException("Invalid padding."); }
-                var newOutputBuffer = new byte[outputBuffer.Length - padding];
-                Buffer.BlockCopy(outputBuffer, 0, newOutputBuffer, 0, newOutputBuffer.Length);
-                return newOutputBuffer;
-            } else {
-                return outputBuffer;
+        for (var i = 0; i < BlockSize / 32; i++) { //copy out, with whitening
+            var outValue = x[i] ^ SubKeys[OutputWhiten + i];
+            outputBuffer[outputBufferOffset + i * 4 + 0] = outValue.B0;
+            outputBuffer[outputBufferOffset + i * 4 + 1] = outValue.B1;
+            outputBuffer[outputBufferOffset + i * 4 + 2] = outValue.B2;
+            outputBuffer[outputBufferOffset + i * 4 + 3] = outValue.B3;
+            if ((CipherMode == CipherMode.CBC) && (IV != null)) { IV[i] = outValue; }
+        }
+    }
+
+    /// <summary>
+    /// Decrypt block(s) of data using Twofish.
+    /// </summary>
+    internal void BlockDecrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputBufferOffset) {
+        var x = new DWord[BlockSize / 32];
+        var input = new DWord[BlockSize / 32];
+        for (var i = 0; i < BlockSize / 32; i++) { //copy in the block, add whitening
+            input[i] = new DWord(inputBuffer, inputOffset + i * 4);
+            x[i] = input[i] ^ SubKeys[OutputWhiten + i];
+        }
+
+        var keyLen = Key.Length * 4 * 8;
+        for (var r = Rounds - 1; r >= 0; r--) { //main Twofish decryption loop
+            var t0 = F32(x[0], SBoxKeys, keyLen);
+            var t1 = F32(x[1].RotateLeft(8), SBoxKeys, keyLen);
+
+            x[2] = x[2].RotateLeft(1);
+            x[2] ^= t0 + t1 + SubKeys[RoundSubkeys + 2 * r]; //PHT, round keys
+            x[3] ^= t0 + 2 * t1 + SubKeys[RoundSubkeys + 2 * r + 1];
+            x[3] = x[3].RotateRight(1);
+
+            if (r > 0) { //unswap, except for last round
+                t0 = x[0]; x[0] = x[2]; x[2] = t0;
+                t1 = x[1]; x[1] = x[3]; x[3] = t1;
             }
         }
 
-
-        private class TwofishImplementation : IDisposable {
-
-            public TwofishImplementation(uint[] key, uint[]? iv, CipherMode cipherMode) {
-                Key = new DWord[key.Length];
-                for (var i = 0; i < Key.Length; i++) {
-                    Key[i] = (DWord)key[i];
-                }
-
-                if (iv != null) {
-                    IV = new DWord[iv.Length];
-                    for (var i = 0; i < IV.Length; i++) {
-                        IV[i] = (DWord)iv[i];
-                    }
-                }
-
-                CipherMode = cipherMode;
-
-                ReKey();
+        for (var i = 0; i < BlockSize / 32; i++) { //copy out, with whitening
+            x[i] ^= SubKeys[InputWhiten + i];
+            if ((CipherMode == CipherMode.CBC) && (IV != null)) {
+                x[i] ^= IV[i];
+                IV[i] = input[i];
             }
+            outputBuffer[outputBufferOffset + i * 4 + 0] = x[i].B0;
+            outputBuffer[outputBufferOffset + i * 4 + 1] = x[i].B1;
+            outputBuffer[outputBufferOffset + i * 4 + 2] = x[i].B2;
+            outputBuffer[outputBufferOffset + i * 4 + 3] = x[i].B3;
+        }
+    }
 
-            private readonly DWord[] Key;
-            private readonly DWord[]? IV;
-            private readonly CipherMode CipherMode;
+    #endregion Encrypt/decrypt
 
-            private const int BlockSize = 128; //number of bits per block
-            private const int Rounds = 16; //default number of rounds for 128/192/256-bit keys
-            private const int MaxKeyBits = 256; //max number of bits of key
+    #region F32
 
-            private const int InputWhiten = 0;
-            private const int OutputWhiten = (InputWhiten + BlockSize / 32);
-            private const int RoundSubkeys = (OutputWhiten + BlockSize / 32);
-            private const int TotalSubkeys = (RoundSubkeys + 2 * Rounds);
+    /// <summary>
+    /// Run four bytes through keyed S-boxes and apply MDS matrix.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static DWord F32(DWord x, DWord[] k32, int keyLen) {
+        if (keyLen >= 256) {
+            x.B0 = (byte)(P8x8[P_04, x.B0] ^ k32[3].B0);
+            x.B1 = (byte)(P8x8[P_14, x.B1] ^ k32[3].B1);
+            x.B2 = (byte)(P8x8[P_24, x.B2] ^ k32[3].B2);
+            x.B3 = (byte)(P8x8[P_34, x.B3] ^ k32[3].B3);
+        }
+        if (keyLen >= 192) {
+            x.B0 = (byte)(P8x8[P_03, x.B0] ^ k32[2].B0);
+            x.B1 = (byte)(P8x8[P_13, x.B1] ^ k32[2].B1);
+            x.B2 = (byte)(P8x8[P_23, x.B2] ^ k32[2].B2);
+            x.B3 = (byte)(P8x8[P_33, x.B3] ^ k32[2].B3);
+        }
+        if (keyLen >= 128) {
+            x = MdsTable[0, P8x8[P_01, P8x8[P_02, x.B0] ^ k32[1].B0] ^ k32[0].B0]
+              ^ MdsTable[1, P8x8[P_11, P8x8[P_12, x.B1] ^ k32[1].B1] ^ k32[0].B1]
+              ^ MdsTable[2, P8x8[P_21, P8x8[P_22, x.B2] ^ k32[1].B2] ^ k32[0].B2]
+              ^ MdsTable[3, P8x8[P_31, P8x8[P_32, x.B3] ^ k32[1].B3] ^ k32[0].B3];
+        }
 
-            private readonly DWord[] SBoxKeys = new DWord[MaxKeyBits / 64]; //key bits used for S-boxes
-            private readonly DWord[] SubKeys = new DWord[TotalSubkeys]; //round subkeys, input/output whitening bits
-
-
-            public void Dispose() {
-                Array.Clear(Key, 0, Key.Length);
-                if (IV != null) { Array.Clear(IV, 0, IV.Length); }
-                Array.Clear(SBoxKeys, 0, SBoxKeys.Length);
-                Array.Clear(SubKeys, 0, SubKeys.Length);
-            }
-
-
-            #region ReKey
-
-            private const int SubkeyStep = 0x02020202;
-            private const int SubkeyBump = 0x01010101;
-            private const int SubkeyRotateLeft = 9;
-
-            /// <summary>
-            /// Initialize the Twofish key schedule from key32
-            /// </summary>
-            private void ReKey() {
-                BuildMds(); //built only first time it is accessed
-
-                var k32e = new DWord[Key.Length / 2];
-                var k32o = new DWord[Key.Length / 2]; //even/odd key dwords
-
-                var k64Cnt = Key.Length / 2;
-                for (var i = 0; i < k64Cnt; i++) { //split into even/odd key dwords
-                    k32e[i] = Key[2 * i];
-                    k32o[i] = Key[2 * i + 1];
-                    SBoxKeys[k64Cnt - 1 - i] = ReedSolomonMdsEncode(k32e[i], k32o[i]); //compute S-box keys using (12,8) Reed-Solomon code over GF(256)
-                }
-
-                var subkeyCnt = RoundSubkeys + 2 * Rounds;
-                var keyLen = Key.Length * 4 * 8;
-                for (var i = 0; i < subkeyCnt / 2; i++) { //compute round subkeys for PHT
-                    var A = F32((DWord)(i * SubkeyStep), k32e, keyLen); //A uses even key dwords
-                    var B = F32((DWord)(i * SubkeyStep + SubkeyBump), k32o, keyLen);   //B uses odd  key dwords
-                    B = RotateLeft(B, 8);
-                    SubKeys[2 * i] = A + B; //combine with a PHT
-                    SubKeys[2 * i + 1] = RotateLeft(A + 2 * B, SubkeyRotateLeft);
-                }
-            }
-
-            #endregion
+        return x;
+    }
 
 
-            #region Encrypt/decrypt
+    private static readonly uint P_01 = 0;
+    private static readonly uint P_02 = 0;
+    private static readonly uint P_03 = (P_01 ^ 1); //"extend" to larger key sizes
+    private static readonly uint P_04 = 1;
 
-            /// <summary>
-            /// Encrypt block(s) of data using Twofish.
-            /// </summary>
-            internal void BlockEncrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputBufferOffset) {
-                var x = new DWord[BlockSize / 32];
-                for (var i = 0; i < BlockSize / 32; i++) { //copy in the block, add whitening
-                    x[i] = new DWord(inputBuffer, inputOffset + i * 4) ^ SubKeys[InputWhiten + i];
-                    if ((CipherMode == CipherMode.CBC) && (IV != null)) { x[i] ^= IV[i]; }
-                }
+    private static readonly uint P_11 = 0;
+    private static readonly uint P_12 = 1;
+    private static readonly uint P_13 = (P_11 ^ 1);
+    private static readonly uint P_14 = 0;
 
-                var keyLen = Key.Length * 4 * 8;
-                for (var r = 0; r < Rounds; r++) { //main Twofish encryption loop
-                    var t0 = F32(x[0], SBoxKeys, keyLen);
-                    var t1 = F32(RotateLeft(x[1], 8), SBoxKeys, keyLen);
+    private static readonly uint P_21 = 1;
+    private static readonly uint P_22 = 0;
+    private static readonly uint P_23 = (P_21 ^ 1);
+    private static readonly uint P_24 = 0;
 
-                    x[3] = RotateLeft(x[3], 1);
-                    x[2] ^= t0 + t1 + SubKeys[RoundSubkeys + 2 * r]; //PHT, round keys
-                    x[3] ^= t0 + 2 * t1 + SubKeys[RoundSubkeys + 2 * r + 1];
-                    x[2] = RotateRight(x[2], 1);
+    private static readonly uint P_31 = 1;
+    private static readonly uint P_32 = 1;
+    private static readonly uint P_33 = (P_31 ^ 1);
+    private static readonly uint P_34 = 1;
 
-                    if (r < Rounds - 1) { //swap for next round
-                        (x[2], x[0]) = (x[0], x[2]);
-                        (x[3], x[1]) = (x[1], x[3]);
-                    }
-                }
-
-                for (var i = 0; i < BlockSize / 32; i++) { //copy out, with whitening
-                    var outValue = x[i] ^ SubKeys[OutputWhiten + i];
-                    outputBuffer[outputBufferOffset + i * 4 + 0] = outValue.B0;
-                    outputBuffer[outputBufferOffset + i * 4 + 1] = outValue.B1;
-                    outputBuffer[outputBufferOffset + i * 4 + 2] = outValue.B2;
-                    outputBuffer[outputBufferOffset + i * 4 + 3] = outValue.B3;
-                    if ((CipherMode == CipherMode.CBC) && (IV != null)) { IV[i] = outValue; }
-                }
-            }
-
-            /// <summary>
-            /// Decrypt block(s) of data using Twofish.
-            /// </summary>
-            internal void BlockDecrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputBufferOffset) {
-                var x = new DWord[BlockSize / 32];
-                var input = new DWord[BlockSize / 32];
-                for (var i = 0; i < BlockSize / 32; i++) { //copy in the block, add whitening
-                    input[i] = new DWord(inputBuffer, inputOffset + i * 4);
-                    x[i] = input[i] ^ SubKeys[OutputWhiten + i];
-                }
-
-                var keyLen = Key.Length * 4 * 8;
-                for (var r = Rounds - 1; r >= 0; r--) { //main Twofish decryption loop
-                    var t0 = F32(x[0], SBoxKeys, keyLen);
-                    var t1 = F32(RotateLeft(x[1], 8), SBoxKeys, keyLen);
-
-                    x[2] = RotateLeft(x[2], 1);
-                    x[2] ^= t0 + t1 + SubKeys[RoundSubkeys + 2 * r]; //PHT, round keys
-                    x[3] ^= t0 + 2 * t1 + SubKeys[RoundSubkeys + 2 * r + 1];
-                    x[3] = RotateRight(x[3], 1);
-
-                    if (r > 0) { //unswap, except for last round
-                        t0 = x[0]; x[0] = x[2]; x[2] = t0;
-                        t1 = x[1]; x[1] = x[3]; x[3] = t1;
-                    }
-                }
-
-                for (var i = 0; i < BlockSize / 32; i++) { //copy out, with whitening
-                    x[i] ^= SubKeys[InputWhiten + i];
-                    if ((CipherMode == CipherMode.CBC) && (IV != null)) {
-                        x[i] ^= IV[i];
-                        IV[i] = input[i];
-                    }
-                    outputBuffer[outputBufferOffset + i * 4 + 0] = x[i].B0;
-                    outputBuffer[outputBufferOffset + i * 4 + 1] = x[i].B1;
-                    outputBuffer[outputBufferOffset + i * 4 + 2] = x[i].B2;
-                    outputBuffer[outputBufferOffset + i * 4 + 3] = x[i].B3;
-                }
-            }
-
-            #endregion
-
-
-            #region F32
-
-            /// <summary>
-            /// Run four bytes through keyed S-boxes and apply MDS matrix.
-            /// </summary>
-            private static DWord F32(DWord x, DWord[] k32, int keyLen) {
-                if (keyLen >= 256) {
-                    x.B0 = (byte)(P8x8[P_04, x.B0] ^ k32[3].B0);
-                    x.B1 = (byte)(P8x8[P_14, x.B1] ^ k32[3].B1);
-                    x.B2 = (byte)(P8x8[P_24, x.B2] ^ k32[3].B2);
-                    x.B3 = (byte)(P8x8[P_34, x.B3] ^ k32[3].B3);
-                }
-                if (keyLen >= 192) {
-                    x.B0 = (byte)(P8x8[P_03, x.B0] ^ k32[2].B0);
-                    x.B1 = (byte)(P8x8[P_13, x.B1] ^ k32[2].B1);
-                    x.B2 = (byte)(P8x8[P_23, x.B2] ^ k32[2].B2);
-                    x.B3 = (byte)(P8x8[P_33, x.B3] ^ k32[2].B3);
-                }
-                if (keyLen >= 128) {
-                    x = MdsTable[0, P8x8[P_01, P8x8[P_02, x.B0] ^ k32[1].B0] ^ k32[0].B0]
-                      ^ MdsTable[1, P8x8[P_11, P8x8[P_12, x.B1] ^ k32[1].B1] ^ k32[0].B1]
-                      ^ MdsTable[2, P8x8[P_21, P8x8[P_22, x.B2] ^ k32[1].B2] ^ k32[0].B2]
-                      ^ MdsTable[3, P8x8[P_31, P8x8[P_32, x.B3] ^ k32[1].B3] ^ k32[0].B3];
-                }
-
-                return x;
-            }
-
-
-            private static DWord RotateLeft(DWord x, int n) {
-                return ((x << n) | (x >> (32 - n)));
-            }
-
-            private static DWord RotateRight(DWord x, int n) {
-                return ((x >> n) | (x << (32 - n)));
-            }
-
-
-            private static readonly uint P_01 = 0;
-            private static readonly uint P_02 = 0;
-            private static readonly uint P_03 = (P_01 ^ 1); //"extend" to larger key sizes
-            private static readonly uint P_04 = 1;
-
-            private static readonly uint P_11 = 0;
-            private static readonly uint P_12 = 1;
-            private static readonly uint P_13 = (P_11 ^ 1);
-            private static readonly uint P_14 = 0;
-
-            private static readonly uint P_21 = 1;
-            private static readonly uint P_22 = 0;
-            private static readonly uint P_23 = (P_21 ^ 1);
-            private static readonly uint P_24 = 0;
-
-            private static readonly uint P_31 = 1;
-            private static readonly uint P_32 = 1;
-            private static readonly uint P_33 = (P_31 ^ 1);
-            private static readonly uint P_34 = 1;
-
-            private static readonly byte[,] P8x8 = {
+    private static readonly byte[,] P8x8 = {
                                             {
                                                 0xA9, 0x67, 0xB3, 0xE8, 0x04, 0xFD, 0xA3, 0x76,
                                                 0x9A, 0x92, 0x80, 0x78, 0xE4, 0xDD, 0xD1, 0x38,
@@ -702,194 +666,195 @@ namespace Medo.Security.Cryptography {
                                             }
                                           };
 
-            private static readonly DWord[,] MdsTable = new DWord[4, 256];
-            private static bool MdsTableBuilt = false;
-            private static readonly object SyncRootBuildMds = new();
+    private static readonly DWord[,] MdsTable = new DWord[4, 256];
+    private static bool MdsTableBuilt = false;
+    private static readonly object SyncRootBuildMds = new();
 
-            private static void BuildMds() {
-                lock (SyncRootBuildMds) {
-                    if (MdsTableBuilt) { return; }
+    private static void BuildMds() {
+        lock (SyncRootBuildMds) {
+            if (MdsTableBuilt) { return; }
 
-                    var m1 = new byte[2];
-                    var mX = new byte[2];
-                    var mY = new byte[4];
+            var m1 = new byte[2];
+            var mX = new byte[2];
+            var mY = new byte[4];
 
-                    for (var i = 0; i < 256; i++) {
-                        m1[0] = P8x8[0, i];     /* compute all the matrix elements */
-                        mX[0] = (byte)Mul_X(m1[0]);
-                        mY[0] = (byte)Mul_Y(m1[0]);
+            for (var i = 0; i < 256; i++) {
+                m1[0] = P8x8[0, i];     /* compute all the matrix elements */
+                mX[0] = (byte)Mul_X(m1[0]);
+                mY[0] = (byte)Mul_Y(m1[0]);
 
-                        m1[1] = P8x8[1, i];
-                        mX[1] = (byte)Mul_X(m1[1]);
-                        mY[1] = (byte)Mul_Y(m1[1]);
+                m1[1] = P8x8[1, i];
+                mX[1] = (byte)Mul_X(m1[1]);
+                mY[1] = (byte)Mul_Y(m1[1]);
 
-                        MdsTable[0, i].B0 = m1[1];
-                        MdsTable[0, i].B1 = mX[1];
-                        MdsTable[0, i].B2 = mY[1];
-                        MdsTable[0, i].B3 = mY[1]; //SetMDS(0);
+                MdsTable[0, i].B0 = m1[1];
+                MdsTable[0, i].B1 = mX[1];
+                MdsTable[0, i].B2 = mY[1];
+                MdsTable[0, i].B3 = mY[1]; //SetMDS(0);
 
-                        MdsTable[1, i].B0 = mY[0];
-                        MdsTable[1, i].B1 = mY[0];
-                        MdsTable[1, i].B2 = mX[0];
-                        MdsTable[1, i].B3 = m1[0]; //SetMDS(1);
+                MdsTable[1, i].B0 = mY[0];
+                MdsTable[1, i].B1 = mY[0];
+                MdsTable[1, i].B2 = mX[0];
+                MdsTable[1, i].B3 = m1[0]; //SetMDS(1);
 
-                        MdsTable[2, i].B0 = mX[1];
-                        MdsTable[2, i].B1 = mY[1];
-                        MdsTable[2, i].B2 = m1[1];
-                        MdsTable[2, i].B3 = mY[1]; //SetMDS(2);
+                MdsTable[2, i].B0 = mX[1];
+                MdsTable[2, i].B1 = mY[1];
+                MdsTable[2, i].B2 = m1[1];
+                MdsTable[2, i].B3 = mY[1]; //SetMDS(2);
 
-                        MdsTable[3, i].B0 = mX[0];
-                        MdsTable[3, i].B1 = m1[0];
-                        MdsTable[3, i].B2 = mY[0];
-                        MdsTable[3, i].B3 = mX[0]; //SetMDS(3);
-                    }
-
-                    MdsTableBuilt = true;
-                }
+                MdsTable[3, i].B0 = mX[0];
+                MdsTable[3, i].B1 = m1[0];
+                MdsTable[3, i].B2 = mY[0];
+                MdsTable[3, i].B3 = mX[0]; //SetMDS(3);
             }
 
-            #endregion
+            MdsTableBuilt = true;
+        }
+    }
 
-            #region Reed-Solomon
+    #endregion F32
 
-            private const uint RS_GF_FDBK = 0x14D; //field generator
+    #region Reed-Solomon
 
-            /// <summary>
-            /// Use (12,8) Reed-Solomon code over GF(256) to produce a key S-box dword from two key material dwords.
-            /// </summary>
-            /// <param name="k0">1st dword</param>
-            /// <param name="k1">2nd dword</param>
-            private static DWord ReedSolomonMdsEncode(DWord k0, DWord k1) {
-                var r = new DWord();
-                for (var i = 0; i < 2; i++) {
-                    r ^= (i > 0) ? k0 : k1; //merge in 32 more key bits
-                    for (var j = 0; j < 4; j++) { //shift one byte at a time 
-                        var b = (byte)(r >> 24);
-                        var g2 = (byte)((b << 1) ^ (((b & 0x80) > 0) ? RS_GF_FDBK : 0));
-                        var g3 = (byte)(((b >> 1) & 0x7F) ^ (((b & 1) > 0) ? RS_GF_FDBK >> 1 : 0) ^ g2);
-                        r.B3 = (byte)(r.B2 ^ g3);
-                        r.B2 = (byte)(r.B1 ^ g2);
-                        r.B1 = (byte)(r.B0 ^ g3);
-                        r.B0 = b;
-                    }
-                }
-                return r;
+    private const uint RS_GF_FDBK = 0x14D; //field generator
+
+    /// <summary>
+    /// Use (12,8) Reed-Solomon code over GF(256) to produce a key S-box dword from two key material dwords.
+    /// </summary>
+    /// <param name="k0">1st dword</param>
+    /// <param name="k1">2nd dword</param>
+    private static DWord ReedSolomonMdsEncode(DWord k0, DWord k1) {
+        var r = new DWord();
+        for (var i = 0; i < 2; i++) {
+            r ^= (i > 0) ? k0 : k1; //merge in 32 more key bits
+            for (var j = 0; j < 4; j++) { //shift one byte at a time 
+                var b = (byte)(r >> 24);
+                var g2 = (byte)((b << 1) ^ (((b & 0x80) > 0) ? RS_GF_FDBK : 0));
+                var g3 = (byte)(((b >> 1) & 0x7F) ^ (((b & 1) > 0) ? RS_GF_FDBK >> 1 : 0) ^ g2);
+                r.B3 = (byte)(r.B2 ^ g3);
+                r.B2 = (byte)(r.B1 ^ g2);
+                r.B1 = (byte)(r.B0 ^ g3);
+                r.B0 = b;
             }
+        }
+        return r;
+    }
 
 
-            private static uint Mul_X(uint x) {
-                return Mx_X(x);
-            }
-            private static uint Mul_Y(uint x) {
-                return Mx_Y(x);
-            }
+    private static uint Mul_X(uint x) {
+        return Mx_X(x);
+    }
+    private static uint Mul_Y(uint x) {
+        return Mx_Y(x);
+    }
 
 
-            private static uint Mx_X(uint x) {
-                return (uint)(x ^ LFSR2(x)); //5B
-            }
+    private static uint Mx_X(uint x) {
+        return (uint)(x ^ LFSR2(x)); //5B
+    }
 
-            private static uint Mx_Y(uint x) {
-                return (uint)(x ^ LFSR1(x) ^ LFSR2(x)); //EF
-            }
-
-
-            private const uint MDS_GF_FDBK = 0x169; //primitive polynomial for GF(256)
-
-            private static uint LFSR1(uint x) {
-                return (uint)((x >> 1) ^ (((x & 0x01) > 0) ? MDS_GF_FDBK / 2 : 0));
-            }
-
-            static private uint LFSR2(uint x) {
-                return (uint)((x >> 2) ^ (((x & 0x02) > 0) ? MDS_GF_FDBK / 2 : 0)
-                                       ^ (((x & 0x01) > 0) ? MDS_GF_FDBK / 4 : 0));
-            }
-
-            #endregion
+    private static uint Mx_Y(uint x) {
+        return (uint)(x ^ LFSR1(x) ^ LFSR2(x)); //EF
+    }
 
 
-            [DebuggerDisplay("{Value}")]
-            [StructLayout(LayoutKind.Explicit)]
-            private struct DWord { //makes extracting bytes from uint faster and looks better
-                [FieldOffset(0)]
-                public byte B0;
-                [FieldOffset(1)]
-                public byte B1;
-                [FieldOffset(2)]
-                public byte B2;
-                [FieldOffset(3)]
-                public byte B3;
+    private const uint MDS_GF_FDBK = 0x169; //primitive polynomial for GF(256)
 
-                [FieldOffset(0)]
-                private uint Value;
+    private static uint LFSR1(uint x) {
+        return (uint)((x >> 1) ^ (((x & 0x01) > 0) ? MDS_GF_FDBK / 2 : 0));
+    }
 
-                private DWord(uint value) : this() {
-                    Value = value;
-                }
+    static private uint LFSR2(uint x) {
+        return (uint)((x >> 2) ^ (((x & 0x02) > 0) ? MDS_GF_FDBK / 2 : 0)
+                               ^ (((x & 0x01) > 0) ? MDS_GF_FDBK / 4 : 0));
+    }
 
-                internal DWord(byte[] buffer, int offset) : this() {
-                    B0 = buffer[offset + 0];
-                    B1 = buffer[offset + 1];
-                    B2 = buffer[offset + 2];
-                    B3 = buffer[offset + 3];
-                }
+    #endregion Reed-Solomon
 
+    [DebuggerDisplay("{Value}")]
+    [StructLayout(LayoutKind.Explicit)]
+    private struct DWord { //makes extracting bytes from uint faster and looks better
+        [FieldOffset(0)]
+        public byte B0;
+        [FieldOffset(1)]
+        public byte B1;
+        [FieldOffset(2)]
+        public byte B2;
+        [FieldOffset(3)]
+        public byte B3;
 
-                public static explicit operator uint(DWord expr) {
-                    return expr.Value;
-                }
+        [FieldOffset(0)]
+        private uint Value;
 
+        private DWord(uint value) : this() {
+            Value = value;
+        }
 
-                public static explicit operator DWord(int value) {
-                    return new DWord((uint)value);
-                }
-
-                public static explicit operator DWord(uint value) {
-                    return new DWord(value);
-                }
-
-
-                public static DWord operator +(DWord expr1, DWord expr2) {
-                    expr1.Value += expr2.Value;
-                    return expr1;
-                }
-
-                public static DWord operator *(uint value, DWord expr) {
-                    expr.Value = value * expr.Value;
-                    return expr;
-                }
+        internal DWord(byte[] buffer, int offset) : this() {
+            B0 = buffer[offset + 0];
+            B1 = buffer[offset + 1];
+            B2 = buffer[offset + 2];
+            B3 = buffer[offset + 3];
+        }
 
 
-                public static DWord operator |(DWord expr1, DWord expr2) {
-                    expr1.Value |= expr2.Value;
-                    return expr1;
-                }
+        public static explicit operator uint(DWord expr) {
+            return expr.Value;
+        }
 
-                public static DWord operator ^(DWord expr1, DWord expr2) {
-                    expr1.Value ^= expr2.Value;
-                    return expr1;
-                }
 
-                public static DWord operator <<(DWord expr, int count) {
-                    expr.Value <<= count;
-                    return expr;
-                }
+        public static explicit operator DWord(int value) {
+            return new DWord((uint)value);
+        }
 
-                public static DWord operator >>(DWord expr, int count) {
-                    expr.Value >>= count;
-                    return expr;
-                }
+        public static explicit operator DWord(uint value) {
+            return new DWord(value);
+        }
 
-            }
 
+        public static DWord operator +(DWord expr1, DWord expr2) {
+            expr1.Value += expr2.Value;
+            return expr1;
+        }
+
+        public static DWord operator *(uint value, DWord expr) {
+            expr.Value = value * expr.Value;
+            return expr;
+        }
+
+
+        public static DWord operator |(DWord expr1, DWord expr2) {
+            expr1.Value |= expr2.Value;
+            return expr1;
+        }
+
+        public static DWord operator ^(DWord expr1, DWord expr2) {
+            expr1.Value ^= expr2.Value;
+            return expr1;
+        }
+
+        public static DWord operator <<(DWord expr, int count) {
+            expr.Value <<= count;
+            return expr;
+        }
+
+        public static DWord operator >>(DWord expr, int count) {
+            expr.Value >>= count;
+            return expr;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public DWord RotateLeft(int n) {
+            return (DWord)((Value << n) | (Value >> (32 - n)));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public DWord RotateRight(int n) {
+            return (DWord)((Value >> n) | (Value << (32 - n)));
         }
 
     }
 
-
-    internal enum TwofishManagedTransformMode {
-        Encrypt = 0,
-        Decrypt = 1
-    }
+    #endregion Implementation
 
 }
