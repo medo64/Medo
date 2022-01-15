@@ -1,4 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
+/* Algorithm designed by:
+ *    Martin Boesgaard, Mette Vesterager, Thomas Pedersen, Jesper Christiansen and Ove Scavenius.
+ * Released to public domain in 2008. */
 
 //2022-01-13: Optimizing a bit
 //2022-01-12: Fixed large final block transformation
@@ -9,7 +12,6 @@ namespace Medo.Security.Cryptography;
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 /// <summary>

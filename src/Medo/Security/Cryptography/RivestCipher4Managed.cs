@@ -1,4 +1,5 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
+/* Algorithm designed by Ron Rivest (RSA Security) */
 
 //2022-01-13: Added padding support
 //2022-01-07: Initial version

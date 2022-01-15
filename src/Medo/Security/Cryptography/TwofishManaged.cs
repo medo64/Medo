@@ -1,4 +1,5 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
+/* Algorithm designed by Bruce Schneier */
 
 //2022-01-13: Fixing up padding support
 //2021-11-25: Refactored to use pattern matching
