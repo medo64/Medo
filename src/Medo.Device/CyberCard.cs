@@ -29,6 +29,7 @@ public sealed class CyberCard : IDisposable {
             NewLine = "\0"
         };
         uart.Open();
+
         Uart = uart;
         UartStream = uart.BaseStream;
     }
@@ -40,6 +41,8 @@ public sealed class CyberCard : IDisposable {
     /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
     public CyberCard(Stream stream) {
         if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
+
+        Uart = null;
         UartStream = stream;
     }
 
@@ -55,7 +58,6 @@ public sealed class CyberCard : IDisposable {
     public void Dispose() {
         lock (UartLock) {
             if (Uart != null) {
-                UartStream.Dispose();  // dispose only if opened it in the first place
                 if (Uart.IsOpen) {
                     Uart.Close();
                     Uart.Dispose();

@@ -15,6 +15,13 @@ namespace Medo.Windows.Forms.Examples {
             if (mnuPort.Items.Count > 0) { mnuPort.SelectedIndex = 0; }
         }
 
+        private void CyberCardForm_FormClosed(object sender, FormClosedEventArgs e) {
+            tmrRefresh.Enabled = false;
+            if (Device != null) { Device.Dispose(); }
+        }
+
+        private CyberCard Device;
+
         private void mnuOpen_Click(object sender, EventArgs e) {
             try {
                 Device = new CyberCard(mnuPort.SelectedItem.ToString());
@@ -25,8 +32,6 @@ namespace Medo.Windows.Forms.Examples {
                 MsgBox.ShowError(this, ex.Message);
             }
         }
-
-        private CyberCard Device;
 
         private void tmrRefresh_Tick(object sender, EventArgs e) {
             lblModel.Text = $"Model:\n{Device.GetDeviceModel()}";
@@ -71,5 +76,6 @@ namespace Medo.Windows.Forms.Examples {
         private void btnAlarmDisable_Click(object sender, EventArgs e) {
             Device.AlarmDisable();
         }
+
     }
 }

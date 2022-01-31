@@ -286,6 +286,7 @@ namespace Medo.Windows.Forms.Examples {
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "CyberCard";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CyberCardForm_FormClosed);
             this.Load += new System.EventHandler(this.CyberCardForm_Load);
             this.flow.ResumeLayout(false);
             this.mnu.ResumeLayout(false);

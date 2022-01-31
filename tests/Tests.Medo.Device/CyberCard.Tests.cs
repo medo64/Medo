@@ -21,7 +21,7 @@ namespace Tests.Medo.Device {
         [Fact(DisplayName = "CyberCard: Model information")]
         public void ModelInformation() {
             var stream = new TestStream();
-            var device = new CyberCard(stream);
+            using var device = new CyberCard(stream);
 
             // survive without data
             Assert.Null(device.GetDeviceModel());
@@ -49,7 +49,7 @@ namespace Tests.Medo.Device {
         [Fact(DisplayName = "CyberCard: Capability information")]
         public void CapabilityInformation() {
             var stream = new TestStream();
-            var device = new CyberCard(stream);
+            using var device = new CyberCard(stream);
 
             // survive without data
             Assert.Null(device.GetDeviceCapacity());
@@ -74,7 +74,7 @@ namespace Tests.Medo.Device {
         [Fact(DisplayName = "CyberCard: Current information")]
         public void CurrentInformation() {
             var stream = new TestStream();
-            var device = new CyberCard(stream);
+            using var device = new CyberCard(stream);
 
             // survive without data
             Assert.Null(device.GetInputVoltage());
@@ -109,7 +109,7 @@ namespace Tests.Medo.Device {
         [Fact(DisplayName = "CyberCard: Current information (flags)")]
         public void CurrentInformation_Flags() {
             var stream = new TestStream();
-            var device = new CyberCard(stream);
+            using var device = new CyberCard(stream);
 
             // survive without data
             Assert.Null(device.IsPendingPowerOn());
@@ -170,7 +170,7 @@ namespace Tests.Medo.Device {
         [Fact(DisplayName = "CyberCard: Current information (short caching)")]
         public void CurrentInformation_Cache() {
             var stream = new TestStream();
-            var device = new CyberCard(stream);
+            using var device = new CyberCard(stream);
 
             // we have data
             stream.SetupRead(Encoding.ASCII.GetBytes("#I121.0O121.0L042B088F060.1R073S\x80\x84\x90\x80\x80\r"));
@@ -225,7 +225,7 @@ namespace Tests.Medo.Device {
         [Fact(DisplayName = "CyberCard: Power on")]
         public void PowerOn() {
             var stream = new TestStream();
-            var device = new CyberCard(stream);
+            using var device = new CyberCard(stream);
 
             // immediate power off
             device.PowerOff();
@@ -255,7 +255,7 @@ namespace Tests.Medo.Device {
         [Fact(DisplayName = "CyberCard: Alarm")]
         public void Alarm() {
             var stream = new TestStream();
-            var device = new CyberCard(stream);
+            using var device = new CyberCard(stream);
 
             // enable
             device.AlarmDisable();
