@@ -1,4 +1,3 @@
-using Medo.Windows.Forms;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,6 +89,11 @@ namespace Medo.Windows.Forms.Examples {
 
         private void btnUpgrade_Click(object sender, EventArgs e) {
             UpgradeBox.ShowDialog(this, new Uri("http://example.com/"));
+        }
+
+        private void btnCyberCard_Click(object sender, EventArgs e) {
+            using var frm = new CyberCardForm();
+            frm.ShowDialog(this);
         }
     }
 }

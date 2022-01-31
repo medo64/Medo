@@ -42,8 +42,9 @@ namespace Medo.Windows.Forms.Examples
             this.btnWaitCursor = new System.Windows.Forms.Button();
             this.btnErrorReport = new System.Windows.Forms.Button();
             this.btnFeedback = new System.Windows.Forms.Button();
-            this.bwUnhandledCatchBackground = new System.ComponentModel.BackgroundWorker();
             this.btnUpgrade = new System.Windows.Forms.Button();
+            this.bwUnhandledCatchBackground = new System.ComponentModel.BackgroundWorker();
+            this.btnCyberCard = new System.Windows.Forms.Button();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -63,6 +64,7 @@ namespace Medo.Windows.Forms.Examples
             this.flowLayoutPanel1.Controls.Add(this.btnErrorReport);
             this.flowLayoutPanel1.Controls.Add(this.btnFeedback);
             this.flowLayoutPanel1.Controls.Add(this.btnUpgrade);
+            this.flowLayoutPanel1.Controls.Add(this.btnCyberCard);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -199,11 +201,6 @@ namespace Medo.Windows.Forms.Examples
             this.btnFeedback.UseVisualStyleBackColor = true;
             this.btnFeedback.Click += new System.EventHandler(this.btnFeedback_Click);
             // 
-            // bwUnhandledCatchBackground
-            // 
-            this.bwUnhandledCatchBackground.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwUnhandledCatchWorker_DoWork);
-            this.bwUnhandledCatchBackground.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwUnhandledCatchBackground_RunWorkerCompleted);
-            // 
             // btnUpgrade
             // 
             this.btnUpgrade.Location = new System.Drawing.Point(209, 143);
@@ -213,6 +210,21 @@ namespace Medo.Windows.Forms.Examples
             this.btnUpgrade.Text = "Upgrade";
             this.btnUpgrade.UseVisualStyleBackColor = true;
             this.btnUpgrade.Click += new System.EventHandler(this.btnUpgrade_Click);
+            // 
+            // bwUnhandledCatchBackground
+            // 
+            this.bwUnhandledCatchBackground.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwUnhandledCatchWorker_DoWork);
+            this.bwUnhandledCatchBackground.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwUnhandledCatchBackground_RunWorkerCompleted);
+            // 
+            // btnCyberCard
+            // 
+            this.btnCyberCard.Location = new System.Drawing.Point(415, 143);
+            this.btnCyberCard.Name = "btnCyberCard";
+            this.btnCyberCard.Size = new System.Drawing.Size(200, 29);
+            this.btnCyberCard.TabIndex = 14;
+            this.btnCyberCard.Text = "CyberCard";
+            this.btnCyberCard.UseVisualStyleBackColor = true;
+            this.btnCyberCard.Click += new System.EventHandler(this.btnCyberCard_Click);
             // 
             // MainForm
             // 
@@ -245,6 +257,7 @@ namespace Medo.Windows.Forms.Examples
         private System.Windows.Forms.Button btnErrorReport;
         private System.Windows.Forms.Button btnFeedback;
         private System.Windows.Forms.Button btnUpgrade;
+        private System.Windows.Forms.Button btnCyberCard;
     }
 }
 
