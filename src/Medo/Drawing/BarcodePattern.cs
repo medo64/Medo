@@ -10,261 +10,262 @@
 //2008-04-11: Refactoring
 //2008-04-05: New version
 
-namespace Medo.Drawing {
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Globalization;
-    using System.IO;
-    using System.IO.Compression;
-    using System.Text;
+namespace Medo.Drawing;
+
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
+
+/// <summary>
+/// Barcode drawing.
+/// </summary>
+/// <example>
+/// <code>
+/// var bp = BarcodePattern.GetNewCode128("1234");
+/// bp.SaveAsPng("myimage.png", Color.Blue, Color.Transparent);
+/// </code>
+/// </example>
+public sealed class BarcodePattern {
+
+    private BarcodePattern(IBarcodeImpl barcodeImpl, string text) {
+        BarcodeImpl = barcodeImpl;
+        Text = text;
+    }
+
+    private readonly IBarcodeImpl BarcodeImpl;
+    private int[]? CachedPattern;
+
 
     /// <summary>
-    /// Barcode drawing.
+    /// Returns interleaved pattern for barcode.
+    /// It starts with black field and alternates bars and gaps/spaces.
+    /// Each number signifies how wide the field is (e.g. 4 means 4-bar/space width).
+    /// Number 0 signifies space (usually equal to 1 gap).
     /// </summary>
-    /// <example>
-    /// <code>
-    /// var bp = BarcodePattern.GetNewCode128("1234");
-    /// bp.SaveAsPng("myimage.png", Color.Blue, Color.Transparent);
-    /// </code>
-    /// </example>
-    public sealed class BarcodePattern {
+    public int[] GetInterleavedPattern() {
+        var pattern = CachedPattern ?? BarcodeImpl.GetPattern(Text);
 
-        private BarcodePattern(IBarcodeImpl barcodeImpl, string text) {
-            BarcodeImpl = barcodeImpl;
-            Text = text;
-        }
+        var output = new int[pattern.Length];
+        Array.Copy(pattern, output, output.Length);
+        return output;
+    }
 
-        private readonly IBarcodeImpl BarcodeImpl;
-        private int[]? CachedPattern;
-
-
-        /// <summary>
-        /// Returns interleaved pattern for barcode.
-        /// It starts with black field and alternates bars and gaps/spaces.
-        /// Each number signifies how wide the field is (e.g. 4 means 4-bar/space width).
-        /// Number 0 signifies space (usually equal to 1 gap).
-        /// </summary>
-        public int[] GetInterleavedPattern() {
-            var pattern = CachedPattern ?? BarcodeImpl.GetPattern(Text);
-
-            var output = new int[pattern.Length];
-            Array.Copy(pattern, output, output.Length);
-            return output;
-        }
-
-        /// <summary>
-        /// Returns binary pattern for barcode.
-        /// Bars will have value true, gaps/spaces will have value false.
-        /// </summary>
-        public bool[] GetBinaryPattern() {
-            var output = new List<bool>();
-            var pattern = GetInterleavedPattern();
-            for (var i = 0; i < pattern.Length; i++) {
-                var element = pattern[i];
-                if (i % 2 == 0) {  // bar
-                    for (var j = 0; j < element; j++) {
-                        output.Add(true);
-                    }
-                } else if (element != 0) {  // gap
-                    for (var j = 0; j < element; j++) {
-                        output.Add(false);
-                    }
-                } else {  // space
+    /// <summary>
+    /// Returns binary pattern for barcode.
+    /// Bars will have value true, gaps/spaces will have value false.
+    /// </summary>
+    public bool[] GetBinaryPattern() {
+        var output = new List<bool>();
+        var pattern = GetInterleavedPattern();
+        for (var i = 0; i < pattern.Length; i++) {
+            var element = pattern[i];
+            if (i % 2 == 0) {  // bar
+                for (var j = 0; j < element; j++) {
+                    output.Add(true);
+                }
+            } else if (element != 0) {  // gap
+                for (var j = 0; j < element; j++) {
                     output.Add(false);
                 }
+            } else {  // space
+                output.Add(false);
             }
-            return output.ToArray();
         }
+        return output.ToArray();
+    }
 
-        /// <summary>
-        /// Gets width of barcode.
-        /// </summary>
-        public int GetPatternWidth() {
-            var pattern = GetInterleavedPattern();
-            var totalWidth = 0;
-            for (var i = 0; i < pattern.Length; i++) {
-                var element = pattern[i];
-                if (i % 2 == 0) {  // bar
-                    totalWidth += element;
-                } else if (pattern[i] != 0) {  // gap
-                    totalWidth += element;
-                } else {  // space
-                    totalWidth += 1;
+    /// <summary>
+    /// Gets width of barcode.
+    /// </summary>
+    public int GetPatternWidth() {
+        var pattern = GetInterleavedPattern();
+        var totalWidth = 0;
+        for (var i = 0; i < pattern.Length; i++) {
+            var element = pattern[i];
+            if (i % 2 == 0) {  // bar
+                totalWidth += element;
+            } else if (pattern[i] != 0) {  // gap
+                totalWidth += element;
+            } else {  // space
+                totalWidth += 1;
+            }
+        }
+        return totalWidth;
+    }
+
+    private string _text = String.Empty;  // will be overwritten in constructor with real value
+    /// <summary>
+    /// Gets/sets text.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">Text cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Character not supported.</exception>
+    public string Text {
+        get { return _text; }
+        set {
+            if (value == null) { throw new ArgumentNullException(nameof(value), "Text cannot be null."); }
+            for (var i = 0; i < value.Length; ++i) {
+                if (!BarcodeImpl.IsCharacterSupported(value[i])) { throw new ArgumentOutOfRangeException(nameof(value), string.Format(CultureInfo.InvariantCulture, "Character '{0}' is not supported.", value[i])); }
+            }
+            _text = value;
+            CachedPattern = null;  // clear cache
+        }
+    }
+
+
+    /// <summary>
+    /// Writes PNG image to a file.
+    /// </summary>
+    /// <param name="fileName">File that will be written to.</param>
+    /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
+    public void SaveAsPng(string fileName) {
+        if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
+        using var stream = File.OpenWrite(fileName);
+        SaveAsPng(stream);
+    }
+
+    /// <summary>
+    /// Writes PNG image to a stream.
+    /// </summary>
+    /// <param name="fileName">File that will be written to.</param>
+    /// <param name="barColor">Bar color.</param>
+    /// <param name="gapColor">Color of gaps and spaces.</param>
+    /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
+    public void SaveAsPng(string fileName, Color barColor, Color gapColor) {
+        if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
+        using var stream = File.OpenWrite(fileName);
+        SaveAsPng(stream, barColor, gapColor);
+    }
+
+    /// <summary>
+    /// Writes PNG image to a file.
+    /// </summary>
+    /// <param name="fileName">File that will be written to.</param>
+    /// <param name="barColor">Bar color.</param>
+    /// <param name="gapColor">Color of gaps and spaces.</param>
+    /// <param name="barWidth">Width of a single bar.</param>
+    /// <param name="barHeight">Height of a single bar.</param>
+    /// <param name="margin">Width of margin around barcode.</param>
+    /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
+    public void SaveAsPng(string fileName, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
+        if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
+        using var stream = File.OpenWrite(fileName);
+        SaveAsPng(stream, barColor, gapColor, barWidth, barHeight, margin);
+    }
+
+    /// <summary>
+    /// Writes PNG image to a stream.
+    /// </summary>
+    /// <param name="stream">Stream that will be written to.</param>
+    /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
+    public void SaveAsPng(Stream stream) {
+        SaveAsPng(stream, Color.Black, Color.White);
+    }
+
+    /// <summary>
+    /// Writes PNG image to a stream.
+    /// </summary>
+    /// <param name="stream">Stream that will be written to.</param>
+    /// <param name="barColor">Bar color.</param>
+    /// <param name="gapColor">Color of gaps and spaces.</param>
+    /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
+    public void SaveAsPng(Stream stream, Color barColor, Color gapColor) {
+        SaveAsPng(stream, barColor, gapColor, 1, 9, 3);
+    }
+
+    /// <summary>
+    /// Writes PNG image to a stream.
+    /// </summary>
+    /// <param name="stream">Stream that will be written to.</param>
+    /// <param name="barColor">Bar color.</param>
+    /// <param name="gapColor">Color of gaps and spaces.</param>
+    /// <param name="barWidth">Width of a single bar.</param>
+    /// <param name="barHeight">Height of a single bar.</param>
+    /// <param name="margin">Width of margin around barcode.</param>
+    /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
+    public void SaveAsPng(Stream stream, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
+        if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
+        if (barWidth is <= 0 or > 100) { throw new ArgumentOutOfRangeException(nameof(barWidth), "Bar width must be between 1 and 100 pixels."); }
+        if (barHeight is <= 0 or > 1000) { throw new ArgumentOutOfRangeException(nameof(barHeight), "Bar height must be between 1 and 1000 pixels."); }
+        if (margin is < 0 or > 1000) { throw new ArgumentOutOfRangeException(nameof(margin), "Margin must be between 1 and 1000 pixels."); }
+
+        var hasTransparency = (barColor.A < 255) || (gapColor.A < 255);
+        var barBytes = hasTransparency ? new byte[] { barColor.R, barColor.G, barColor.B, barColor.A } : new byte[] { barColor.R, barColor.G, barColor.B };
+        var gapBytes = hasTransparency ? new byte[] { gapColor.R, gapColor.G, gapColor.B, gapColor.A } : new byte[] { gapColor.R, gapColor.G, gapColor.B };
+
+        var barcodePattern = GetBinaryPattern();
+        var totalWidth = (uint)(margin + barcodePattern.Length + margin);
+        var totalHeight = (uint)(margin + barHeight + margin);
+
+        using var memStream = new MemoryStream();  // prepare data
+        memStream.Write(new byte[] { 0x78, 0x9C });  // deflate header
+
+        using (var deflateStream = new DeflateStream(memStream, CompressionLevel.Optimal)) {
+            for (var y = 0; y < margin; y++) {  // top margin
+                deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
+                for (var x = 0; x < totalWidth; x++) { deflateStream.Write(gapBytes); }
+            }
+
+            for (var y = 0; y < barHeight; y++) {  // barcode
+                deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
+                for (var x = 0; x < margin; x++) { deflateStream.Write(gapBytes); }  // left margin
+                for (var x = 0; x < barcodePattern.Length; x++) {
+                    deflateStream.Write(barcodePattern[x] ? barBytes : gapBytes);
                 }
+                for (var x = 0; x < margin; x++) { deflateStream.Write(gapBytes); }  // right margin
             }
-            return totalWidth;
-        }
 
-        private string _text = String.Empty;  // will be overwritten in constructor with real value
-        /// <summary>
-        /// Gets/sets text.
-        /// </summary>
-        /// <exception cref="ArgumentNullException">Text cannot be null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Character not supported.</exception>
-        public string Text {
-            get { return _text; }
-            set {
-                if (value == null) { throw new ArgumentNullException(nameof(value), "Text cannot be null."); }
-                for (var i = 0; i < value.Length; ++i) {
-                    if (!BarcodeImpl.IsCharacterSupported(value[i])) { throw new ArgumentOutOfRangeException(nameof(value), string.Format(CultureInfo.InvariantCulture, "Character '{0}' is not supported.", value[i])); }
-                }
-                _text = value;
-                CachedPattern = null;  // clear cache
+            for (var y = 0; y < margin; y++) {  // bottom margin
+                deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
+                for (var x = 0; x < totalWidth; x++) { deflateStream.Write(gapBytes); }
             }
         }
 
+        stream.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, 0, 8);  // Header
+        WritePngChunk(stream, Encoding.ASCII.GetBytes("IHDR"), GetBEBytes(totalWidth), GetBEBytes(totalHeight), new byte[] { 0x08, (byte)(hasTransparency ? 0x06 : 0x02), 0x00, 0x00, 0x00 });
+        WritePngChunk(stream, Encoding.ASCII.GetBytes("IDAT"), memStream.ToArray());
+        WritePngChunk(stream, Encoding.ASCII.GetBytes("IEND"));
+        stream.Flush();
+    }
 
-        /// <summary>
-        /// Writes PNG image to a file.
-        /// </summary>
-        /// <param name="fileName">File that will be written to.</param>
-        /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
-        public void SaveAsPng(string fileName) {
-            if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
-            using var stream = File.OpenWrite(fileName);
-            SaveAsPng(stream);
+    #region Png
+
+    private static void WritePngChunk(Stream stream, byte[] chunkNameBytes, params byte[][] dataBytes) {
+        var totalLength = 0U;
+        foreach (var dataBuffer in dataBytes) {
+            totalLength += (uint)dataBuffer.Length;
         }
 
-        /// <summary>
-        /// Writes PNG image to a stream.
-        /// </summary>
-        /// <param name="fileName">File that will be written to.</param>
-        /// <param name="barColor">Bar color.</param>
-        /// <param name="gapColor">Color of gaps and spaces.</param>
-        /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
-        public void SaveAsPng(string fileName, Color barColor, Color gapColor) {
-            if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
-            using var stream = File.OpenWrite(fileName);
-            SaveAsPng(stream, barColor, gapColor);
+        var chunkLenghtBytes = GetBEBytes(totalLength);
+        stream.Write(chunkLenghtBytes, 0, chunkLenghtBytes.Length);
+
+        stream.Write(chunkNameBytes, 0, chunkNameBytes.Length);
+        var crc = CalculateCrc32(0xFFFFFFFF, chunkNameBytes);  // start CRC calculation with chunk name
+
+        foreach (var dataBuffer in dataBytes) {
+            stream.Write(dataBuffer, 0, dataBuffer.Length);
+            crc = CalculateCrc32(crc, dataBuffer);  // add data bytes to CRC
         }
 
-        /// <summary>
-        /// Writes PNG image to a file.
-        /// </summary>
-        /// <param name="fileName">File that will be written to.</param>
-        /// <param name="barColor">Bar color.</param>
-        /// <param name="gapColor">Color of gaps and spaces.</param>
-        /// <param name="barWidth">Width of a single bar.</param>
-        /// <param name="barHeight">Height of a single bar.</param>
-        /// <param name="margin">Width of margin around barcode.</param>
-        /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
-        public void SaveAsPng(string fileName, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
-            if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
-            using var stream = File.OpenWrite(fileName);
-            SaveAsPng(stream, barColor, gapColor, barWidth, barHeight, margin);
+        var crcBytes = GetBEBytes(crc ^ 0xFFFFFFFF);  // final CRC xor and convert to bytes
+        stream.Write(crcBytes, 0, crcBytes.Length);
+    }
+
+    private static byte[] GetBEBytes(uint number) {
+        if (BitConverter.IsLittleEndian) {
+            var buffer = BitConverter.GetBytes(number);
+            return new byte[] { buffer[3], buffer[2], buffer[1], buffer[0] };
+        } else {
+            return BitConverter.GetBytes(number);
         }
+    }
 
-        /// <summary>
-        /// Writes PNG image to a stream.
-        /// </summary>
-        /// <param name="stream">Stream that will be written to.</param>
-        /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
-        public void SaveAsPng(Stream stream) {
-            SaveAsPng(stream, Color.Black, Color.White);
-        }
-
-        /// <summary>
-        /// Writes PNG image to a stream.
-        /// </summary>
-        /// <param name="stream">Stream that will be written to.</param>
-        /// <param name="barColor">Bar color.</param>
-        /// <param name="gapColor">Color of gaps and spaces.</param>
-        /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
-        public void SaveAsPng(Stream stream, Color barColor, Color gapColor) {
-            SaveAsPng(stream, barColor, gapColor, 1, 9, 3);
-        }
-
-        /// <summary>
-        /// Writes PNG image to a stream.
-        /// </summary>
-        /// <param name="stream">Stream that will be written to.</param>
-        /// <param name="barColor">Bar color.</param>
-        /// <param name="gapColor">Color of gaps and spaces.</param>
-        /// <param name="barWidth">Width of a single bar.</param>
-        /// <param name="barHeight">Height of a single bar.</param>
-        /// <param name="margin">Width of margin around barcode.</param>
-        /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Bar width must be between 1 and 100 pixels. -or- Bar height must be between 1 and 1000 pixels. -or- Margin must be between 1 and 1000 pixels.</exception>
-        public void SaveAsPng(Stream stream, Color barColor, Color gapColor, int barWidth, int barHeight, int margin) {
-            if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
-            if (barWidth is <= 0 or > 100) { throw new ArgumentOutOfRangeException(nameof(barWidth), "Bar width must be between 1 and 100 pixels."); }
-            if (barHeight is <= 0 or > 1000) { throw new ArgumentOutOfRangeException(nameof(barHeight), "Bar height must be between 1 and 1000 pixels."); }
-            if (margin is < 0 or > 1000) { throw new ArgumentOutOfRangeException(nameof(margin), "Margin must be between 1 and 1000 pixels."); }
-
-            var hasTransparency = (barColor.A < 255) || (gapColor.A < 255);
-            var barBytes = hasTransparency ? new byte[] { barColor.R, barColor.G, barColor.B, barColor.A } : new byte[] { barColor.R, barColor.G, barColor.B };
-            var gapBytes = hasTransparency ? new byte[] { gapColor.R, gapColor.G, gapColor.B, gapColor.A } : new byte[] { gapColor.R, gapColor.G, gapColor.B };
-
-            var barcodePattern = GetBinaryPattern();
-            var totalWidth = (uint)(margin + barcodePattern.Length + margin);
-            var totalHeight = (uint)(margin + barHeight + margin);
-
-            using var memStream = new MemoryStream();  // prepare data
-            memStream.Write(new byte[] { 0x78, 0x9C });  // deflate header
-
-            using (var deflateStream = new DeflateStream(memStream, CompressionLevel.Optimal)) {
-                for (var y = 0; y < margin; y++) {  // top margin
-                    deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
-                    for (var x = 0; x < totalWidth; x++) { deflateStream.Write(gapBytes); }
-                }
-
-                for (var y = 0; y < barHeight; y++) {  // barcode
-                    deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
-                    for (var x = 0; x < margin; x++) { deflateStream.Write(gapBytes); }  // left margin
-                    for (var x = 0; x < barcodePattern.Length; x++) {
-                        deflateStream.Write(barcodePattern[x] ? barBytes : gapBytes);
-                    }
-                    for (var x = 0; x < margin; x++) { deflateStream.Write(gapBytes); }  // right margin
-                }
-
-                for (var y = 0; y < margin; y++) {  // bottom margin
-                    deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
-                    for (var x = 0; x < totalWidth; x++) { deflateStream.Write(gapBytes); }
-                }
-            }
-
-            stream.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, 0, 8);  // Header
-            WritePngChunk(stream, Encoding.ASCII.GetBytes("IHDR"), GetBEBytes(totalWidth), GetBEBytes(totalHeight), new byte[] { 0x08, (byte)(hasTransparency ? 0x06 : 0x02), 0x00, 0x00, 0x00 });
-            WritePngChunk(stream, Encoding.ASCII.GetBytes("IDAT"), memStream.ToArray());
-            WritePngChunk(stream, Encoding.ASCII.GetBytes("IEND"));
-            stream.Flush();
-        }
-
-        #region Png
-
-        private static void WritePngChunk(Stream stream, byte[] chunkNameBytes, params byte[][] dataBytes) {
-            var totalLength = 0U;
-            foreach (var dataBuffer in dataBytes) {
-                totalLength += (uint)dataBuffer.Length;
-            }
-
-            var chunkLenghtBytes = GetBEBytes(totalLength);
-            stream.Write(chunkLenghtBytes, 0, chunkLenghtBytes.Length);
-
-            stream.Write(chunkNameBytes, 0, chunkNameBytes.Length);
-            var crc = CalculateCrc32(0xFFFFFFFF, chunkNameBytes);  // start CRC calculation with chunk name
-
-            foreach (var dataBuffer in dataBytes) {
-                stream.Write(dataBuffer, 0, dataBuffer.Length);
-                crc = CalculateCrc32(crc, dataBuffer);  // add data bytes to CRC
-            }
-
-            var crcBytes = GetBEBytes(crc ^ 0xFFFFFFFF);  // final CRC xor and convert to bytes
-            stream.Write(crcBytes, 0, crcBytes.Length);
-        }
-
-        private static byte[] GetBEBytes(uint number) {
-            if (BitConverter.IsLittleEndian) {
-                var buffer = BitConverter.GetBytes(number);
-                return new byte[] { buffer[3], buffer[2], buffer[1], buffer[0] };
-            } else {
-                return BitConverter.GetBytes(number);
-            }
-        }
-
-        private static readonly uint[] Crc32LookupTable = {
+    private static readonly uint[] Crc32LookupTable = {
             0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
             0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
             0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
@@ -299,275 +300,275 @@ namespace Medo.Drawing {
             0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D,
         };
 
-        private static uint CalculateCrc32(uint initialCrc, byte[] buffer) {
-            uint crc = initialCrc;
-            foreach (var b in buffer) {
-                crc = Crc32LookupTable[(crc ^ b) & 0xff] ^ (crc >> 8);
-            }
-            return crc;
+    private static uint CalculateCrc32(uint initialCrc, byte[] buffer) {
+        uint crc = initialCrc;
+        foreach (var b in buffer) {
+            crc = Crc32LookupTable[(crc ^ b) & 0xff] ^ (crc >> 8);
+        }
+        return crc;
+    }
+
+    #endregion Png
+
+    #region Static
+
+    /// <summary>
+    /// Returns implementation of "Code 128" barcode drawing.
+    /// Supported characters are all from 7-bit ASCII.
+    /// No start/end characters are supported.
+    /// </summary>
+    /// <param name="text">Text.</param>
+    /// <exception cref="ArgumentNullException">Text cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Character not supported.</exception>
+    public static BarcodePattern GetNewCode128(string text) {
+        var barcode = new BarcodePattern(new Code128Impl(), text);
+        return barcode;
+    }
+
+    /// <summary>
+    /// Returns implementation of "Codabar" barcode drawing with 'A' as both start and end character.
+    /// Also known as "NW-7", "USD-4" and "Code 2 of 7".
+    /// Supported characters are: 0-9 - $ : / . +.
+    /// Supported start/end characters are: A-D.
+    /// </summary>
+    /// <param name="text">Text.</param>
+    /// <exception cref="ArgumentNullException">Text cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Character not supported.</exception>
+    public static BarcodePattern GetNewCodabar(string text) {
+        return GetNewCodabar(text, 'A', 'A');
+    }
+
+    /// <summary>
+    /// Returns implementation of "Codabar" barcode drawing.
+    /// Also known as "NW-7", "USD-4" and "Code 2 of 7".
+    /// Supported characters are: 0-9 - $ : / . +.
+    /// Supported start/end characters are: A-D.
+    /// </summary>
+    /// <param name="text">Text.</param>
+    /// <param name="startCharacter">Starting character.</param>
+    /// <param name="endCharacter">Ending character.</param>
+    /// <exception cref="ArgumentNullException">Text cannot be null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Character not supported. -or- Invalid start character. -or- Invalid end character.</exception>
+    public static BarcodePattern GetNewCodabar(string text, char startCharacter, char endCharacter) {
+        var startCharUpper = char.ToUpperInvariant(startCharacter);
+        var endCharUpper = char.ToUpperInvariant(endCharacter);
+        if (startCharUpper is not 'A' and not 'B' and not 'C' and not 'D') { throw new ArgumentOutOfRangeException(nameof(startCharacter), "Invalid start character."); }
+        if (endCharUpper is not 'A' and not 'B' and not 'C' and not 'D') { throw new ArgumentOutOfRangeException(nameof(endCharacter), "Invalid end character."); }
+        return new BarcodePattern(new CodabarImpl(startCharUpper, endCharUpper), text);
+    }
+
+    #endregion Static
+
+
+    #region Barcode implementations
+
+    private interface IBarcodeImpl {
+        bool IsCharacterSupported(char character);
+        int[] GetPattern(string text);
+    }
+
+    #region Codabar
+
+    private class CodabarImpl : IBarcodeImpl {
+        internal CodabarImpl(char startCharacter, char endCharacter) {
+            StartCharacter = startCharacter;
+            EndCharacter = endCharacter;
         }
 
-        #endregion Png
+        private readonly char StartCharacter;
+        private readonly char EndCharacter;
+        private static readonly Dictionary<char, int[]> StartStopEncoding = new() {
+            {
+                'A',
+                new int[] { 1, 1, 2, 2, 1, 2, 1 }
+            },
+            { 'B', new int[] { 1, 1, 1, 2, 1, 2, 2 } },
+            { 'C', new int[] { 1, 2, 1, 2, 1, 1, 2 } },
+            { 'D', new int[] { 1, 1, 1, 2, 2, 2, 1 } }
+        };
+        private static readonly Dictionary<char, int[]> TextEncoding = new() {
+            { '0', new int[] { 1, 1, 1, 1, 1, 2, 2 } },
+            { '1', new int[] { 1, 1, 1, 1, 2, 2, 1 } },
+            { '2', new int[] { 1, 1, 1, 2, 1, 1, 2 } },
+            { '3', new int[] { 2, 2, 1, 1, 1, 1, 1 } },
+            { '4', new int[] { 1, 1, 2, 1, 1, 2, 1 } },
+            { '5', new int[] { 2, 1, 1, 1, 1, 2, 1 } },
+            { '6', new int[] { 1, 2, 1, 1, 1, 1, 2 } },
+            { '7', new int[] { 1, 2, 1, 1, 2, 1, 1 } },
+            { '8', new int[] { 1, 2, 2, 1, 1, 1, 1 } },
+            { '9', new int[] { 2, 1, 1, 2, 1, 1, 1 } },
+            { '-', new int[] { 1, 1, 1, 2, 2, 1, 1 } },
+            { '$', new int[] { 1, 1, 2, 2, 1, 1, 1 } },
+            { ':', new int[] { 2, 1, 1, 1, 2, 1, 2 } },
+            { '/', new int[] { 2, 1, 2, 1, 1, 1, 2 } },
+            { '.', new int[] { 2, 1, 2, 1, 2, 1, 1 } },
+            { '+', new int[] { 1, 1, 2, 1, 2, 1, 2 } }
+        };
 
-        #region Static
-
-        /// <summary>
-        /// Returns implementation of "Code 128" barcode drawing.
-        /// Supported characters are all from 7-bit ASCII.
-        /// No start/end characters are supported.
-        /// </summary>
-        /// <param name="text">Text.</param>
-        /// <exception cref="ArgumentNullException">Text cannot be null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Character not supported.</exception>
-        public static BarcodePattern GetNewCode128(string text) {
-            var barcode = new BarcodePattern(new Code128Impl(), text);
-            return barcode;
+        bool IBarcodeImpl.IsCharacterSupported(char character) {
+            return TextEncoding.ContainsKey(character);
         }
 
-        /// <summary>
-        /// Returns implementation of "Codabar" barcode drawing with 'A' as both start and end character.
-        /// Also known as "NW-7", "USD-4" and "Code 2 of 7".
-        /// Supported characters are: 0-9 - $ : / . +.
-        /// Supported start/end characters are: A-D.
-        /// </summary>
-        /// <param name="text">Text.</param>
-        /// <exception cref="ArgumentNullException">Text cannot be null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Character not supported.</exception>
-        public static BarcodePattern GetNewCodabar(string text) {
-            return GetNewCodabar(text, 'A', 'A');
-        }
-
-        /// <summary>
-        /// Returns implementation of "Codabar" barcode drawing.
-        /// Also known as "NW-7", "USD-4" and "Code 2 of 7".
-        /// Supported characters are: 0-9 - $ : / . +.
-        /// Supported start/end characters are: A-D.
-        /// </summary>
-        /// <param name="text">Text.</param>
-        /// <param name="startCharacter">Starting character.</param>
-        /// <param name="endCharacter">Ending character.</param>
-        /// <exception cref="ArgumentNullException">Text cannot be null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Character not supported. -or- Invalid start character. -or- Invalid end character.</exception>
-        public static BarcodePattern GetNewCodabar(string text, char startCharacter, char endCharacter) {
-            var startCharUpper = char.ToUpperInvariant(startCharacter);
-            var endCharUpper = char.ToUpperInvariant(endCharacter);
-            if (startCharUpper is not 'A' and not 'B' and not 'C' and not 'D') { throw new ArgumentOutOfRangeException(nameof(startCharacter), "Invalid start character."); }
-            if (endCharUpper is not 'A' and not 'B' and not 'C' and not 'D') { throw new ArgumentOutOfRangeException(nameof(endCharacter), "Invalid end character."); }
-            return new BarcodePattern(new CodabarImpl(startCharUpper, endCharUpper), text);
-        }
-
-        #endregion Static
-
-
-        #region Barcode implementations
-
-        private interface IBarcodeImpl {
-            bool IsCharacterSupported(char character);
-            int[] GetPattern(string text);
-        }
-
-        #region Codabar
-
-        private class CodabarImpl : IBarcodeImpl {
-            internal CodabarImpl(char startCharacter, char endCharacter) {
-                StartCharacter = startCharacter;
-                EndCharacter = endCharacter;
-            }
-
-            private readonly char StartCharacter;
-            private readonly char EndCharacter;
-            private static readonly Dictionary<char, int[]> StartStopEncoding = new() {
-                {
-                    'A',
-                    new int[] { 1, 1, 2, 2, 1, 2, 1 }
-                },
-                { 'B', new int[] { 1, 1, 1, 2, 1, 2, 2 } },
-                { 'C', new int[] { 1, 2, 1, 2, 1, 1, 2 } },
-                { 'D', new int[] { 1, 1, 1, 2, 2, 2, 1 } }
-            };
-            private static readonly Dictionary<char, int[]> TextEncoding = new() {
-                { '0', new int[] { 1, 1, 1, 1, 1, 2, 2 } },
-                { '1', new int[] { 1, 1, 1, 1, 2, 2, 1 } },
-                { '2', new int[] { 1, 1, 1, 2, 1, 1, 2 } },
-                { '3', new int[] { 2, 2, 1, 1, 1, 1, 1 } },
-                { '4', new int[] { 1, 1, 2, 1, 1, 2, 1 } },
-                { '5', new int[] { 2, 1, 1, 1, 1, 2, 1 } },
-                { '6', new int[] { 1, 2, 1, 1, 1, 1, 2 } },
-                { '7', new int[] { 1, 2, 1, 1, 2, 1, 1 } },
-                { '8', new int[] { 1, 2, 2, 1, 1, 1, 1 } },
-                { '9', new int[] { 2, 1, 1, 2, 1, 1, 1 } },
-                { '-', new int[] { 1, 1, 1, 2, 2, 1, 1 } },
-                { '$', new int[] { 1, 1, 2, 2, 1, 1, 1 } },
-                { ':', new int[] { 2, 1, 1, 1, 2, 1, 2 } },
-                { '/', new int[] { 2, 1, 2, 1, 1, 1, 2 } },
-                { '.', new int[] { 2, 1, 2, 1, 2, 1, 1 } },
-                { '+', new int[] { 1, 1, 2, 1, 2, 1, 2 } }
-            };
-
-            bool IBarcodeImpl.IsCharacterSupported(char character) {
-                return TextEncoding.ContainsKey(character);
-            }
-
-            int[] IBarcodeImpl.GetPattern(string text) {
-                var ev = new List<int>();
-                ev.AddRange(StartStopEncoding[StartCharacter]);
+        int[] IBarcodeImpl.GetPattern(string text) {
+            var ev = new List<int>();
+            ev.AddRange(StartStopEncoding[StartCharacter]);
+            ev.Add(0);
+            foreach (var ch in text) {
+                ev.AddRange(TextEncoding[ch]);
                 ev.Add(0);
-                foreach (var ch in text) {
-                    ev.AddRange(TextEncoding[ch]);
-                    ev.Add(0);
-                }
-                ev.AddRange(StartStopEncoding[EndCharacter]);
-                return ev.ToArray();
             }
+            ev.AddRange(StartStopEncoding[EndCharacter]);
+            return ev.ToArray();
         }
+    }
 
-        #endregion Codabar
+    #endregion Codabar
 
-        #region Code 128
+    #region Code 128
 
-        private class Code128Impl : IBarcodeImpl {
-            internal Code128Impl() { }
+    private class Code128Impl : IBarcodeImpl {
+        internal Code128Impl() { }
 
-            //private const byte A_FNC3 = 96;
-            //private const byte A_FNC2 = 97;
-            //private const byte A_SHIFT = 98;
-            //private const byte A_CODEC = 99;
-            //private const byte A_CODEB = 100;
-            //private const byte A_FNC4 = 101;
-            //private const byte A_FNC1 = 102;
-            private const byte A_STARTA = 103;
-            //private const byte A_STARTB = 104;
-            //private const byte A_STARTC = 105;
-            private const byte A_STOP = 106;
-            //private const byte B_FNC3 = 96;
-            //private const byte B_FNC2 = 97;
-            //private const byte B_SHIFT = 98;
-            //private const byte B_CODEC = 99;
-            //private const byte B_FNC4 = 100;
-            //private const byte B_CODE1 = 101;
-            //private const byte B_FNC1 = 102;
-            //private const byte B_STARTA = 103;
-            //private const byte B_STARTB = 104;
-            //private const byte B_STARTC = 105;
-            //private const byte B_STOP = 106;
-            //private const byte C_CODEB = 100;
-            //private const byte C_CODEA = 101;
-            //private const byte C_FNC1 = 102;
-            //private const byte C_STARTA = 103;
-            //private const byte C_STARTB = 104;
-            //private const byte C_STARTC = 105;
-            //private const byte C_STOP = 106;
+        //private const byte A_FNC3 = 96;
+        //private const byte A_FNC2 = 97;
+        //private const byte A_SHIFT = 98;
+        //private const byte A_CODEC = 99;
+        //private const byte A_CODEB = 100;
+        //private const byte A_FNC4 = 101;
+        //private const byte A_FNC1 = 102;
+        private const byte A_STARTA = 103;
+        //private const byte A_STARTB = 104;
+        //private const byte A_STARTC = 105;
+        private const byte A_STOP = 106;
+        //private const byte B_FNC3 = 96;
+        //private const byte B_FNC2 = 97;
+        //private const byte B_SHIFT = 98;
+        //private const byte B_CODEC = 99;
+        //private const byte B_FNC4 = 100;
+        //private const byte B_CODE1 = 101;
+        //private const byte B_FNC1 = 102;
+        //private const byte B_STARTA = 103;
+        //private const byte B_STARTB = 104;
+        //private const byte B_STARTC = 105;
+        //private const byte B_STOP = 106;
+        //private const byte C_CODEB = 100;
+        //private const byte C_CODEA = 101;
+        //private const byte C_FNC1 = 102;
+        //private const byte C_STARTA = 103;
+        //private const byte C_STARTB = 104;
+        //private const byte C_STARTC = 105;
+        //private const byte C_STOP = 106;
 
-            private static readonly Dictionary<int, int[]> EncodingLookup = new() {
-                { 0, new int[] { 2, 1, 2, 2, 2, 2 } },
-                { 1, new int[] { 2, 2, 2, 1, 2, 2 } },
-                { 2, new int[] { 2, 2, 2, 2, 2, 1 } },
-                { 3, new int[] { 1, 2, 1, 2, 2, 3 } },
-                { 4, new int[] { 1, 2, 1, 3, 2, 2 } },
-                { 5, new int[] { 1, 3, 1, 2, 2, 2 } },
-                { 6, new int[] { 1, 2, 2, 2, 1, 3 } },
-                { 7, new int[] { 1, 2, 2, 3, 1, 2 } },
-                { 8, new int[] { 1, 3, 2, 2, 1, 2 } },
-                { 9, new int[] { 2, 2, 1, 2, 1, 3 } },
-                { 10, new int[] { 2, 2, 1, 3, 1, 2 } },
-                { 11, new int[] { 2, 3, 1, 2, 1, 2 } },
-                { 12, new int[] { 1, 1, 2, 2, 3, 2 } },
-                { 13, new int[] { 1, 2, 2, 1, 3, 2 } },
-                { 14, new int[] { 1, 2, 2, 2, 3, 1 } },
-                { 15, new int[] { 1, 1, 3, 2, 2, 2 } },
-                { 16, new int[] { 1, 2, 3, 1, 2, 2 } },
-                { 17, new int[] { 1, 2, 3, 2, 2, 1 } },
-                { 18, new int[] { 2, 2, 3, 2, 1, 1 } },
-                { 19, new int[] { 2, 2, 1, 1, 3, 2 } },
-                { 20, new int[] { 2, 2, 1, 2, 3, 1 } },
-                { 21, new int[] { 2, 1, 3, 2, 1, 2 } },
-                { 22, new int[] { 2, 2, 3, 1, 1, 2 } },
-                { 23, new int[] { 3, 1, 2, 1, 3, 1 } },
-                { 24, new int[] { 3, 1, 1, 2, 2, 2 } },
-                { 25, new int[] { 3, 2, 1, 1, 2, 2 } },
-                { 26, new int[] { 3, 2, 1, 2, 2, 1 } },
-                { 27, new int[] { 3, 1, 2, 2, 1, 2 } },
-                { 28, new int[] { 3, 2, 2, 1, 1, 2 } },
-                { 29, new int[] { 3, 2, 2, 2, 1, 1 } },
-                { 30, new int[] { 2, 1, 2, 1, 2, 3 } },
-                { 31, new int[] { 2, 1, 2, 3, 2, 1 } },
-                { 32, new int[] { 2, 3, 2, 1, 2, 1 } },
-                { 33, new int[] { 1, 1, 1, 3, 2, 3 } },
-                { 34, new int[] { 1, 3, 1, 1, 2, 3 } },
-                { 35, new int[] { 1, 3, 1, 3, 2, 1 } },
-                { 36, new int[] { 1, 1, 2, 3, 1, 3 } },
-                { 37, new int[] { 1, 3, 2, 1, 1, 3 } },
-                { 38, new int[] { 1, 3, 2, 3, 1, 1 } },
-                { 39, new int[] { 2, 1, 1, 3, 1, 3 } },
-                { 40, new int[] { 2, 3, 1, 1, 1, 3 } },
-                { 41, new int[] { 2, 3, 1, 3, 1, 1 } },
-                { 42, new int[] { 1, 1, 2, 1, 3, 3 } },
-                { 43, new int[] { 1, 1, 2, 3, 3, 1 } },
-                { 44, new int[] { 1, 3, 2, 1, 3, 1 } },
-                { 45, new int[] { 1, 1, 3, 1, 2, 3 } },
-                { 46, new int[] { 1, 1, 3, 3, 2, 1 } },
-                { 47, new int[] { 1, 3, 3, 1, 2, 1 } },
-                { 48, new int[] { 3, 1, 3, 1, 2, 1 } },
-                { 49, new int[] { 2, 1, 1, 3, 3, 1 } },
-                { 50, new int[] { 2, 3, 1, 1, 3, 1 } },
-                { 51, new int[] { 2, 1, 3, 1, 1, 3 } },
-                { 52, new int[] { 2, 1, 3, 3, 1, 1 } },
-                { 53, new int[] { 2, 1, 3, 1, 3, 1 } },
-                { 54, new int[] { 3, 1, 1, 1, 2, 3 } },
-                { 55, new int[] { 3, 1, 1, 3, 2, 1 } },
-                { 56, new int[] { 3, 3, 1, 1, 2, 1 } },
-                { 57, new int[] { 3, 1, 2, 1, 1, 3 } },
-                { 58, new int[] { 3, 1, 2, 3, 1, 1 } },
-                { 59, new int[] { 3, 3, 2, 1, 1, 1 } },
-                { 60, new int[] { 3, 1, 4, 1, 1, 1 } },
-                { 61, new int[] { 2, 2, 1, 4, 1, 1 } },
-                { 62, new int[] { 4, 3, 1, 1, 1, 1 } },
-                { 63, new int[] { 1, 1, 1, 2, 2, 4 } },
-                { 64, new int[] { 1, 1, 1, 4, 2, 2 } },
-                { 65, new int[] { 1, 2, 1, 1, 2, 4 } },
-                { 66, new int[] { 1, 2, 1, 4, 2, 1 } },
-                { 67, new int[] { 1, 4, 1, 1, 2, 2 } },
-                { 68, new int[] { 1, 4, 1, 2, 2, 1 } },
-                { 69, new int[] { 1, 1, 2, 2, 1, 4 } },
-                { 70, new int[] { 1, 1, 2, 4, 1, 2 } },
-                { 71, new int[] { 1, 2, 2, 1, 1, 4 } },
-                { 72, new int[] { 1, 2, 2, 4, 1, 1 } },
-                { 73, new int[] { 1, 4, 2, 1, 1, 2 } },
-                { 74, new int[] { 1, 4, 2, 2, 1, 1 } },
-                { 75, new int[] { 2, 4, 1, 2, 1, 1 } },
-                { 76, new int[] { 2, 2, 1, 1, 1, 4 } },
-                { 77, new int[] { 4, 1, 3, 1, 1, 1 } },
-                { 78, new int[] { 2, 4, 1, 1, 1, 2 } },
-                { 79, new int[] { 1, 3, 4, 1, 1, 1 } },
-                { 80, new int[] { 1, 1, 1, 2, 4, 2 } },
-                { 81, new int[] { 1, 2, 1, 1, 4, 2 } },
-                { 82, new int[] { 1, 2, 1, 2, 4, 1 } },
-                { 83, new int[] { 1, 1, 4, 2, 1, 2 } },
-                { 84, new int[] { 1, 2, 4, 1, 1, 2 } },
-                { 85, new int[] { 1, 2, 4, 2, 1, 1 } },
-                { 86, new int[] { 4, 1, 1, 2, 1, 2 } },
-                { 87, new int[] { 4, 2, 1, 1, 1, 2 } },
-                { 88, new int[] { 4, 2, 1, 2, 1, 1 } },
-                { 89, new int[] { 2, 1, 2, 1, 4, 1 } },
-                { 90, new int[] { 2, 1, 4, 1, 2, 1 } },
-                { 91, new int[] { 4, 1, 2, 1, 2, 1 } },
-                { 92, new int[] { 1, 1, 1, 1, 4, 3 } },
-                { 93, new int[] { 1, 1, 1, 3, 4, 1 } },
-                { 94, new int[] { 1, 3, 1, 1, 4, 1 } },
-                { 95, new int[] { 1, 1, 4, 1, 1, 3 } },
-                { 96, new int[] { 1, 1, 4, 3, 1, 1 } },
-                { 97, new int[] { 4, 1, 1, 1, 1, 3 } },
-                { 98, new int[] { 4, 1, 1, 3, 1, 1 } },
-                { 99, new int[] { 1, 1, 3, 1, 4, 1 } },
-                { 100, new int[] { 1, 1, 4, 1, 3, 1 } },
-                { 101, new int[] { 3, 1, 1, 1, 4, 1 } },
-                { 102, new int[] { 4, 1, 1, 1, 3, 1 } },
-                { 103, new int[] { 2, 1, 1, 4, 1, 2 } },
-                { 104, new int[] { 2, 1, 1, 2, 1, 4 } },
-                { 105, new int[] { 2, 1, 1, 2, 3, 2 } },
-                { 106, new int[] { 2, 3, 3, 1, 1, 1, 2 } }
-            };
-            private static readonly Dictionary<int, string>[] MappingLookup = new[] {
+        private static readonly Dictionary<int, int[]> EncodingLookup = new() {
+            { 0, new int[] { 2, 1, 2, 2, 2, 2 } },
+            { 1, new int[] { 2, 2, 2, 1, 2, 2 } },
+            { 2, new int[] { 2, 2, 2, 2, 2, 1 } },
+            { 3, new int[] { 1, 2, 1, 2, 2, 3 } },
+            { 4, new int[] { 1, 2, 1, 3, 2, 2 } },
+            { 5, new int[] { 1, 3, 1, 2, 2, 2 } },
+            { 6, new int[] { 1, 2, 2, 2, 1, 3 } },
+            { 7, new int[] { 1, 2, 2, 3, 1, 2 } },
+            { 8, new int[] { 1, 3, 2, 2, 1, 2 } },
+            { 9, new int[] { 2, 2, 1, 2, 1, 3 } },
+            { 10, new int[] { 2, 2, 1, 3, 1, 2 } },
+            { 11, new int[] { 2, 3, 1, 2, 1, 2 } },
+            { 12, new int[] { 1, 1, 2, 2, 3, 2 } },
+            { 13, new int[] { 1, 2, 2, 1, 3, 2 } },
+            { 14, new int[] { 1, 2, 2, 2, 3, 1 } },
+            { 15, new int[] { 1, 1, 3, 2, 2, 2 } },
+            { 16, new int[] { 1, 2, 3, 1, 2, 2 } },
+            { 17, new int[] { 1, 2, 3, 2, 2, 1 } },
+            { 18, new int[] { 2, 2, 3, 2, 1, 1 } },
+            { 19, new int[] { 2, 2, 1, 1, 3, 2 } },
+            { 20, new int[] { 2, 2, 1, 2, 3, 1 } },
+            { 21, new int[] { 2, 1, 3, 2, 1, 2 } },
+            { 22, new int[] { 2, 2, 3, 1, 1, 2 } },
+            { 23, new int[] { 3, 1, 2, 1, 3, 1 } },
+            { 24, new int[] { 3, 1, 1, 2, 2, 2 } },
+            { 25, new int[] { 3, 2, 1, 1, 2, 2 } },
+            { 26, new int[] { 3, 2, 1, 2, 2, 1 } },
+            { 27, new int[] { 3, 1, 2, 2, 1, 2 } },
+            { 28, new int[] { 3, 2, 2, 1, 1, 2 } },
+            { 29, new int[] { 3, 2, 2, 2, 1, 1 } },
+            { 30, new int[] { 2, 1, 2, 1, 2, 3 } },
+            { 31, new int[] { 2, 1, 2, 3, 2, 1 } },
+            { 32, new int[] { 2, 3, 2, 1, 2, 1 } },
+            { 33, new int[] { 1, 1, 1, 3, 2, 3 } },
+            { 34, new int[] { 1, 3, 1, 1, 2, 3 } },
+            { 35, new int[] { 1, 3, 1, 3, 2, 1 } },
+            { 36, new int[] { 1, 1, 2, 3, 1, 3 } },
+            { 37, new int[] { 1, 3, 2, 1, 1, 3 } },
+            { 38, new int[] { 1, 3, 2, 3, 1, 1 } },
+            { 39, new int[] { 2, 1, 1, 3, 1, 3 } },
+            { 40, new int[] { 2, 3, 1, 1, 1, 3 } },
+            { 41, new int[] { 2, 3, 1, 3, 1, 1 } },
+            { 42, new int[] { 1, 1, 2, 1, 3, 3 } },
+            { 43, new int[] { 1, 1, 2, 3, 3, 1 } },
+            { 44, new int[] { 1, 3, 2, 1, 3, 1 } },
+            { 45, new int[] { 1, 1, 3, 1, 2, 3 } },
+            { 46, new int[] { 1, 1, 3, 3, 2, 1 } },
+            { 47, new int[] { 1, 3, 3, 1, 2, 1 } },
+            { 48, new int[] { 3, 1, 3, 1, 2, 1 } },
+            { 49, new int[] { 2, 1, 1, 3, 3, 1 } },
+            { 50, new int[] { 2, 3, 1, 1, 3, 1 } },
+            { 51, new int[] { 2, 1, 3, 1, 1, 3 } },
+            { 52, new int[] { 2, 1, 3, 3, 1, 1 } },
+            { 53, new int[] { 2, 1, 3, 1, 3, 1 } },
+            { 54, new int[] { 3, 1, 1, 1, 2, 3 } },
+            { 55, new int[] { 3, 1, 1, 3, 2, 1 } },
+            { 56, new int[] { 3, 3, 1, 1, 2, 1 } },
+            { 57, new int[] { 3, 1, 2, 1, 1, 3 } },
+            { 58, new int[] { 3, 1, 2, 3, 1, 1 } },
+            { 59, new int[] { 3, 3, 2, 1, 1, 1 } },
+            { 60, new int[] { 3, 1, 4, 1, 1, 1 } },
+            { 61, new int[] { 2, 2, 1, 4, 1, 1 } },
+            { 62, new int[] { 4, 3, 1, 1, 1, 1 } },
+            { 63, new int[] { 1, 1, 1, 2, 2, 4 } },
+            { 64, new int[] { 1, 1, 1, 4, 2, 2 } },
+            { 65, new int[] { 1, 2, 1, 1, 2, 4 } },
+            { 66, new int[] { 1, 2, 1, 4, 2, 1 } },
+            { 67, new int[] { 1, 4, 1, 1, 2, 2 } },
+            { 68, new int[] { 1, 4, 1, 2, 2, 1 } },
+            { 69, new int[] { 1, 1, 2, 2, 1, 4 } },
+            { 70, new int[] { 1, 1, 2, 4, 1, 2 } },
+            { 71, new int[] { 1, 2, 2, 1, 1, 4 } },
+            { 72, new int[] { 1, 2, 2, 4, 1, 1 } },
+            { 73, new int[] { 1, 4, 2, 1, 1, 2 } },
+            { 74, new int[] { 1, 4, 2, 2, 1, 1 } },
+            { 75, new int[] { 2, 4, 1, 2, 1, 1 } },
+            { 76, new int[] { 2, 2, 1, 1, 1, 4 } },
+            { 77, new int[] { 4, 1, 3, 1, 1, 1 } },
+            { 78, new int[] { 2, 4, 1, 1, 1, 2 } },
+            { 79, new int[] { 1, 3, 4, 1, 1, 1 } },
+            { 80, new int[] { 1, 1, 1, 2, 4, 2 } },
+            { 81, new int[] { 1, 2, 1, 1, 4, 2 } },
+            { 82, new int[] { 1, 2, 1, 2, 4, 1 } },
+            { 83, new int[] { 1, 1, 4, 2, 1, 2 } },
+            { 84, new int[] { 1, 2, 4, 1, 1, 2 } },
+            { 85, new int[] { 1, 2, 4, 2, 1, 1 } },
+            { 86, new int[] { 4, 1, 1, 2, 1, 2 } },
+            { 87, new int[] { 4, 2, 1, 1, 1, 2 } },
+            { 88, new int[] { 4, 2, 1, 2, 1, 1 } },
+            { 89, new int[] { 2, 1, 2, 1, 4, 1 } },
+            { 90, new int[] { 2, 1, 4, 1, 2, 1 } },
+            { 91, new int[] { 4, 1, 2, 1, 2, 1 } },
+            { 92, new int[] { 1, 1, 1, 1, 4, 3 } },
+            { 93, new int[] { 1, 1, 1, 3, 4, 1 } },
+            { 94, new int[] { 1, 3, 1, 1, 4, 1 } },
+            { 95, new int[] { 1, 1, 4, 1, 1, 3 } },
+            { 96, new int[] { 1, 1, 4, 3, 1, 1 } },
+            { 97, new int[] { 4, 1, 1, 1, 1, 3 } },
+            { 98, new int[] { 4, 1, 1, 3, 1, 1 } },
+            { 99, new int[] { 1, 1, 3, 1, 4, 1 } },
+            { 100, new int[] { 1, 1, 4, 1, 3, 1 } },
+            { 101, new int[] { 3, 1, 1, 1, 4, 1 } },
+            { 102, new int[] { 4, 1, 1, 1, 3, 1 } },
+            { 103, new int[] { 2, 1, 1, 4, 1, 2 } },
+            { 104, new int[] { 2, 1, 1, 2, 1, 4 } },
+            { 105, new int[] { 2, 1, 1, 2, 3, 2 } },
+            { 106, new int[] { 2, 3, 3, 1, 1, 1, 2 } }
+        };
+        private static readonly Dictionary<int, string>[] MappingLookup = new[] {
                 new Dictionary<int, string>() {  // Code Set 0
                     { 0, " " },
                     { 1, "!" },
@@ -868,111 +869,110 @@ namespace Medo.Drawing {
                 }
             };
 
-            bool IBarcodeImpl.IsCharacterSupported(char character) {
-                var value = (int)character;
-                return (value is >= 0 and <= 127);
-            }
+        bool IBarcodeImpl.IsCharacterSupported(char character) {
+            var value = (int)character;
+            return (value is >= 0 and <= 127);
+        }
 
-            int[] IBarcodeImpl.GetPattern(string text) {
-                var ev = new List<int>();
+        int[] IBarcodeImpl.GetPattern(string text) {
+            var ev = new List<int>();
 
-                var startCodeSet = GetCode128BestCodeSet(text, -1);
-                var checksum = A_STARTA + startCodeSet;
+            var startCodeSet = GetCode128BestCodeSet(text, -1);
+            var checksum = A_STARTA + startCodeSet;
 
-                ev.AddRange(EncodingLookup[(byte)(A_STARTA + startCodeSet)]);
+            ev.AddRange(EncodingLookup[(byte)(A_STARTA + startCodeSet)]);
 
-                var codeSet = startCodeSet;
-                var j = 1;
-                for (var i = 0; i < text.Length; i++) {
-                    int tmpCharIndex;
+            var codeSet = startCodeSet;
+            var j = 1;
+            for (var i = 0; i < text.Length; i++) {
+                int tmpCharIndex;
 
-                    var tmpOldCodeSet = codeSet;
-                    codeSet = GetCode128BestCodeSet(text[i..text.Length], tmpOldCodeSet);
-                    if (codeSet == 2) {
-                        tmpCharIndex = GetCode128CharPos(text.Substring(i, 2), codeSet);
-                    } else {
-                        tmpCharIndex = GetCode128CharPos(text.Substring(i, 1), codeSet);
-                    }
+                var tmpOldCodeSet = codeSet;
+                codeSet = GetCode128BestCodeSet(text[i..text.Length], tmpOldCodeSet);
+                if (codeSet == 2) {
+                    tmpCharIndex = GetCode128CharPos(text.Substring(i, 2), codeSet);
+                } else {
+                    tmpCharIndex = GetCode128CharPos(text.Substring(i, 1), codeSet);
+                }
 
-                    if (codeSet != tmpOldCodeSet) {
-                        ev.AddRange(EncodingLookup[101 - codeSet]);
-                        checksum += j * (101 - codeSet);
-                        j += 1;
-                    }
-
-                    ev.AddRange(EncodingLookup[tmpCharIndex]);
-                    checksum += j * tmpCharIndex;
-
-                    if (codeSet == 2) { i++; }  // extra character used with code set 2
+                if (codeSet != tmpOldCodeSet) {
+                    ev.AddRange(EncodingLookup[101 - codeSet]);
+                    checksum += j * (101 - codeSet);
                     j += 1;
                 }
 
-                ev.AddRange(EncodingLookup[checksum % 103]);
-                ev.AddRange(EncodingLookup[A_STOP]);
+                ev.AddRange(EncodingLookup[tmpCharIndex]);
+                checksum += j * tmpCharIndex;
 
-                return ev.ToArray();
+                if (codeSet == 2) { i++; }  // extra character used with code set 2
+                j += 1;
             }
 
-            private static int GetCode128BestCodeSet(string text, int currentCodeSetIndex) {
-                int[] tmpCount = { 0, 0, 0 };
+            ev.AddRange(EncodingLookup[checksum % 103]);
+            ev.AddRange(EncodingLookup[A_STOP]);
 
-                int i;
-                for (i = 0; i < text.Length; i++) {
-                    if (GetCode128CharPos(text.Substring(i, 1), 0) == -1) {
-                        break;
-                    }
-                }
-                tmpCount[0] = i;
-
-                for (i = 0; i < text.Length; i++) {
-                    if (GetCode128CharPos(text.Substring(i, 1), 1) == -1) {
-                        break;
-                    }
-                }
-                tmpCount[1] = i;
-
-                for (i = 0; i < text.Length - 1; i++) {
-                    if (GetCode128CharPos(text.Substring(i, 2), 2) == -1) {
-                        break;
-                    }
-                }
-                tmpCount[2] = i * 2;
-
-                switch (currentCodeSetIndex) {
-                    case 0:
-                        if (tmpCount[0] > 0) { tmpCount[0] += 1; }
-                        break;
-                    case 1:
-                        if (tmpCount[1] > 0) { tmpCount[1] += 1; }
-                        break;
-                    case 2:
-                        if (tmpCount[2] > 0) { tmpCount[2] += 2; }
-                        break;
-                }
-
-                var tmpCountMax = tmpCount[0];
-                var tmpCountMaxIndex = 0;
-                if (tmpCount[1] > tmpCountMax) { tmpCountMaxIndex = 1; tmpCountMax = tmpCount[1]; }
-                if (tmpCount[2] > tmpCountMax) { tmpCountMaxIndex = 2; }
-
-                return tmpCountMaxIndex;
-            }
-
-            private static int GetCode128CharPos(string text, int codeTableIndex) {
-                var iMapping = MappingLookup[codeTableIndex].GetEnumerator();
-                while (iMapping.MoveNext()) {
-                    if (iMapping.Current.Value == text) {
-                        return iMapping.Current.Key;
-                    }
-                }
-                return -1;
-            }
-
+            return ev.ToArray();
         }
 
-        #endregion Code 128
+        private static int GetCode128BestCodeSet(string text, int currentCodeSetIndex) {
+            int[] tmpCount = { 0, 0, 0 };
 
-        #endregion Barcode implementations
+            int i;
+            for (i = 0; i < text.Length; i++) {
+                if (GetCode128CharPos(text.Substring(i, 1), 0) == -1) {
+                    break;
+                }
+            }
+            tmpCount[0] = i;
+
+            for (i = 0; i < text.Length; i++) {
+                if (GetCode128CharPos(text.Substring(i, 1), 1) == -1) {
+                    break;
+                }
+            }
+            tmpCount[1] = i;
+
+            for (i = 0; i < text.Length - 1; i++) {
+                if (GetCode128CharPos(text.Substring(i, 2), 2) == -1) {
+                    break;
+                }
+            }
+            tmpCount[2] = i * 2;
+
+            switch (currentCodeSetIndex) {
+                case 0:
+                    if (tmpCount[0] > 0) { tmpCount[0] += 1; }
+                    break;
+                case 1:
+                    if (tmpCount[1] > 0) { tmpCount[1] += 1; }
+                    break;
+                case 2:
+                    if (tmpCount[2] > 0) { tmpCount[2] += 2; }
+                    break;
+            }
+
+            var tmpCountMax = tmpCount[0];
+            var tmpCountMaxIndex = 0;
+            if (tmpCount[1] > tmpCountMax) { tmpCountMaxIndex = 1; tmpCountMax = tmpCount[1]; }
+            if (tmpCount[2] > tmpCountMax) { tmpCountMaxIndex = 2; }
+
+            return tmpCountMaxIndex;
+        }
+
+        private static int GetCode128CharPos(string text, int codeTableIndex) {
+            var iMapping = MappingLookup[codeTableIndex].GetEnumerator();
+            while (iMapping.MoveNext()) {
+                if (iMapping.Current.Value == text) {
+                    return iMapping.Current.Key;
+                }
+            }
+            return -1;
+        }
 
     }
+
+    #endregion Code 128
+
+    #endregion Barcode implementations
+
 }

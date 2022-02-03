@@ -3,475 +3,476 @@
 //2021-11-25: Refactored to use pattern matching
 //2021-11-03: Initial version
 
-namespace Medo.Drawing {
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Globalization;
-    using System.IO;
-    using System.IO.Compression;
-    using System.Text;
+namespace Medo.Drawing;
+
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
+
+/// <summary>
+/// A simple PNG image reader/writer.
+/// Does not support reading interlaced files.
+/// </summary>
+/// <example>
+/// <code>
+/// var bmp = new SimplePngImage(2, 2);
+/// bmp.SetPixel(0, 0, Color.Red);
+/// bmp.SetPixel(0, 1, Color.Green);
+/// bmp.SetPixel(1, 0, Color.Blue);
+/// bmp.SetPixel(1, 1, Color.FromArgb(128, Color.Purple));
+/// bmp.Save("image.png");
+/// </code>
+/// </example>
+/// <remarks>https://www.w3.org/TR/2003/REC-PNG-20031110/</remarks>
+public sealed class SimplePngImage {
 
     /// <summary>
-    /// A simple PNG image reader/writer.
-    /// Does not support reading interlaced files.
+    /// Creates a new instance based on an image file.
     /// </summary>
-    /// <example>
-    /// <code>
-    /// var bmp = new SimplePngImage(2, 2);
-    /// bmp.SetPixel(0, 0, Color.Red);
-    /// bmp.SetPixel(0, 1, Color.Green);
-    /// bmp.SetPixel(1, 0, Color.Blue);
-    /// bmp.SetPixel(1, 1, Color.FromArgb(128, Color.Purple));
-    /// bmp.Save("image.png");
-    /// </code>
-    /// </example>
-    /// <remarks>https://www.w3.org/TR/2003/REC-PNG-20031110/</remarks>
-    public sealed class SimplePngImage {
+    /// <param name="fileName">File name.</param>
+    /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
+    /// <exception cref="InvalidDataException">Invalid header.</exception>
+    public SimplePngImage(string fileName) {
+        if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
+        using var stream = File.OpenRead(fileName);
+        PixelBuffer = GetBufferFromStream(stream);
+    }
 
-        /// <summary>
-        /// Creates a new instance based on an image file.
-        /// </summary>
-        /// <param name="fileName">File name.</param>
-        /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
-        /// <exception cref="InvalidDataException">Invalid header.</exception>
-        public SimplePngImage(string fileName) {
-            if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
-            using var stream = File.OpenRead(fileName);
-            PixelBuffer = GetBufferFromStream(stream);
-        }
-
-        /// <summary>
-        /// Creates a new instance based on image stream
-        /// </summary>
-        /// <param name="stream">Stream to read.</param>
-        /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
-        public SimplePngImage(Stream stream) {
-            if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
-            PixelBuffer = GetBufferFromStream(stream);
-        }
+    /// <summary>
+    /// Creates a new instance based on image stream
+    /// </summary>
+    /// <param name="stream">Stream to read.</param>
+    /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
+    public SimplePngImage(Stream stream) {
+        if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
+        PixelBuffer = GetBufferFromStream(stream);
+    }
 
 
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="width">Width of an image.</param>
-        /// <param name="height">Height of an image.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Width must be a positive number. -or- Height must be a positive number.</exception>
-        public SimplePngImage(int width, int height) {
-            if (width < 1) { throw new ArgumentOutOfRangeException(nameof(width), "Width must be a positive number."); }
-            if (height < 1) { throw new ArgumentOutOfRangeException(nameof(height), "Height must be a positive number."); }
-            PixelBuffer = new Color[width, height];
-        }
+    /// <summary>
+    /// Creates a new instance.
+    /// </summary>
+    /// <param name="width">Width of an image.</param>
+    /// <param name="height">Height of an image.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Width must be a positive number. -or- Height must be a positive number.</exception>
+    public SimplePngImage(int width, int height) {
+        if (width < 1) { throw new ArgumentOutOfRangeException(nameof(width), "Width must be a positive number."); }
+        if (height < 1) { throw new ArgumentOutOfRangeException(nameof(height), "Height must be a positive number."); }
+        PixelBuffer = new Color[width, height];
+    }
 
-        #region State
+    #region State
 
-        private readonly Color[,] PixelBuffer;
+    private readonly Color[,] PixelBuffer;
 
-        private SimplePngImage(Color[,] pixelBuffer) {
-            PixelBuffer = new Color[pixelBuffer.GetLength(0), pixelBuffer.GetLength(1)];
-            Array.Copy(pixelBuffer, PixelBuffer, pixelBuffer.Length);
-        }
+    private SimplePngImage(Color[,] pixelBuffer) {
+        PixelBuffer = new Color[pixelBuffer.GetLength(0), pixelBuffer.GetLength(1)];
+        Array.Copy(pixelBuffer, PixelBuffer, pixelBuffer.Length);
+    }
 
-        /// <summary>
-        /// Creates a copy of the image.
-        /// </summary>
-        public SimplePngImage Clone() {
-            return new SimplePngImage(PixelBuffer);
-        }
+    /// <summary>
+    /// Creates a copy of the image.
+    /// </summary>
+    public SimplePngImage Clone() {
+        return new SimplePngImage(PixelBuffer);
+    }
 
-        #endregion Clone
+    #endregion Clone
 
-        #region Properties
+    #region Properties
 
-        /// <summary>
-        /// Gets image width.
-        /// </summary>
-        public int Width { get { return PixelBuffer.GetLength(0); } }
+    /// <summary>
+    /// Gets image width.
+    /// </summary>
+    public int Width { get { return PixelBuffer.GetLength(0); } }
 
-        /// <summary>
-        /// Gets image height
-        /// </summary>
-        public int Height { get { return PixelBuffer.GetLength(1); } }
+    /// <summary>
+    /// Gets image height
+    /// </summary>
+    public int Height { get { return PixelBuffer.GetLength(1); } }
 
-        #endregion Properties
+    #endregion Properties
 
-        #region Pixel
+    #region Pixel
 
-        /// <summary>
-        /// Returns color at a given pixel.
-        /// </summary>
-        /// <param name="x">X.</param>
-        /// <param name="y">Y.</param>
-        /// <exception cref="ArgumentOutOfRangeException">X outside of bounds. -or- Y outside of bounds.</exception>
-        public Color GetPixel(int x, int y) {
-            if ((x < 0) || (x >= PixelBuffer.GetLength(0))) { throw new ArgumentOutOfRangeException(nameof(x), "X outside of bounds."); }
-            if ((y < 0) || (y >= PixelBuffer.GetLength(1))) { throw new ArgumentOutOfRangeException(nameof(y), "Y outside of bounds."); }
-            return PixelBuffer[x, y];
-        }
+    /// <summary>
+    /// Returns color at a given pixel.
+    /// </summary>
+    /// <param name="x">X.</param>
+    /// <param name="y">Y.</param>
+    /// <exception cref="ArgumentOutOfRangeException">X outside of bounds. -or- Y outside of bounds.</exception>
+    public Color GetPixel(int x, int y) {
+        if ((x < 0) || (x >= PixelBuffer.GetLength(0))) { throw new ArgumentOutOfRangeException(nameof(x), "X outside of bounds."); }
+        if ((y < 0) || (y >= PixelBuffer.GetLength(1))) { throw new ArgumentOutOfRangeException(nameof(y), "Y outside of bounds."); }
+        return PixelBuffer[x, y];
+    }
 
-        /// <summary>
-        /// Sets color at a given pixel.
-        /// </summary>
-        /// <param name="x">X.</param>
-        /// <param name="y">Y.</param>
-        /// <param name="color">Pixel color.</param>
-        /// <exception cref="ArgumentOutOfRangeException">X outside of bounds. -or- Y outside of bounds.</exception>
-        public void SetPixel(int x, int y, Color color) {
-            if ((x < 0) || (x >= PixelBuffer.GetLength(0))) { throw new ArgumentOutOfRangeException(nameof(x), "X outside of bounds."); }
-            if ((y < 0) || (y >= PixelBuffer.GetLength(1))) { throw new ArgumentOutOfRangeException(nameof(y), "Y outside of bounds."); }
-            PixelBuffer[x, y] = color;
-        }
+    /// <summary>
+    /// Sets color at a given pixel.
+    /// </summary>
+    /// <param name="x">X.</param>
+    /// <param name="y">Y.</param>
+    /// <param name="color">Pixel color.</param>
+    /// <exception cref="ArgumentOutOfRangeException">X outside of bounds. -or- Y outside of bounds.</exception>
+    public void SetPixel(int x, int y, Color color) {
+        if ((x < 0) || (x >= PixelBuffer.GetLength(0))) { throw new ArgumentOutOfRangeException(nameof(x), "X outside of bounds."); }
+        if ((y < 0) || (y >= PixelBuffer.GetLength(1))) { throw new ArgumentOutOfRangeException(nameof(y), "Y outside of bounds."); }
+        PixelBuffer[x, y] = color;
+    }
 
-        #endregion Pixel
+    #endregion Pixel
 
-        #region Save
+    #region Save
 
-        /// <summary>
-        /// Writes PNG image to a file.
-        /// </summary>
-        /// <param name="fileName">File that will be written to.</param>
-        /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
-        public void Save(string fileName) {
-            if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
-            using var stream = File.OpenWrite(fileName);
-            Save(stream);
-        }
+    /// <summary>
+    /// Writes PNG image to a file.
+    /// </summary>
+    /// <param name="fileName">File that will be written to.</param>
+    /// <exception cref="ArgumentNullException">File name cannot be null.</exception>
+    public void Save(string fileName) {
+        if (fileName == null) { throw new ArgumentNullException(nameof(fileName), "File name cannot be null."); }
+        using var stream = File.OpenWrite(fileName);
+        Save(stream);
+    }
 
 
-        /// <summary>
-        /// Writes PNG image to a stream.
-        /// </summary>
-        /// <param name="stream">Stream that will be written to.</param>
-        /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
-        public void Save(Stream stream) {
-            if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
+    /// <summary>
+    /// Writes PNG image to a stream.
+    /// </summary>
+    /// <param name="stream">Stream that will be written to.</param>
+    /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
+    public void Save(Stream stream) {
+        if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
 
-            var hasAlpha = false;
-            var hasColor = false;
-            var width = Width;
-            var height = Height;
-            for (var x = 0; x < width; x++) {
-                for (var y = 0; y < height; y++) {
-                    if (PixelBuffer[x, y].A < 255) {
-                        hasAlpha = true;
-                        if (hasColor) { break; }  // finish early if color is also detected
-                    }
-                    if ((PixelBuffer[x, y].R != PixelBuffer[x, y].G) || (PixelBuffer[x, y].G != PixelBuffer[x, y].B)) {
-                        hasColor = true;
-                        if (hasAlpha) { break; }  // finish early if transparency is also detected
-                    }
+        var hasAlpha = false;
+        var hasColor = false;
+        var width = Width;
+        var height = Height;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                if (PixelBuffer[x, y].A < 255) {
+                    hasAlpha = true;
+                    if (hasColor) { break; }  // finish early if color is also detected
+                }
+                if ((PixelBuffer[x, y].R != PixelBuffer[x, y].G) || (PixelBuffer[x, y].G != PixelBuffer[x, y].B)) {
+                    hasColor = true;
+                    if (hasAlpha) { break; }  // finish early if transparency is also detected
                 }
             }
-            var colorKind = hasColor && hasAlpha ? ColorKind.ColorAlpha : hasColor ? ColorKind.Color : hasAlpha ? ColorKind.MonoAlpha : ColorKind.Mono;
-
-            using var memStream = new MemoryStream();  // prepare data
-            memStream.Write(new byte[] { 0x78, 0x9C });  // deflate header
-
-            using (var deflateStream = new DeflateStream(memStream, CompressionLevel.Optimal)) {
-                for (var y = 0; y < Height; y++) {
-                    deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
-                    for (var x = 0; x < Width; x++) {
-                        var pixelColor = PixelBuffer[x, y];
-                        var pixelBytes = colorKind switch {
-                            ColorKind.ColorAlpha => new byte[] { pixelColor.R, pixelColor.G, pixelColor.B, pixelColor.A },
-                            ColorKind.Color => new byte[] { pixelColor.R, pixelColor.G, pixelColor.B },
-                            ColorKind.MonoAlpha => new byte[] { pixelColor.R, pixelColor.A },
-                            ColorKind.Mono => new byte[] { pixelColor.R },
-                            _ => Array.Empty<byte>()  // should not happen
-                        };
-                        deflateStream.Write(pixelBytes, 0, pixelBytes.Length);
-                    }
-                }
-            }
-
-            var colorType = colorKind switch {
-                ColorKind.Color => 0x02,
-                ColorKind.ColorAlpha => 0x06,
-                ColorKind.Mono => 0x00,
-                ColorKind.MonoAlpha => 0x04,
-                _ => throw new InvalidOperationException("Cannot determine color type.")  // should not happen
-            };
-
-            stream.Write(PngHeaderBytes, 0, PngHeaderBytes.Length);  // header
-            WritePngChunk(stream, PngChunkHeaderNameBytes, ToBytes((uint)Width), ToBytes((uint)Height), new byte[] { 0x08, (byte)colorType, 0x00, 0x00, 0x00 });  // header chunk
-            WritePngChunk(stream, PngChunkDataNameBytes, memStream.ToArray());  // data chunk
-            WritePngChunk(stream, PngChunkEndNameBytes);  // end chunk
-            stream.Flush();
         }
+        var colorKind = hasColor && hasAlpha ? ColorKind.ColorAlpha : hasColor ? ColorKind.Color : hasAlpha ? ColorKind.MonoAlpha : ColorKind.Mono;
 
-        #endregion Save
+        using var memStream = new MemoryStream();  // prepare data
+        memStream.Write(new byte[] { 0x78, 0x9C });  // deflate header
 
-        #region Load
-
-        private enum ColorKind { Unknown, Color, ColorAlpha, Indexed, Mono, MonoAlpha }
-
-        private static Color[,] GetBufferFromStream(Stream stream) {
-            var headerBytes = new byte[8];
-            stream.Read(headerBytes, 0, 8);
-
-            if (!CheckIfEqual(headerBytes, PngHeaderBytes)) { throw new InvalidDataException("Invalid header."); }
-
-            var width = 0;
-            var height = 0;
-            var bitDepth = 0;
-            var colorStyle = ColorKind.Unknown;
-            using var dataStream = new MemoryStream();
-
-            var lengthBytes = new byte[4];
-            var chunkNameBytes = new byte[4];
-            var crcBytes = new byte[4];
-            var palette = new List<Color>();
-            while (true) {
-                stream.Read(lengthBytes, 0, 4);
-                stream.Read(chunkNameBytes, 0, 4);
-                if (CheckIfEqual(chunkNameBytes, PngChunkEndNameBytes)) { break; }  // end chunk - don't even bother checking length
-
-                var length = (int)FromBytes(lengthBytes);
-                if (length < 0) { throw new InvalidDataException("Invalid chunk length."); }
-
-                var dataBytes = new byte[length];
-                stream.Read(dataBytes, 0, length);
-
-                stream.Read(crcBytes, 0, 4);
-
-                var crc = CalculateCrc32(0xFFFFFFFF, chunkNameBytes);  // start CRC calculation with chunk name
-                crc = CalculateCrc32(crc, dataBytes);  // add data bytes to CRC
-                var crcCalcBytes = ToBytes(crc ^ 0xFFFFFFFF);
-                if (!CheckIfEqual(crcBytes, crcCalcBytes)) { throw new InvalidDataException("Invalid chunk CRC."); }
-
-                if (CheckIfEqual(chunkNameBytes, PngChunkHeaderNameBytes)) {  // header chunk
-
-                    width = (int)FromBytes(dataBytes, 0);
-                    height = (int)FromBytes(dataBytes, 4);
-                    bitDepth = dataBytes[8];
-                    var colorType = dataBytes[9];
-                    var compressionMethod = dataBytes[10];
-                    var filterMethod = dataBytes[11];
-                    var interlaceMethod = dataBytes[12];
-
-                    switch (colorType) {
-                        case 0:  // Greyscale
-                            if (bitDepth is not 1 and not 2 and not 4 and not 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorKind.Mono;
-                            break;
-
-                        case 2:  // Truecolour
-                            if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorKind.Color;
-                            break;
-
-                        case 3:  // Indexed-colour
-                            if (bitDepth is not 1 and not 2 and not 4 and not 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorKind.Indexed;
-                            break;
-
-                        case 4:  // Greyscale with alpha
-                            if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorKind.MonoAlpha;
-                            break;
-
-                        case 6:  // Truecolour with alpha
-                            if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
-                            colorStyle = ColorKind.ColorAlpha;
-                            break;
-
-                        default: throw new InvalidDataException("Unsupported color type.");
-                    }
-
-                    if (compressionMethod != 0) { throw new InvalidDataException("Unsupported compression method."); }
-                    if (filterMethod != 0) { throw new InvalidDataException("Unsupported filter method."); }
-                    if (interlaceMethod != 0) { throw new InvalidDataException("Unsupported interlace method."); }
-
-                } else if (CheckIfEqual(chunkNameBytes, PngChunkPaletteNameBytes)) {  // palette chunk
-                    for (var i = 0; i < dataBytes.Length; i += 3) {
-                        palette.Add(Color.FromArgb(dataBytes[i + 0], dataBytes[i + 1], dataBytes[i + 2]));
-                    }
-                } else if (CheckIfEqual(chunkNameBytes, PngChunkDataNameBytes)) {  // data chunk
-                    dataStream.Write(dataBytes, 0, dataBytes.Length);
-                }
-            }
-
-            if ((width <= 0) || (height <= 0)) { throw new InvalidDataException("Cannot determine image size."); }
-            var pixelBuffer = new Color[width, height];
-
-            dataStream.Position = 2;  // skip header
-            using (var deflateStream = new DeflateStream(dataStream, CompressionMode.Decompress)) {
-                byte[]? prevLineBytes = null;
-                for (var y = 0; y < height; y++) {
-                    var lineFilter = (byte)deflateStream.ReadByte();
-
-                    var bitMultiplier = colorStyle switch {
-                        ColorKind.Color => 3,
-                        ColorKind.ColorAlpha => 4,
-                        ColorKind.Indexed => 1,
-                        ColorKind.Mono => 1,
-                        ColorKind.MonoAlpha => 2,
-                        _ => throw new InvalidDataException("Unsupported color type."),
+        using (var deflateStream = new DeflateStream(memStream, CompressionLevel.Optimal)) {
+            for (var y = 0; y < Height; y++) {
+                deflateStream.Write(new byte[] { 0x00 }, 0, 1);  // start the line with no filter
+                for (var x = 0; x < Width; x++) {
+                    var pixelColor = PixelBuffer[x, y];
+                    var pixelBytes = colorKind switch {
+                        ColorKind.ColorAlpha => new byte[] { pixelColor.R, pixelColor.G, pixelColor.B, pixelColor.A },
+                        ColorKind.Color => new byte[] { pixelColor.R, pixelColor.G, pixelColor.B },
+                        ColorKind.MonoAlpha => new byte[] { pixelColor.R, pixelColor.A },
+                        ColorKind.Mono => new byte[] { pixelColor.R },
+                        _ => Array.Empty<byte>()  // should not happen
                     };
-                    var bitCount = width * bitDepth * bitMultiplier;
-                    var byteCount = bitCount / 8 + (bitCount % 8 != 0 ? 1 : 0);
-                    var lineBytes = new byte[byteCount];
-                    deflateStream.Read(lineBytes, 0, lineBytes.Length);
+                    deflateStream.Write(pixelBytes, 0, pixelBytes.Length);
+                }
+            }
+        }
 
-                    switch (lineFilter) {
-                        case 0:  // None
-                            break;
+        var colorType = colorKind switch {
+            ColorKind.Color => 0x02,
+            ColorKind.ColorAlpha => 0x06,
+            ColorKind.Mono => 0x00,
+            ColorKind.MonoAlpha => 0x04,
+            _ => throw new InvalidOperationException("Cannot determine color type.")  // should not happen
+        };
 
-                        case 1:  // Sub
-                            for (var i = 0; i < lineBytes.Length; i++) {
-                                var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
-                                lineBytes[i] = (byte)(lineBytes[i] + a);
-                            }
-                            break;
+        stream.Write(PngHeaderBytes, 0, PngHeaderBytes.Length);  // header
+        WritePngChunk(stream, PngChunkHeaderNameBytes, ToBytes((uint)Width), ToBytes((uint)Height), new byte[] { 0x08, (byte)colorType, 0x00, 0x00, 0x00 });  // header chunk
+        WritePngChunk(stream, PngChunkDataNameBytes, memStream.ToArray());  // data chunk
+        WritePngChunk(stream, PngChunkEndNameBytes);  // end chunk
+        stream.Flush();
+    }
 
-                        case 2:  // Up
-                            for (var i = 0; i < lineBytes.Length; i++) {
-                                var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
-                                lineBytes[i] = (byte)(lineBytes[i] + b);
-                            }
-                            break;
+    #endregion Save
 
-                        case 3:  // Average
-                            for (var i = 0; i < lineBytes.Length; i++) {
-                                var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
-                                var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
-                                lineBytes[i] = (byte)(lineBytes[i] + (byte)((a + b) / 2));
-                            }
-                            break;
+    #region Load
 
-                        case 4:  // Paeth
-                            for (var i = 0; i < lineBytes.Length; i++) {
-                                var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
-                                var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
-                                var c = ((i >= bitMultiplier) && (prevLineBytes != null)) ? prevLineBytes[i - bitMultiplier] : (byte)0;
-                                lineBytes[i] = (byte)(lineBytes[i] + PaethPredictor(a, b, c));
-                            }
-                            break;
+    private enum ColorKind { Unknown, Color, ColorAlpha, Indexed, Mono, MonoAlpha }
 
-                        default: throw new InvalidDataException("Unsupported scanline filter (" + lineFilter.ToString(CultureInfo.InvariantCulture) + ").");
-                    }
+    private static Color[,] GetBufferFromStream(Stream stream) {
+        var headerBytes = new byte[8];
+        stream.Read(headerBytes, 0, 8);
 
-                    switch (colorStyle) {
-                        case ColorKind.Color:
-                            for (var x = 0; x < width; x++) {
-                                var offset = x * 3;
-                                pixelBuffer[x, y] = Color.FromArgb(lineBytes[offset + 0], lineBytes[offset + 1], lineBytes[offset + 2]);
-                            }
-                            break;
+        if (!CheckIfEqual(headerBytes, PngHeaderBytes)) { throw new InvalidDataException("Invalid header."); }
 
-                        case ColorKind.ColorAlpha:
-                            for (var x = 0; x < width; x++) {
-                                var offset = x * 4;
-                                pixelBuffer[x, y] = Color.FromArgb(lineBytes[offset + 3], lineBytes[offset + 0], lineBytes[offset + 1], lineBytes[offset + 2]);
-                            }
-                            break;
+        var width = 0;
+        var height = 0;
+        var bitDepth = 0;
+        var colorStyle = ColorKind.Unknown;
+        using var dataStream = new MemoryStream();
 
-                        case ColorKind.Indexed:
-                        case ColorKind.Mono:  // mono is just indexed with preset palette for all practical purposes
-                            for (var n = 0; n < bitCount; n += bitDepth) {
-                                var i = n / 8;
-                                var x = n / bitDepth;
-                                var index = bitDepth switch {
-                                    8 => lineBytes[i],
-                                    4 => (x % 2 == 0) ? lineBytes[i] >> 4 : lineBytes[i] & 0x0F,
-                                    2 => (x % 4 == 0) ? lineBytes[i] >> 6 : (x % 4 == 1) ? (lineBytes[i] >> 4) & 0x03 : (x % 4 == 2) ? (lineBytes[i] >> 2) & 0x03 : lineBytes[i] & 0x03,
-                                    1 => (x % 8 == 0) ? lineBytes[i] >> 7 : (x % 8 == 1) ? (lineBytes[i] >> 6) & 0x01 : (x % 8 == 2) ? (lineBytes[i] >> 5) & 0x01 : (x % 8 == 3) ? (lineBytes[i] >> 4) & 0x01 : (x % 8 == 4) ? (lineBytes[i] >> 3) & 0x01 : (x % 8 == 5) ? (lineBytes[i] >> 2) & 0x01 : (x % 8 == 6) ? (lineBytes[i] >> 1) & 0x01 : lineBytes[i] & 0x01,
+        var lengthBytes = new byte[4];
+        var chunkNameBytes = new byte[4];
+        var crcBytes = new byte[4];
+        var palette = new List<Color>();
+        while (true) {
+            stream.Read(lengthBytes, 0, 4);
+            stream.Read(chunkNameBytes, 0, 4);
+            if (CheckIfEqual(chunkNameBytes, PngChunkEndNameBytes)) { break; }  // end chunk - don't even bother checking length
+
+            var length = (int)FromBytes(lengthBytes);
+            if (length < 0) { throw new InvalidDataException("Invalid chunk length."); }
+
+            var dataBytes = new byte[length];
+            stream.Read(dataBytes, 0, length);
+
+            stream.Read(crcBytes, 0, 4);
+
+            var crc = CalculateCrc32(0xFFFFFFFF, chunkNameBytes);  // start CRC calculation with chunk name
+            crc = CalculateCrc32(crc, dataBytes);  // add data bytes to CRC
+            var crcCalcBytes = ToBytes(crc ^ 0xFFFFFFFF);
+            if (!CheckIfEqual(crcBytes, crcCalcBytes)) { throw new InvalidDataException("Invalid chunk CRC."); }
+
+            if (CheckIfEqual(chunkNameBytes, PngChunkHeaderNameBytes)) {  // header chunk
+
+                width = (int)FromBytes(dataBytes, 0);
+                height = (int)FromBytes(dataBytes, 4);
+                bitDepth = dataBytes[8];
+                var colorType = dataBytes[9];
+                var compressionMethod = dataBytes[10];
+                var filterMethod = dataBytes[11];
+                var interlaceMethod = dataBytes[12];
+
+                switch (colorType) {
+                    case 0:  // Greyscale
+                        if (bitDepth is not 1 and not 2 and not 4 and not 8) { throw new InvalidDataException("Unsupported bit depth."); }
+                        colorStyle = ColorKind.Mono;
+                        break;
+
+                    case 2:  // Truecolour
+                        if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
+                        colorStyle = ColorKind.Color;
+                        break;
+
+                    case 3:  // Indexed-colour
+                        if (bitDepth is not 1 and not 2 and not 4 and not 8) { throw new InvalidDataException("Unsupported bit depth."); }
+                        colorStyle = ColorKind.Indexed;
+                        break;
+
+                    case 4:  // Greyscale with alpha
+                        if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
+                        colorStyle = ColorKind.MonoAlpha;
+                        break;
+
+                    case 6:  // Truecolour with alpha
+                        if (bitDepth != 8) { throw new InvalidDataException("Unsupported bit depth."); }
+                        colorStyle = ColorKind.ColorAlpha;
+                        break;
+
+                    default: throw new InvalidDataException("Unsupported color type.");
+                }
+
+                if (compressionMethod != 0) { throw new InvalidDataException("Unsupported compression method."); }
+                if (filterMethod != 0) { throw new InvalidDataException("Unsupported filter method."); }
+                if (interlaceMethod != 0) { throw new InvalidDataException("Unsupported interlace method."); }
+
+            } else if (CheckIfEqual(chunkNameBytes, PngChunkPaletteNameBytes)) {  // palette chunk
+                for (var i = 0; i < dataBytes.Length; i += 3) {
+                    palette.Add(Color.FromArgb(dataBytes[i + 0], dataBytes[i + 1], dataBytes[i + 2]));
+                }
+            } else if (CheckIfEqual(chunkNameBytes, PngChunkDataNameBytes)) {  // data chunk
+                dataStream.Write(dataBytes, 0, dataBytes.Length);
+            }
+        }
+
+        if ((width <= 0) || (height <= 0)) { throw new InvalidDataException("Cannot determine image size."); }
+        var pixelBuffer = new Color[width, height];
+
+        dataStream.Position = 2;  // skip header
+        using (var deflateStream = new DeflateStream(dataStream, CompressionMode.Decompress)) {
+            byte[]? prevLineBytes = null;
+            for (var y = 0; y < height; y++) {
+                var lineFilter = (byte)deflateStream.ReadByte();
+
+                var bitMultiplier = colorStyle switch {
+                    ColorKind.Color => 3,
+                    ColorKind.ColorAlpha => 4,
+                    ColorKind.Indexed => 1,
+                    ColorKind.Mono => 1,
+                    ColorKind.MonoAlpha => 2,
+                    _ => throw new InvalidDataException("Unsupported color type."),
+                };
+                var bitCount = width * bitDepth * bitMultiplier;
+                var byteCount = bitCount / 8 + (bitCount % 8 != 0 ? 1 : 0);
+                var lineBytes = new byte[byteCount];
+                deflateStream.Read(lineBytes, 0, lineBytes.Length);
+
+                switch (lineFilter) {
+                    case 0:  // None
+                        break;
+
+                    case 1:  // Sub
+                        for (var i = 0; i < lineBytes.Length; i++) {
+                            var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
+                            lineBytes[i] = (byte)(lineBytes[i] + a);
+                        }
+                        break;
+
+                    case 2:  // Up
+                        for (var i = 0; i < lineBytes.Length; i++) {
+                            var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
+                            lineBytes[i] = (byte)(lineBytes[i] + b);
+                        }
+                        break;
+
+                    case 3:  // Average
+                        for (var i = 0; i < lineBytes.Length; i++) {
+                            var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
+                            var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
+                            lineBytes[i] = (byte)(lineBytes[i] + (byte)((a + b) / 2));
+                        }
+                        break;
+
+                    case 4:  // Paeth
+                        for (var i = 0; i < lineBytes.Length; i++) {
+                            var a = (i >= bitMultiplier) ? lineBytes[i - bitMultiplier] : (byte)0;
+                            var b = (prevLineBytes != null) ? prevLineBytes[i] : (byte)0;
+                            var c = ((i >= bitMultiplier) && (prevLineBytes != null)) ? prevLineBytes[i - bitMultiplier] : (byte)0;
+                            lineBytes[i] = (byte)(lineBytes[i] + PaethPredictor(a, b, c));
+                        }
+                        break;
+
+                    default: throw new InvalidDataException("Unsupported scanline filter (" + lineFilter.ToString(CultureInfo.InvariantCulture) + ").");
+                }
+
+                switch (colorStyle) {
+                    case ColorKind.Color:
+                        for (var x = 0; x < width; x++) {
+                            var offset = x * 3;
+                            pixelBuffer[x, y] = Color.FromArgb(lineBytes[offset + 0], lineBytes[offset + 1], lineBytes[offset + 2]);
+                        }
+                        break;
+
+                    case ColorKind.ColorAlpha:
+                        for (var x = 0; x < width; x++) {
+                            var offset = x * 4;
+                            pixelBuffer[x, y] = Color.FromArgb(lineBytes[offset + 3], lineBytes[offset + 0], lineBytes[offset + 1], lineBytes[offset + 2]);
+                        }
+                        break;
+
+                    case ColorKind.Indexed:
+                    case ColorKind.Mono:  // mono is just indexed with preset palette for all practical purposes
+                        for (var n = 0; n < bitCount; n += bitDepth) {
+                            var i = n / 8;
+                            var x = n / bitDepth;
+                            var index = bitDepth switch {
+                                8 => lineBytes[i],
+                                4 => (x % 2 == 0) ? lineBytes[i] >> 4 : lineBytes[i] & 0x0F,
+                                2 => (x % 4 == 0) ? lineBytes[i] >> 6 : (x % 4 == 1) ? (lineBytes[i] >> 4) & 0x03 : (x % 4 == 2) ? (lineBytes[i] >> 2) & 0x03 : lineBytes[i] & 0x03,
+                                1 => (x % 8 == 0) ? lineBytes[i] >> 7 : (x % 8 == 1) ? (lineBytes[i] >> 6) & 0x01 : (x % 8 == 2) ? (lineBytes[i] >> 5) & 0x01 : (x % 8 == 3) ? (lineBytes[i] >> 4) & 0x01 : (x % 8 == 4) ? (lineBytes[i] >> 3) & 0x01 : (x % 8 == 5) ? (lineBytes[i] >> 2) & 0x01 : (x % 8 == 6) ? (lineBytes[i] >> 1) & 0x01 : lineBytes[i] & 0x01,
+                                _ => throw new InvalidDataException("Unsupported bits per pixel."),
+                            };
+                            if (colorStyle == ColorKind.Mono) {  // just setup grayscale
+                                var m = bitDepth switch {
+                                    8 => index,
+                                    4 => (index == 0) ? 0x00 : (index == 1) ? 0x11 : (index == 2) ? 0x22 : (index == 3) ? 0x33 : (index == 4) ? 0x44 : (index == 5) ? 0x55 : (index == 6) ? 0x66 : (index == 7) ? 0x77 : (index == 8) ? 0x88 : (index == 9) ? 0x99 : (index == 10) ? 0xAA : (index == 11) ? 0xBB : (index == 12) ? 0xCC : (index == 13) ? 0xDD : (index == 14) ? 0xEE : 0xFF,
+                                    2 => (index == 0) ? 0x00 : (index == 1) ? 0x67 : (index == 2) ? 0xB6 : 0xFF,
+                                    1 => index * 255,
                                     _ => throw new InvalidDataException("Unsupported bits per pixel."),
                                 };
-                                if (colorStyle == ColorKind.Mono) {  // just setup grayscale
-                                    var m = bitDepth switch {
-                                        8 => index,
-                                        4 => (index == 0) ? 0x00 : (index == 1) ? 0x11 : (index == 2) ? 0x22 : (index == 3) ? 0x33 : (index == 4) ? 0x44 : (index == 5) ? 0x55 : (index == 6) ? 0x66 : (index == 7) ? 0x77 : (index == 8) ? 0x88 : (index == 9) ? 0x99 : (index == 10) ? 0xAA : (index == 11) ? 0xBB : (index == 12) ? 0xCC : (index == 13) ? 0xDD : (index == 14) ? 0xEE : 0xFF,
-                                        2 => (index == 0) ? 0x00 : (index == 1) ? 0x67 : (index == 2) ? 0xB6 : 0xFF,
-                                        1 => index * 255,
-                                        _ => throw new InvalidDataException("Unsupported bits per pixel."),
-                                    };
-                                    pixelBuffer[x, y] = Color.FromArgb(index, index, index);
-                                } else if (index < palette.Count) {  // use the palette
-                                    pixelBuffer[x, y] = palette[index];
-                                }
+                                pixelBuffer[x, y] = Color.FromArgb(index, index, index);
+                            } else if (index < palette.Count) {  // use the palette
+                                pixelBuffer[x, y] = palette[index];
                             }
-                            break;
+                        }
+                        break;
 
-                        case ColorKind.MonoAlpha:
-                            for (var x = 0; x < width; x++) {
-                                var offset = x * 2;
-                                var m = lineBytes[offset + 0];
-                                var a = lineBytes[offset + 1];
-                                pixelBuffer[x, y] = Color.FromArgb(a, m, m, m);
-                            }
-                            break;
+                    case ColorKind.MonoAlpha:
+                        for (var x = 0; x < width; x++) {
+                            var offset = x * 2;
+                            var m = lineBytes[offset + 0];
+                            var a = lineBytes[offset + 1];
+                            pixelBuffer[x, y] = Color.FromArgb(a, m, m, m);
+                        }
+                        break;
 
-                        default: throw new InvalidDataException("Unsupported color type.");
-                    }
-
-                    prevLineBytes = lineBytes;
+                    default: throw new InvalidDataException("Unsupported color type.");
                 }
-            }
 
-            return pixelBuffer;
-        }
-
-        #endregion
-
-        #region Png
-
-        private readonly static byte[] PngHeaderBytes = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
-        private readonly static byte[] PngChunkHeaderNameBytes = Encoding.ASCII.GetBytes("IHDR");
-        private readonly static byte[] PngChunkPaletteNameBytes = Encoding.ASCII.GetBytes("PLTE");
-        private readonly static byte[] PngChunkDataNameBytes = Encoding.ASCII.GetBytes("IDAT");
-        private readonly static byte[] PngChunkEndNameBytes = Encoding.ASCII.GetBytes("IEND");
-
-        private static void WritePngChunk(Stream stream, byte[] chunkNameBytes, params byte[][] dataBytes) {
-            var totalLength = 0U;
-            foreach (var dataBuffer in dataBytes) {
-                totalLength += (uint)dataBuffer.Length;
-            }
-
-            var chunkLenghtBytes = ToBytes(totalLength);
-            stream.Write(chunkLenghtBytes, 0, chunkLenghtBytes.Length);
-
-            stream.Write(chunkNameBytes, 0, chunkNameBytes.Length);
-            var crc = CalculateCrc32(0xFFFFFFFF, chunkNameBytes);  // start CRC calculation with chunk name
-
-            foreach (var dataBuffer in dataBytes) {
-                stream.Write(dataBuffer, 0, dataBuffer.Length);
-                crc = CalculateCrc32(crc, dataBuffer);  // add data bytes to CRC
-            }
-
-            var crcBytes = ToBytes(crc ^ 0xFFFFFFFF);  // final CRC xor and convert to bytes
-            stream.Write(crcBytes, 0, crcBytes.Length);
-        }
-
-        private static byte[] ToBytes(uint number) {  // always in big endian
-            if (BitConverter.IsLittleEndian) {
-                var buffer = BitConverter.GetBytes(number);
-                return new byte[] { buffer[3], buffer[2], buffer[1], buffer[0] };
-            } else {
-                return BitConverter.GetBytes(number);
+                prevLineBytes = lineBytes;
             }
         }
 
-        private static uint FromBytes(byte[] bytes, int offset = 0) {  // always in big endian
-            if (BitConverter.IsLittleEndian) {
-                return (uint)((bytes[offset + 0] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | (bytes[offset + 3]));
-            } else {
-                return BitConverter.ToUInt32(bytes, offset);
-            }
+        return pixelBuffer;
+    }
+
+    #endregion
+
+    #region Png
+
+    private readonly static byte[] PngHeaderBytes = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+    private readonly static byte[] PngChunkHeaderNameBytes = Encoding.ASCII.GetBytes("IHDR");
+    private readonly static byte[] PngChunkPaletteNameBytes = Encoding.ASCII.GetBytes("PLTE");
+    private readonly static byte[] PngChunkDataNameBytes = Encoding.ASCII.GetBytes("IDAT");
+    private readonly static byte[] PngChunkEndNameBytes = Encoding.ASCII.GetBytes("IEND");
+
+    private static void WritePngChunk(Stream stream, byte[] chunkNameBytes, params byte[][] dataBytes) {
+        var totalLength = 0U;
+        foreach (var dataBuffer in dataBytes) {
+            totalLength += (uint)dataBuffer.Length;
         }
 
+        var chunkLenghtBytes = ToBytes(totalLength);
+        stream.Write(chunkLenghtBytes, 0, chunkLenghtBytes.Length);
 
-        private static bool CheckIfEqual(byte[] bytes1, byte[] bytes2) {
-            if (bytes1.Length != bytes2.Length) { return false; }
-            for (var i = 0; i < bytes1.Length; i++) {
-                if (bytes1[i] != bytes2[i]) { return false; }
-            }
-            return true;
+        stream.Write(chunkNameBytes, 0, chunkNameBytes.Length);
+        var crc = CalculateCrc32(0xFFFFFFFF, chunkNameBytes);  // start CRC calculation with chunk name
+
+        foreach (var dataBuffer in dataBytes) {
+            stream.Write(dataBuffer, 0, dataBuffer.Length);
+            crc = CalculateCrc32(crc, dataBuffer);  // add data bytes to CRC
         }
 
+        var crcBytes = ToBytes(crc ^ 0xFFFFFFFF);  // final CRC xor and convert to bytes
+        stream.Write(crcBytes, 0, crcBytes.Length);
+    }
 
-        private static readonly uint[] Crc32LookupTable = {
+    private static byte[] ToBytes(uint number) {  // always in big endian
+        if (BitConverter.IsLittleEndian) {
+            var buffer = BitConverter.GetBytes(number);
+            return new byte[] { buffer[3], buffer[2], buffer[1], buffer[0] };
+        } else {
+            return BitConverter.GetBytes(number);
+        }
+    }
+
+    private static uint FromBytes(byte[] bytes, int offset = 0) {  // always in big endian
+        if (BitConverter.IsLittleEndian) {
+            return (uint)((bytes[offset + 0] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | (bytes[offset + 3]));
+        } else {
+            return BitConverter.ToUInt32(bytes, offset);
+        }
+    }
+
+
+    private static bool CheckIfEqual(byte[] bytes1, byte[] bytes2) {
+        if (bytes1.Length != bytes2.Length) { return false; }
+        for (var i = 0; i < bytes1.Length; i++) {
+            if (bytes1[i] != bytes2[i]) { return false; }
+        }
+        return true;
+    }
+
+
+    private static readonly uint[] Crc32LookupTable = {
             0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
             0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
             0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
@@ -506,31 +507,30 @@ namespace Medo.Drawing {
             0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D,
         };
 
-        private static uint CalculateCrc32(uint initialCrc, byte[] buffer) {
-            uint crc = initialCrc;
-            foreach (var b in buffer) {
-                crc = Crc32LookupTable[(crc ^ b) & 0xff] ^ (crc >> 8);
-            }
-            return crc;
+    private static uint CalculateCrc32(uint initialCrc, byte[] buffer) {
+        uint crc = initialCrc;
+        foreach (var b in buffer) {
+            crc = Crc32LookupTable[(crc ^ b) & 0xff] ^ (crc >> 8);
         }
-
-        private static byte PaethPredictor(byte a, byte b, byte c) {  // a = left, b = above, c = upper left
-            var p = a + b - c;  // initial estimate
-            var pa = Math.Abs(p - a);  // distances to a, b, c
-            var pb = Math.Abs(p - b);
-            var pc = Math.Abs(p - c);
-
-            // breaking ties in order a, b, c.
-            if ((pa <= pb) && (pa <= pc)) {
-                return a;
-            } else if (pb <= pc) {
-                return b;
-            } else {
-                return c;
-            }
-        }
-
-        #endregion Png
-
+        return crc;
     }
+
+    private static byte PaethPredictor(byte a, byte b, byte c) {  // a = left, b = above, c = upper left
+        var p = a + b - c;  // initial estimate
+        var pa = Math.Abs(p - a);  // distances to a, b, c
+        var pb = Math.Abs(p - b);
+        var pc = Math.Abs(p - c);
+
+        // breaking ties in order a, b, c.
+        if ((pa <= pb) && (pa <= pc)) {
+            return a;
+        } else if (pb <= pc) {
+            return b;
+        } else {
+            return c;
+        }
+    }
+
+    #endregion Png
+
 }
