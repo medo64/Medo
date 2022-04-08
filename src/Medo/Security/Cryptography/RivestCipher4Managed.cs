@@ -1,6 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 /* Algorithm designed by Ron Rivest (RSA Security) */
 
+//2022-04-07: Minor refactoring
 //2022-01-13: Added padding support
 //2022-01-07: Initial version
 
@@ -430,9 +431,7 @@ internal sealed class RivestCipher4ManagedTransform : ICryptoTransform {
     private byte NextOutput() {
         I = (byte)(I + 1);
         J = (byte)(J + SBox[I]);
-        var x = SBox[I];
-        SBox[I] = SBox[J];
-        SBox[J] = x;
+        (SBox[J], SBox[I]) = (SBox[I], SBox[J]);
         return SBox[(SBox[I] + SBox[J]) % 256];
     }
 

@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-04-07: Minor refactoring
 //2021-11-25: Refactored to use pattern matching
 //2021-09-28: Added constructor for empty instance
 //2021-09-26: Initial version
@@ -382,23 +383,6 @@ public class IniFile {
 
                 return CachedResult;
             }
-        }
-        private static (string section, string key, string value) ParseRawEntry(StringBuilder sbSection, StringBuilder sbKey, StringBuilder? sbValue) {  // just a helper
-            var section = sbSection.ToString();
-            var key = sbKey.ToString();
-            var value = sbValue?.ToString() ?? "";
-            sbKey.Clear();
-            if (sbValue != null) { sbValue.Clear(); }
-            return (section, key, value);
-        }
-        private static StringBuilder TrimEnd(StringBuilder sb) {
-            var outputLen = sb.Length;
-            for (var i = sb.Length - 1; i >= 0; i--) {
-                if (!char.IsWhiteSpace(sb[i])) { break; }
-                outputLen = i;
-            }
-            sb.Length = outputLen;
-            return sb;  // just return it for call chaining
         }
 
         internal IReadOnlyList<string> GetSections() {
