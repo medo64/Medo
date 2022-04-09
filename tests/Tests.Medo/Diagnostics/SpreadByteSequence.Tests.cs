@@ -1,5 +1,6 @@
 using Xunit;
 using Medo.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Tests.Medo.Diagnostics;
 
@@ -66,6 +67,40 @@ public class SpreadByteSequenceTests {
             var value = seq.Next();
             memory[value]++;
             Assert.Equal(1, memory[value]);
+        }
+    }
+
+    [Fact(DisplayName = "SpreadByteSequence: NonRepeat")]
+    public void NonRepeat2() {
+        var seq = new SpreadByteSequence();
+        var memory = new byte[256];
+        for (var i = 0; i < 10 * 256; i++) {
+            var value = seq.Next();
+            memory[value]++;
+        }
+        foreach (var mem in memory) {
+            Assert.Equal(10, mem);
+        }
+    }
+
+    [Fact(DisplayName = "SpreadByteSequence: Multithreaded")]
+    public void Multithreaded() {
+        var seq = new SpreadByteSequence();
+        var memory = new byte[256];
+        var tasks = new Task[16];
+        for (var t = 0;t < tasks.Length; t++){
+            tasks[t]= Task.Run(delegate {
+                for (var i = 0; i < 256; i++) {
+                    memory[seq.Next()] += 1;
+                }
+            });
+        }
+        foreach (var task in tasks) {
+            task.Wait();
+        }
+
+        foreach (var mem in memory) {
+            Assert.Equal(16, mem);
         }
     }
 

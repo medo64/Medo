@@ -1,14 +1,17 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-04-09: Thread-safe operation
 //2022-04-07: Initial version
 
 namespace Medo.Diagnostics;
 
 using System;
+using System.Threading;
 
 /// <summary>
 /// Unordered sequence that repeats only after all values have been exhausted.
 /// For 32-bit integer, the sequence will go over all 4,294,967,296 values before repeating.
+/// Class is thread-safe.
 /// </summary>
 /// <example>
 /// <code>
@@ -52,8 +55,7 @@ public sealed class SpreadIntSequence {
     /// Returns the next element in the sequence.
     /// </summary>
     public uint Next() {
-        State += Increment;
-        return State;
+        return Interlocked.Add(ref State, Increment); ;
     }
 
     /// <summary>

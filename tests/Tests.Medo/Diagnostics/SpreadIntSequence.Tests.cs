@@ -1,5 +1,7 @@
 using Xunit;
 using Medo.Diagnostics;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace Tests.Medo.Diagnostics;
 
@@ -56,6 +58,28 @@ public class SpreadIntSequenceTests {
         Assert.Equal("C-CC623A9B", seq.NextAsString("C-"));
         Assert.Equal("C-6A99B44C", seq.NextAsString("C-"));
         Assert.Equal("C-08D12DFD", seq.NextAsString("C-"));
+    }
+
+    [Fact(DisplayName = "SpreadIntSequence: Multithreaded")]
+    public void Multithreaded() {
+        var seq = new SpreadIntSequence();
+        var memory = new ConcurrentDictionary<uint, int>();
+        var tasks = new Task[16];
+        for (var t = 0; t < tasks.Length; t++) {
+            tasks[t] = Task.Run(delegate {
+                for (var i = 0; i < 256; i++) {
+                    var key = seq.Next();
+                    memory.AddOrUpdate(key, 1, (key, oldValue) => oldValue + 1);
+                }
+            });
+        }
+        foreach (var task in tasks) {
+            task.Wait();
+        }
+
+        foreach (var mem in memory) {
+            Assert.Equal(1, mem.Value);
+        }
     }
 
 }

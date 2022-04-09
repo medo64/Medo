@@ -1,14 +1,17 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-04-09: Thread-safe operation
 //2022-04-07: Initial version
 
 namespace Medo.Diagnostics;
 
 using System;
+using System.Threading;
 
 /// <summary>
 /// Unordered sequence that repeats only after all values have been exhausted.
 /// For 16-bit integer, the sequence will go over all 65,536 values before repeating.
+/// Class is thread-safe.
 /// </summary>
 /// <example>
 /// <code>
@@ -44,16 +47,15 @@ public sealed class SpreadShortSequence {
     }
 
 
-    private ushort State;
-    private const ushort Increment = 40499;  // prime number at (2^16)/ϕ
+    private uint State;
+    private const uint Increment = 40499;  // prime number at (2^16)/ϕ
 
 
     /// <summary>
     /// Returns the next element in the sequence.
     /// </summary>
     public ushort Next() {
-        State += Increment;
-        return State;
+        return (ushort)Interlocked.Add(ref State, Increment); ;
     }
 
     /// <summary>

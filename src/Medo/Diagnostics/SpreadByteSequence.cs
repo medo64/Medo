@@ -1,14 +1,17 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-04-09: Thread-safe operation
 //2022-04-07: Initial version
 
 namespace Medo.Diagnostics;
 
 using System;
+using System.Threading;
 
 /// <summary>
 /// Unordered sequence that repeats only after all values have been exhausted.
 /// For 8-bit integer, the sequence will go over all 256 values before repeating.
+/// Class is thread-safe.
 /// </summary>
 /// <example>
 /// <code>
@@ -44,16 +47,15 @@ public sealed class SpreadByteSequence {
     }
 
 
-    private byte State;
-    private const byte Increment = 157;  // prime number at (2^8)/ϕ
+    private uint State;
+    private const uint Increment = 157;  // prime number at (2^8)/ϕ
 
 
     /// <summary>
     /// Returns the next element in the sequence.
     /// </summary>
     public byte Next() {
-        State += Increment;
-        return State;
+        return (byte)Interlocked.Add(ref State, Increment); ;
     }
 
     /// <summary>
