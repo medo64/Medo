@@ -6,10 +6,10 @@ using Medo.Security.Checksum;
 namespace Tests.Medo.Security.Checksum {
     public class Crc8Tests {
 
-        [Fact(DisplayName = "Crc8: Default")]
-        public void Default() {
-            string expected = "0xDF";
-            var crc = new Crc8();
+        [Fact(DisplayName = "Crc8: Custom")]
+        public void Custom() {
+            string expected = "0x15";
+            var crc = Crc8.GetCustom(0x2F, 0x00, false, false, 0x00);
             crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
             Assert.Equal(expected, $"0x{crc.HashAsByte:X2}");
             Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
@@ -332,6 +332,15 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(0x3E, crc.HashAsByte);
         }
 
+        [Fact(DisplayName = "Crc8: C2")]
+        public void C2() {
+            string expected = "0x15";
+            var crc = Crc8.GetC2();
+            crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+            Assert.Equal(expected, $"0x{crc.HashAsByte:X2}");
+            Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
+        }
+
         [Fact(DisplayName = "Crc8: ROHC")]
         public void Rohc() {
             string expected = "0xA2";
@@ -413,13 +422,40 @@ namespace Tests.Medo.Security.Checksum {
         }
 
 
-        [Fact(DisplayName = "Crc8: Reuse same instance")]
+        [Fact(DisplayName = "Crc8: Reuse the same instance")]
         public void Reuse() {
             var checksum = Crc8.GetDallas();
             checksum.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
             Assert.Equal("80", checksum.HashAsByte.ToString("X2"));
             checksum.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
             Assert.Equal("80", checksum.HashAsByte.ToString("X2"));
+        }
+
+
+        [Fact(DisplayName = "Crc8: Convert polynomial to reversed reciprocal")]
+        public void ToReversedReciprocal() {
+            Assert.Equal(0xEA, Crc8.ToReversedReciprocalPolynomial(0xD5));
+            Assert.Equal(0x97, Crc8.ToReversedReciprocalPolynomial(0x2F));
+            Assert.Equal(0xD3, Crc8.ToReversedReciprocalPolynomial(0xA7));
+            Assert.Equal(0x83, Crc8.ToReversedReciprocalPolynomial(0x07));
+            Assert.Equal(0x98, Crc8.ToReversedReciprocalPolynomial(0x31));
+            Assert.Equal(0x9C, Crc8.ToReversedReciprocalPolynomial(0x39));
+            Assert.Equal(0xA4, Crc8.ToReversedReciprocalPolynomial(0x49));
+            Assert.Equal(0x8E, Crc8.ToReversedReciprocalPolynomial(0x1D));
+            Assert.Equal(0xCD, Crc8.ToReversedReciprocalPolynomial(0x9B));
+        }
+
+        [Fact(DisplayName = "Crc8: Convert from reversed reciprocal polynomial")]
+        public void FromReversedReciprocal() {
+            Assert.Equal(0xD5, Crc8.FromReversedReciprocalPolynomial(0xEA));
+            Assert.Equal(0x2F, Crc8.FromReversedReciprocalPolynomial(0x97));
+            Assert.Equal(0xA7, Crc8.FromReversedReciprocalPolynomial(0xD3));
+            Assert.Equal(0x07, Crc8.FromReversedReciprocalPolynomial(0x83));
+            Assert.Equal(0x31, Crc8.FromReversedReciprocalPolynomial(0x98));
+            Assert.Equal(0x39, Crc8.FromReversedReciprocalPolynomial(0x9C));
+            Assert.Equal(0x49, Crc8.FromReversedReciprocalPolynomial(0xA4));
+            Assert.Equal(0x1D, Crc8.FromReversedReciprocalPolynomial(0x8E));
+            Assert.Equal(0x9B, Crc8.FromReversedReciprocalPolynomial(0xCD));
         }
 
     }

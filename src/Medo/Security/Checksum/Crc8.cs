@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-06-24: Removed default constructor in favor of GetCustom method
+//            Added more variants
 //2022-01-05: Added more variants
 //            Fixed big-endian system operation
 //2021-03-06: Refactored for .NET 5
@@ -10,10 +12,9 @@
 //2008-01-05: Added resources
 //2007-10-31: New version
 
-using System;
-
 namespace Medo.Security.Checksum;
 
+using System;
 using System.Security.Cryptography;
 
 /// <summary>
@@ -25,27 +26,12 @@ using System.Security.Cryptography;
 /// </summary>
 /// <example>
 /// <code>
-/// var crc = Crc8.GetLte();
+/// var crc = Crc8.GetOpenSafety();
 /// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
 /// var hashValue = crc.HashAsByte;
 /// </code>
 /// </example>
 public sealed class Crc8 : HashAlgorithm {
-
-    /// <summary>
-    /// Creates a new instance using the CRC-8/LTE variant.
-    /// Returns the default CRC-8 variant.
-    /// </summary>
-    /// <remarks>
-    /// Polynom: x⁸ + x⁷ +  x⁴ + x³ + x + 1 (0x9B)
-    /// Initial value: 0x00
-    /// Reflect In: No
-    /// Reflect Out: No
-    /// Output XOR: 0x00
-    /// </remarks>
-    public Crc8()
-        : this(0x9B, 0x00, false, false, 0x00) {
-    }
 
     /// <summary>
     /// Creates new instance.
@@ -55,42 +41,55 @@ public sealed class Crc8 : HashAlgorithm {
     /// <param name="reflectIn">If true, input byte is in the reflected (LSB first) bit order.</param>
     /// <param name="reflectOut">If true, digest is in the reflected (LSB first) bit order.</param>
     /// <param name="finalXorValue">The final XOR value.</param>
-    /// <remarks>
-    /// Name                 Polynomial                         Init  Xor   Reflect
-    /// ---------------------------------------------------------------------------
-    /// Default              0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
-    /// AUTOSAR              0x2F (x⁸ + x⁵ + x³ + x² + x + 1)   0xFF  0xFF  -
-    /// BLUETOOTH            0xA7 (x⁸ + x⁷ + x⁵ + x² + x + 1)   0x00  0x00  In/Out
-    /// CDMA2000             0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0xFF  0x00  -
-    /// DARC                 0x39 (x⁸ + x⁵ + x⁴ + x³ + 1)       0x00  0x00  In/Out
-    /// DVB-S2               0xD5 (x⁸ + x⁷ + x⁶ + x⁴ + x² + 1)  0x00  0x00  -
-    /// GSM-A                0x1D (x⁸ + x⁴ + x³ + 1)            0x00  0x00  -
-    /// GSM-B                0x49 (x⁸ + x⁶ + x³ + 1)            0x00  0xFF  -
-    /// HITAG                0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0x00  -
-    /// I-432-1 / ITU        0x07 (x⁸ + x² + x + 1)             0x00  0x55  -
-    /// I-CODE               0x1D (x⁸ + x⁴ + x³ + 1)            0xBF  0x00  -
-    /// LTE                  0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
-    /// MAXIM-DOW / MAXIM    0x31 (x⁸ + x⁵ + x⁴ + 1)            0x00  0x00  In/Out
-    /// MIFARE-MAD / MIFARE  0x1D (x⁸ + x⁴ + x³ + 1)            0xE3  0x00  -
-    /// NRSC-5               0x31 (x⁸ + x⁵ + x⁴ + 1)            0xFF  0x00  -
-    /// OPENSAFETY           0x2F (x⁸ + x⁵ + x³ + x² + x + 1)   0x00  0x00  -
-    /// ROHC                 0x07 (x⁸ + x² + x + 1)             0xFF  0x00  In/Out
-    /// SAE-J1850            0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0xFF  -
-    /// SMBUS                0x07 (x⁸ + x² + x + 1)             0x00  0x00  -
-    /// TECH-3250            0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0x00  In/Out
-    /// WCDMA2000            0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  In/Out
-    /// 
-    /// See also:
-    /// - https://reveng.sourceforge.io/crc-catalogue/1-15.htm
-    /// - https://users.ece.cmu.edu/~koopman/crc/index.html
-    /// </remarks>
-    public Crc8(byte polynomial, byte initialValue, bool reflectIn, bool reflectOut, byte finalXorValue) {
+    private Crc8(byte polynomial, byte initialValue, bool reflectIn, bool reflectOut, byte finalXorValue) {
         _polynomial = polynomial;
         _initialValue = initialValue;
         _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
         _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
         _finalXorValue = finalXorValue;
         ProcessInitialization();
+    }
+
+
+    /// <summary>
+    /// Returns a custom CRC-8 variant.
+    /// </summary>
+    /// <param name="polynomial">The polynomial value.</param>
+    /// <param name="initialValue">The starting digest value.</param>
+    /// <param name="reflectIn">If true, input byte is in the reflected (LSB first) bit order.</param>
+    /// <param name="reflectOut">If true, digest is in the reflected (LSB first) bit order.</param>
+    /// <param name="finalXorValue">The final XOR value.</param>
+    /// <remarks>
+    /// Name                         Polynomial                         Init  Xor   Reflect
+    /// ----------------------------------------------------------------------------------------
+    /// Default                      0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
+    /// AUTOSAR                      0x2F (x⁸ + x⁵ + x³ + x² + x + 1)   0xFF  0xFF  -
+    /// BLUETOOTH                    0xA7 (x⁸ + x⁷ + x⁵ + x² + x + 1)   0x00  0x00  In/Out
+    /// CDMA2000                     0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0xFF  0x00  -
+    /// DARC                         0x39 (x⁸ + x⁵ + x⁴ + x³ + 1)       0x00  0x00  In/Out
+    /// DVB-S2                       0xD5 (x⁸ + x⁷ + x⁶ + x⁴ + x² + 1)  0x00  0x00  -
+    /// GSM-A                        0x1D (x⁸ + x⁴ + x³ + 1)            0x00  0x00  -
+    /// GSM-B                        0x49 (x⁸ + x⁶ + x³ + 1)            0x00  0xFF  -
+    /// HITAG                        0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0x00  -
+    /// I-432-1 / ITU / CCITT / ATM  0x07 (x⁸ + x² + x + 1)             0x00  0x55  -
+    /// I-CODE                       0x1D (x⁸ + x⁴ + x³ + 1)            0xBF  0x00  -
+    /// LTE                          0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
+    /// MAXIM-DOW / MAXIM            0x31 (x⁸ + x⁵ + x⁴ + 1)            0x00  0x00  In/Out
+    /// MIFARE-MAD / MIFARE          0x1D (x⁸ + x⁴ + x³ + 1)            0xE3  0x00  -
+    /// NRSC-5                       0x31 (x⁸ + x⁵ + x⁴ + 1)            0xFF  0x00  -
+    /// OPENSAFETY / C2              0x2F (x⁸ + x⁵ + x³ + x² + x + 1)   0x00  0x00  -
+    /// ROHC                         0x07 (x⁸ + x² + x + 1)             0xFF  0x00  In/Out
+    /// SAE-J1850                    0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0xFF  -
+    /// SMBUS                        0x07 (x⁸ + x² + x + 1)             0x00  0x00  -
+    /// TECH-3250                    0x1D (x⁸ + x⁴ + x³ + 1)            0xFF  0x00  In/Out
+    /// WCDMA2000                    0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  In/Out
+    /// 
+    /// See also:
+    /// - https://reveng.sourceforge.io/crc-catalogue/1-15.htm
+    /// - https://users.ece.cmu.edu/~koopman/crc/index.html
+    /// </remarks>
+    public static Crc8 GetCustom(byte polynomial, byte initialValue, bool reflectIn, bool reflectOut, byte finalXorValue) {
+        return new Crc8(polynomial, initialValue, reflectIn, reflectOut, finalXorValue);
     }
 
 
@@ -207,7 +206,7 @@ public sealed class Crc8 : HashAlgorithm {
     }
 
     /// <summary>
-    /// Returns CRC-8/I-432-1 / CRC-8/ITU / CRC-8/CCITT variant.
+    /// Returns CRC-8/I-432-1 / CRC-8/ITU / CRC-8/CCITT / CRC-8/ATM variant.
     /// </summary>
     /// <remarks>
     /// Polynom: x⁸ + x² + x + 1 (0x07)
@@ -251,6 +250,21 @@ public sealed class Crc8 : HashAlgorithm {
     }
 
     /// <summary>
+    /// Returns CRC-8/ATM variant.
+    /// More widely known as CRC-8/I-432-1.
+    /// </summary>
+    /// <remarks>
+    /// Polynom: x⁸ + x² + x + 1 (0x07)
+    /// Initial value: 0x00
+    /// Reflect In: No
+    /// Reflect Out: No
+    /// Output XOR: 0x55
+    /// </remarks>
+    public static Crc8 GetAtm() {
+        return GetI4321();
+    }
+
+    /// <summary>
     /// Returns CRC-8/I-CODE variant.
     /// </summary>
     /// <remarks>
@@ -262,7 +276,6 @@ public sealed class Crc8 : HashAlgorithm {
     /// </remarks>
     public static Crc8 GetICode() {
         return new Crc8(0x1D, 0xBF, false, false, 0x00);
-        //return new Crc8(0x1D, 0xFD, true, false, 0x00);
     }
 
     /// <summary>
@@ -378,6 +391,21 @@ public sealed class Crc8 : HashAlgorithm {
     /// </remarks>
     public static Crc8 GetOpenSafety() {
         return new Crc8(0x2F, 0x00, false, false, 0x00);
+    }
+
+    /// <summary>
+    /// Returns the CRC-8/C2 CRC-8 variant.
+    /// More widely known as CRC-8/OpenSAFETY.
+    /// </summary>
+    /// <remarks>
+    /// Polynom: x⁸ + x⁵ + x³ + x² + x + 1 (0x2F)
+    /// Initial value: 0x00
+    /// Reflect In: No
+    /// Reflect Out: No
+    /// Output XOR: 0x00
+    /// </remarks>
+    public static Crc8 GetC2() {
+        return GetOpenSafety();
     }
 
     /// <summary>
@@ -554,5 +582,29 @@ public sealed class Crc8 : HashAlgorithm {
             }
         }
     }
+
+
+    #region ReciprocalPolynomial
+
+    /// <summary>
+    /// Converts polynomial to its reversed reciprocal form.
+    /// </summary>
+    /// <param name="polynomial">Polynomial.</param>
+    /// <returns></returns>
+    public static byte ToReversedReciprocalPolynomial(byte polynomial) {
+        return (byte)((polynomial >> 1) | 0x80);
+    }
+
+    /// <summary>
+    /// Converts polynomial from its reversed reciprocal to normal form.
+    /// </summary>
+    /// <param name="reversedReciprocalPolynomial">Reversed reciprocal polynomial.</param>
+    /// <returns></returns>
+    public static byte FromReversedReciprocalPolynomial(byte reversedReciprocalPolynomial) {
+        return (byte)((reversedReciprocalPolynomial << 1) | 0x01);
+    }
+
+
+    #endregion ReciprocalPolynomial
 
 }
