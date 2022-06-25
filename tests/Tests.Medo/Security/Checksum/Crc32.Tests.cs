@@ -293,5 +293,50 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal("1A657BE2", checksum.HashAsInt32.ToString("X8"));
         }
 
+
+        [Fact(DisplayName = "Crc32: Convert polynomial to reversed reciprocal")]
+        public void ToReversedReciprocal() {
+            unchecked {
+                Assert.Equal((int)0x82608EDB, Crc32.ToReversedReciprocalPolynomial((int)0x04C11DB7));
+                Assert.Equal((int)0x8F6E37A0, Crc32.ToReversedReciprocalPolynomial((int)0x1EDC6F41));
+                Assert.Equal((int)0xBA0DC66B, Crc32.ToReversedReciprocalPolynomial((int)0x741B8CD7));
+                Assert.Equal((int)0x992C1A4C, Crc32.ToReversedReciprocalPolynomial((int)0x32583499));
+                Assert.Equal((int)0xC0A0A0D5, Crc32.ToReversedReciprocalPolynomial((int)0x814141AB));
+            }
+        }
+
+        [Fact(DisplayName = "Crc32: Convert from reversed reciprocal polynomial")]
+        public void FromReversedReciprocal() {
+            unchecked {
+                Assert.Equal((int)0x04C11DB7, Crc32.FromReversedReciprocalPolynomial((int)0x82608EDB));
+                Assert.Equal((int)0x1EDC6F41, Crc32.FromReversedReciprocalPolynomial((int)0x8F6E37A0));
+                Assert.Equal((int)0x741B8CD7, Crc32.FromReversedReciprocalPolynomial((int)0xBA0DC66B));
+                Assert.Equal((int)0x32583499, Crc32.FromReversedReciprocalPolynomial((int)0x992C1A4C));
+                Assert.Equal((int)0x814141AB, Crc32.FromReversedReciprocalPolynomial((int)0xC0A0A0D5));
+            }
+        }
+
+        [Fact(DisplayName = "Crc32: Convert polynomial to reversed reciprocal (long)")]
+        public void ToReversedReciprocal2() {
+            unchecked {
+                Assert.Equal((int)0x82608EDB, Crc32.ToReversedReciprocalPolynomial(0x04C11DB7L));
+                Assert.Equal((int)0x8F6E37A0, Crc32.ToReversedReciprocalPolynomial(0x1EDC6F41L));
+                Assert.Equal((int)0xBA0DC66B, Crc32.ToReversedReciprocalPolynomial(0x741B8CD7L));
+                Assert.Equal((int)0x992C1A4C, Crc32.ToReversedReciprocalPolynomial(0x32583499L));
+                Assert.Equal((int)0xC0A0A0D5, Crc32.ToReversedReciprocalPolynomial(0x814141ABL));
+            }
+        }
+
+        [Fact(DisplayName = "Crc32: Convert from reversed reciprocal polynomial (long)")]
+        public void FromReversedReciprocal2() {
+            unchecked {
+                Assert.Equal((int)0x04C11DB7, Crc32.FromReversedReciprocalPolynomial(0x82608EDBL));
+                Assert.Equal((int)0x1EDC6F41, Crc32.FromReversedReciprocalPolynomial(0x8F6E37A0L));
+                Assert.Equal((int)0x741B8CD7, Crc32.FromReversedReciprocalPolynomial(0xBA0DC66BL));
+                Assert.Equal((int)0x32583499, Crc32.FromReversedReciprocalPolynomial(0x992C1A4CL));
+                Assert.Equal((int)0x814141AB, Crc32.FromReversedReciprocalPolynomial(0xC0A0A0D5L));
+            }
+        }
+
     }
 }
