@@ -1001,4 +1001,45 @@ public sealed class Crc16 : HashAlgorithm {
         }
     }
 
+
+    #region ReciprocalPolynomial
+
+    /// <summary>
+    /// Converts polynomial to its reversed reciprocal form.
+    /// </summary>
+    /// <param name="polynomial">Polynomial.</param>
+    public static short ToReversedReciprocalPolynomial(short polynomial) {
+        return unchecked((short)((polynomial >> 1) | 0x8000));
+    }
+
+    /// <summary>
+    /// Converts polynomial to its reversed reciprocal form.
+    /// </summary>
+    /// <param name="polynomial">Polynomial.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Value must be between 0x0000 and 0xFFFF.</exception>
+    public static short ToReversedReciprocalPolynomial(int polynomial) {
+        if (polynomial is < 0 or > ushort.MaxValue) { throw new ArgumentOutOfRangeException(nameof(polynomial), "Value must be between 0x0000 and 0xFFFF."); }
+        return unchecked(ToReversedReciprocalPolynomial((short)polynomial));
+    }
+
+    /// <summary>
+    /// Converts polynomial from its reversed reciprocal to normal form.
+    /// </summary>
+    /// <param name="reversedReciprocalPolynomial">Reversed reciprocal polynomial.</param>
+    public static short FromReversedReciprocalPolynomial(short reversedReciprocalPolynomial) {
+        return unchecked((short)((reversedReciprocalPolynomial << 1) | 0x01));
+    }
+
+    /// <summary>
+    /// Converts polynomial from its reversed reciprocal to normal form.
+    /// </summary>
+    /// <param name="reversedReciprocalPolynomial">Reversed reciprocal polynomial.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Value must be between 0x0000 and 0xFFFF.</exception>
+    public static short FromReversedReciprocalPolynomial(int reversedReciprocalPolynomial) {
+        if (reversedReciprocalPolynomial is < 0 or > ushort.MaxValue) { throw new ArgumentOutOfRangeException(nameof(reversedReciprocalPolynomial), "Value must be between 0x0000 and 0xFFFF."); }
+        return unchecked(FromReversedReciprocalPolynomial((short)reversedReciprocalPolynomial));
+    }
+
+    #endregion ReciprocalPolynomial
+
 }

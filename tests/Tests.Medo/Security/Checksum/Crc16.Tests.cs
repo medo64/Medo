@@ -658,5 +658,74 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal("178C", checksum.HashAsInt16.ToString("X4"));
         }
 
+
+        [Fact(DisplayName = "Crc16: Convert polynomial to reversed reciprocal")]
+        public void ToReversedReciprocal() {
+            unchecked {
+                Assert.Equal((short)0x978A, Crc16.ToReversedReciprocalPolynomial((short)0x2F15));
+                Assert.Equal((short)0xD015, Crc16.ToReversedReciprocalPolynomial((short)0xA02B));
+                Assert.Equal((short)0x8810, Crc16.ToReversedReciprocalPolynomial((short)0x1021));
+                Assert.Equal((short)0xE433, Crc16.ToReversedReciprocalPolynomial((short)0xC867));
+                Assert.Equal((short)0x82C4, Crc16.ToReversedReciprocalPolynomial((short)0x0589));
+                Assert.Equal((short)0xC5DB, Crc16.ToReversedReciprocalPolynomial((short)0x8BB7));
+                Assert.Equal((short)0x9EB2, Crc16.ToReversedReciprocalPolynomial((short)0x3D65));
+                Assert.Equal((short)0xC002, Crc16.ToReversedReciprocalPolynomial((short)0x8005));
+                Assert.Equal((short)0xAC9A, Crc16.ToReversedReciprocalPolynomial((short)0x5935));
+                Assert.Equal((short)0xBAAD, Crc16.ToReversedReciprocalPolynomial((short)0x755B));
+                Assert.Equal((short)0x8EE7, Crc16.ToReversedReciprocalPolynomial((short)0x1DCF));
+            }
+        }
+
+        [Fact(DisplayName = "Crc16: Convert from reversed reciprocal polynomial")]
+        public void FromReversedReciprocal() {
+            unchecked {
+                Assert.Equal((short)0x2F15, Crc16.FromReversedReciprocalPolynomial((short)0x978A));
+                Assert.Equal((short)0xA02B, Crc16.FromReversedReciprocalPolynomial((short)0xD015));
+                Assert.Equal((short)0x1021, Crc16.FromReversedReciprocalPolynomial((short)0x8810));
+                Assert.Equal((short)0xC867, Crc16.FromReversedReciprocalPolynomial((short)0xE433));
+                Assert.Equal((short)0x0589, Crc16.FromReversedReciprocalPolynomial((short)0x82C4));
+                Assert.Equal((short)0x8BB7, Crc16.FromReversedReciprocalPolynomial((short)0xC5DB));
+                Assert.Equal((short)0x3D65, Crc16.FromReversedReciprocalPolynomial((short)0x9EB2));
+                Assert.Equal((short)0x8005, Crc16.FromReversedReciprocalPolynomial((short)0xC002));
+                Assert.Equal((short)0x5935, Crc16.FromReversedReciprocalPolynomial((short)0xAC9A));
+                Assert.Equal((short)0x755B, Crc16.FromReversedReciprocalPolynomial((short)0xBAAD));
+                Assert.Equal((short)0x1DCF, Crc16.FromReversedReciprocalPolynomial((short)0x8EE7));
+            }
+        }
+
+        [Fact(DisplayName = "Crc16: Convert polynomial to reversed reciprocal (int)")]
+        public void ToReversedReciprocal2() {
+            unchecked {
+                Assert.Equal((short)0x978A, Crc16.ToReversedReciprocalPolynomial((int)0x2F15));
+                Assert.Equal((short)0xD015, Crc16.ToReversedReciprocalPolynomial((int)0xA02B));
+                Assert.Equal((short)0x8810, Crc16.ToReversedReciprocalPolynomial((int)0x1021));
+                Assert.Equal((short)0xE433, Crc16.ToReversedReciprocalPolynomial((int)0xC867));
+                Assert.Equal((short)0x82C4, Crc16.ToReversedReciprocalPolynomial((int)0x0589));
+                Assert.Equal((short)0xC5DB, Crc16.ToReversedReciprocalPolynomial((int)0x8BB7));
+                Assert.Equal((short)0x9EB2, Crc16.ToReversedReciprocalPolynomial((int)0x3D65));
+                Assert.Equal((short)0xC002, Crc16.ToReversedReciprocalPolynomial((int)0x8005));
+                Assert.Equal((short)0xAC9A, Crc16.ToReversedReciprocalPolynomial((int)0x5935));
+                Assert.Equal((short)0xBAAD, Crc16.ToReversedReciprocalPolynomial((int)0x755B));
+                Assert.Equal((short)0x8EE7, Crc16.ToReversedReciprocalPolynomial((int)0x1DCF));
+            }
+        }
+
+        [Fact(DisplayName = "Crc16: Convert from reversed reciprocal polynomial (int)")]
+        public void FromReversedReciprocal2() {
+            unchecked {
+                Assert.Equal((short)0x2F15, Crc16.FromReversedReciprocalPolynomial((int)0x978A));
+                Assert.Equal((short)0xA02B, Crc16.FromReversedReciprocalPolynomial((int)0xD015));
+                Assert.Equal((short)0x1021, Crc16.FromReversedReciprocalPolynomial((int)0x8810));
+                Assert.Equal((short)0xC867, Crc16.FromReversedReciprocalPolynomial((int)0xE433));
+                Assert.Equal((short)0x0589, Crc16.FromReversedReciprocalPolynomial((int)0x82C4));
+                Assert.Equal((short)0x8BB7, Crc16.FromReversedReciprocalPolynomial((int)0xC5DB));
+                Assert.Equal((short)0x3D65, Crc16.FromReversedReciprocalPolynomial((int)0x9EB2));
+                Assert.Equal((short)0x8005, Crc16.FromReversedReciprocalPolynomial((int)0xC002));
+                Assert.Equal((short)0x5935, Crc16.FromReversedReciprocalPolynomial((int)0xAC9A));
+                Assert.Equal((short)0x755B, Crc16.FromReversedReciprocalPolynomial((int)0xBAAD));
+                Assert.Equal((short)0x1DCF, Crc16.FromReversedReciprocalPolynomial((int)0x8EE7));
+            }
+        }
+
     }
 }
