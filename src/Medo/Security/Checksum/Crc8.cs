@@ -62,7 +62,6 @@ public sealed class Crc8 : HashAlgorithm {
     /// <remarks>
     /// Name                         Polynomial                         Init  Xor   Reflect
     /// ----------------------------------------------------------------------------------------
-    /// Default                      0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0x00  0x00  -
     /// AUTOSAR                      0x2F (x⁸ + x⁵ + x³ + x² + x + 1)   0xFF  0xFF  -
     /// BLUETOOTH                    0xA7 (x⁸ + x⁷ + x⁵ + x² + x + 1)   0x00  0x00  In/Out
     /// CDMA2000                     0x9B (x⁸ + x⁷ +  x⁴ + x³ + x + 1)  0xFF  0x00  -

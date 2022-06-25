@@ -332,6 +332,34 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(0x3E, crc.HashAsByte);
         }
 
+        [Fact(DisplayName = "Crc8: OPENSAFETY (3)")]
+        public void OpenSafety_3() {
+            var crc = Crc8.GetOpenSafety();
+            crc.ComputeHash(new byte[] { 0x02, 0xA8, 0x06, 0x00, 0x00, 0x60, 0x65, 0x00, 0x06, 0xA1 });
+            Assert.Equal(0x1C, crc.HashAsByte);
+        }
+
+        [Fact(DisplayName = "Crc8: OPENSAFETY (4)")]
+        public void OpenSafety_4() {
+            var crc = Crc8.GetOpenSafety();
+            crc.ComputeHash(new byte[] { 0x03, 0xA8, 0x00, 0x01, 0x00, 0x00, 0x60, 0x65, 0x00, 0x06, 0xA1 });
+            Assert.Equal(0x31, crc.HashAsByte);
+        }
+
+        [Fact(DisplayName = "Crc8: OPENSAFETY (5)")]
+        public void OpenSafety_5() {
+            var crc = Crc8.GetOpenSafety();
+            crc.ComputeHash(new byte[] { 0x03, 0xC4, 0x02, 0x9D, 0x00, 0x0F });
+            Assert.Equal(0x9D, crc.HashAsByte);
+        }
+
+        [Fact(DisplayName = "Crc8: OPENSAFETY (6)")]
+        public void OpenSafety_6() {
+            var crc = Crc8.GetOpenSafety();
+            crc.ComputeHash(new byte[] { 0x03, 0xC4, 0x02, 0x82, 0x00, 0x0F });
+            Assert.Equal(0x27, crc.HashAsByte);
+        }
+
         [Fact(DisplayName = "Crc8: C2")]
         public void C2() {
             string expected = "0x15";
