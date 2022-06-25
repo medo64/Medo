@@ -313,6 +313,23 @@ namespace Tests.Medo.Security.Checksum {
                 Assert.Equal((int)0x741B8CD7, Crc32.FromReversedReciprocalPolynomial((int)0xBA0DC66B));
                 Assert.Equal((int)0x32583499, Crc32.FromReversedReciprocalPolynomial((int)0x992C1A4C));
                 Assert.Equal((int)0x814141AB, Crc32.FromReversedReciprocalPolynomial((int)0xC0A0A0D5));
+
+                Assert.Equal((int)0x5A0849E7, Crc32.FromReversedReciprocalPolynomial((int)0xAD0424F3));  // 4294967263 @ HD=3
+                Assert.Equal((int)0x93A409EB, Crc32.FromReversedReciprocalPolynomial((int)0xC9D204F5));  // 2147483615 @ HD=4
+                Assert.Equal((int)0xA833982B, Crc32.FromReversedReciprocalPolynomial((int)0xD419CC15));  // 65505 @ HD=5
+                Assert.Equal((int)0x32C00699, Crc32.FromReversedReciprocalPolynomial((int)0x9960034C));  // 32738 @ HD=6
+                Assert.Equal((int)0xF1922815, Crc32.FromReversedReciprocalPolynomial((int)0xF8C9140A));  // 992 @ HD=7
+                Assert.Equal((int)0xF1922815, Crc32.FromReversedReciprocalPolynomial((int)0xF8C9140A));  // 992 @ HD=8
+                Assert.Equal((int)0x3AFF2FAD, Crc32.FromReversedReciprocalPolynomial((int)0x9D7F97D6));  // 223 @ HD=9
+                Assert.Equal((int)0x6938392D, Crc32.FromReversedReciprocalPolynomial((int)0xB49C1C96));  // 100 @ HD=10
+                Assert.Equal((int)0xB72AC3B, Crc32.FromReversedReciprocalPolynomial((int)0x85B9561D));  // 38 @ HD=11
+                Assert.Equal((int)0x2A1D7F5D, Crc32.FromReversedReciprocalPolynomial((int)0x950EBFAE));  // 36 @ HD=12
+                Assert.Equal((int)0x27673637, Crc32.FromReversedReciprocalPolynomial((int)0x93B39B1B));  // 20 @ HD=13
+                Assert.Equal((int)0x41295F6B, Crc32.FromReversedReciprocalPolynomial((int)0xA094AFB5));  // 19 @ HD=14
+                Assert.Equal((int)0x44AE52C5, Crc32.FromReversedReciprocalPolynomial((int)0xA2572962));  // 15 @ HD=15
+                Assert.Equal((int)0xD120C3B7, Crc32.FromReversedReciprocalPolynomial((int)0xE89061DB));  // 13 @ HD=16
+                Assert.Equal((int)0x50D7C9B7, Crc32.FromReversedReciprocalPolynomial((int)0xA86bE4DB));  // 7 @ HD=17
+                Assert.Equal((int)0x2E75F6A3, Crc32.FromReversedReciprocalPolynomial((int)0x973AFB51));  // 5 @ HD=18
             }
         }
 

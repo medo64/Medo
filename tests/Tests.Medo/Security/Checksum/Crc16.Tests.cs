@@ -719,11 +719,18 @@ namespace Tests.Medo.Security.Checksum {
                 Assert.Equal((short)0xC867, Crc16.FromReversedReciprocalPolynomial((int)0xE433));
                 Assert.Equal((short)0x0589, Crc16.FromReversedReciprocalPolynomial((int)0x82C4));
                 Assert.Equal((short)0x8BB7, Crc16.FromReversedReciprocalPolynomial((int)0xC5DB));
-                Assert.Equal((short)0x3D65, Crc16.FromReversedReciprocalPolynomial((int)0x9EB2));
+                Assert.Equal((short)0x3D65, Crc16.FromReversedReciprocalPolynomial((int)0x9EB2));  // 135 @ HD=6
                 Assert.Equal((short)0x8005, Crc16.FromReversedReciprocalPolynomial((int)0xC002));
-                Assert.Equal((short)0x5935, Crc16.FromReversedReciprocalPolynomial((int)0xAC9A));
+                Assert.Equal((short)0x5935, Crc16.FromReversedReciprocalPolynomial((int)0xAC9A));  // 241 @ HD=5
                 Assert.Equal((short)0x755B, Crc16.FromReversedReciprocalPolynomial((int)0xBAAD));
                 Assert.Equal((short)0x1DCF, Crc16.FromReversedReciprocalPolynomial((int)0x8EE7));
+
+                Assert.Equal((short)0xA2EB, Crc16.FromReversedReciprocalPolynomial((int)0xD175));  // 32751 @ HD=4
+                Assert.Equal((short)0x1B2B, Crc16.FromReversedReciprocalPolynomial((int)0x8D95));  // 65519 @ HD=3
+                Assert.Equal((short)0x2D17, Crc16.FromReversedReciprocalPolynomial((int)0x968B));  // 19 @ HD=7
+                Assert.Equal((short)0x1FB7, Crc16.FromReversedReciprocalPolynomial((int)0x8FDB));  // 15 @ HD=8
+                Assert.Equal((short)0xD25F, Crc16.FromReversedReciprocalPolynomial((int)0xE92F));  // 6 @ HD=9
+                Assert.Equal((short)0xDA5F, Crc16.FromReversedReciprocalPolynomial((int)0xED2F));  // 5 @ HD=10
             }
         }
 

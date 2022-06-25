@@ -450,12 +450,16 @@ namespace Tests.Medo.Security.Checksum {
             Assert.Equal(0xD5, Crc8.FromReversedReciprocalPolynomial(0xEA));
             Assert.Equal(0x2F, Crc8.FromReversedReciprocalPolynomial(0x97));
             Assert.Equal(0xA7, Crc8.FromReversedReciprocalPolynomial(0xD3));
-            Assert.Equal(0x07, Crc8.FromReversedReciprocalPolynomial(0x83));
+            Assert.Equal(0x07, Crc8.FromReversedReciprocalPolynomial(0x83));  // 119 @ HD=4
             Assert.Equal(0x31, Crc8.FromReversedReciprocalPolynomial(0x98));
             Assert.Equal(0x39, Crc8.FromReversedReciprocalPolynomial(0x9C));
             Assert.Equal(0x49, Crc8.FromReversedReciprocalPolynomial(0xA4));
             Assert.Equal(0x1D, Crc8.FromReversedReciprocalPolynomial(0x8E));
             Assert.Equal(0x9B, Crc8.FromReversedReciprocalPolynomial(0xCD));
+
+            Assert.Equal(0xCF, Crc8.FromReversedReciprocalPolynomial(0xE7));  // 247 @ HD=3
+            Assert.Equal(0xD7, Crc8.FromReversedReciprocalPolynomial(0xEB));  // 9 @ HD=5
+            Assert.Equal(0x37, Crc8.FromReversedReciprocalPolynomial(0x9B));  // 4 @ HD=6
         }
 
     }
