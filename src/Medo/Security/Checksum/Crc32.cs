@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-06-24: Obsoleted default constructor in favor of GetCustom method
 //2022-01-05: Added more variants
 //            Fixed big-endian system operation
 //2021-03-06: Refactored for .NET 5
@@ -46,12 +47,44 @@ public sealed class Crc32 : HashAlgorithm {
     /// Reflect Out: Yes
     /// Output XOR: 0xFFFFFFFF
     /// </remarks>
+    [Obsolete("Use GetCustom instead")]
     public Crc32()
-        : this((uint)0x04C11DB7, (uint)0xFFFFFFFF, true, true, (uint)0xFFFFFFFF) {
+        : this(0x04C11DB7, 0xFFFFFFFF, true, true, 0xFFFFFFFF) {
     }
 
     /// <summary>
     /// Creates new instance.
+    /// </summary>
+    /// <param name="polynomial">Polynomial value.</param>
+    /// <param name="initialValue">Starting digest.</param>
+    /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
+    /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
+    /// <param name="finalXorValue">Final XOR value.</param>
+    [Obsolete("Use GetCustom instead")]
+    public Crc32(int polynomial, int initialValue, bool reflectIn, bool reflectOut, int finalXorValue)
+        : this(unchecked((uint)polynomial), unchecked((uint)initialValue), reflectIn, reflectOut, unchecked((uint)finalXorValue)) {
+    }
+
+    /// <summary>
+    /// Creates new instance.
+    /// </summary>
+    /// <param name="polynomial">Polynomial value.</param>
+    /// <param name="initialValue">Starting digest.</param>
+    /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
+    /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
+    /// <param name="finalXorValue">Final XOR value.</param>
+    private Crc32(uint polynomial, uint initialValue, bool reflectIn, bool reflectOut, uint finalXorValue) {
+        _polynomial = polynomial;
+        _initialValue = initialValue;
+        _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
+        _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
+        _finalXorValue = finalXorValue;
+        ProcessInitialization();
+    }
+
+
+    /// <summary>
+    /// Returns a custom CRC-32 variant.
     /// </summary>
     /// <param name="polynomial">Polynomial value.</param>
     /// <param name="initialValue">Starting digest.</param>
@@ -77,19 +110,9 @@ public sealed class Crc32 : HashAlgorithm {
     /// - https://reveng.sourceforge.io/crc-catalogue/17plus.htm
     /// - https://users.ece.cmu.edu/~koopman/crc/index.html
     /// </remarks>
-    public Crc32(int polynomial, int initialValue, bool reflectIn, bool reflectOut, int finalXorValue)
-        : this(unchecked((uint)polynomial), unchecked((uint)initialValue), reflectIn, reflectOut, unchecked((uint)finalXorValue)) {
+    public static Crc32 GetCustom(int polynomial, int initialValue, bool reflectIn, bool reflectOut, int finalXorValue) {
+        return new Crc32((uint)polynomial, (uint)initialValue, reflectIn, reflectOut, (uint)finalXorValue);
     }
-
-    private Crc32(uint polynomial, uint initialValue, bool reflectIn, bool reflectOut, uint finalXorValue) {
-        _polynomial = polynomial;
-        _initialValue = initialValue;
-        _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
-        _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
-        _finalXorValue = finalXorValue;
-        ProcessInitialization();
-    }
-
 
     /// <summary>
     /// Returns CRC-32/AIXM variant.

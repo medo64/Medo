@@ -6,10 +6,10 @@ using Medo.Security.Checksum;
 namespace Tests.Medo.Security.Checksum {
     public class Crc32Tests {
 
-        [Fact(DisplayName = "Crc32: Default")]
-        public void Default() {
+        [Fact(DisplayName = "Crc32: Custom")]
+        public void Custom() {
             string expected = "0x1A657BE2";
-            var crc = new Crc32();
+            var crc = Crc32.GetCustom(0x04C11DB7, unchecked((int)0xFFFFFFFF), true, true, unchecked((int)0xFFFFFFFF));
             crc.ComputeHash(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
             Assert.Equal(expected, $"0x{crc.HashAsInt32:X8}");
             Assert.Equal(expected, "0x" + BitConverter.ToString(crc.Hash).Replace("-", ""));
