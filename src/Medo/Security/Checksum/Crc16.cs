@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-06-24: Obsoleted default constructor in favor of GetCustom method
 //2022-01-05: Added more variants
 //            Fixed big-endian system operation
 //2021-03-06: Refactored for .NET 5
@@ -48,12 +49,44 @@ public sealed class Crc16 : HashAlgorithm {
     /// Reflect Out: Yes
     /// Output XOR: 0x0000
     /// </remarks>
+    [Obsolete("Use GetCustom instead")]
     public Crc16()
-        : this((ushort)0x8005, 0x0000, true, true, 0x0000) {
+        : this(0x8005, 0x0000, true, true, 0x0000) {
     }
 
     /// <summary>
     /// Creates new instance.
+    /// </summary>
+    /// <param name="polynomial">Polynomial value.</param>
+    /// <param name="initialValue">Starting digest.</param>
+    /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
+    /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
+    /// <param name="finalXorValue">Final XOR value.</param>
+    [Obsolete("Use GetCustom instead")]
+    public Crc16(short polynomial, short initialValue, bool reflectIn, bool reflectOut, short finalXorValue)
+        : this(unchecked((ushort)polynomial), unchecked((ushort)initialValue), reflectIn, reflectOut, unchecked((ushort)finalXorValue)) {
+    }
+
+    /// <summary>
+    /// Creates new instance.
+    /// </summary>
+    /// <param name="polynomial">Polynomial value.</param>
+    /// <param name="initialValue">Starting digest.</param>
+    /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
+    /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
+    /// <param name="finalXorValue">Final XOR value.</param>
+    private Crc16(ushort polynomial, ushort initialValue, bool reflectIn, bool reflectOut, ushort finalXorValue) {
+        _polynomial = polynomial;
+        _initialValue = initialValue;
+        _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
+        _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
+        _finalXorValue = finalXorValue;
+        ProcessInitialization();
+    }
+
+
+    /// <summary>
+    /// Returns a custom CRC-16 variant.
     /// </summary>
     /// <param name="polynomial">Polynomial value.</param>
     /// <param name="initialValue">Starting digest.</param>
@@ -100,33 +133,8 @@ public sealed class Crc16 : HashAlgorithm {
     /// - https://users.ece.cmu.edu/~koopman/crc/index.html
     /// </remarks>
     /// </remarks>
-    public Crc16(short polynomial, short initialValue, bool reflectIn, bool reflectOut, short finalXorValue)
-        : this(unchecked((ushort)polynomial), unchecked((ushort)initialValue), reflectIn, reflectOut, unchecked((ushort)finalXorValue)) {
-    }
-
-    private Crc16(ushort polynomial, ushort initialValue, bool reflectIn, bool reflectOut, ushort finalXorValue) {
-        _polynomial = polynomial;
-        _initialValue = initialValue;
-        _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
-        _reverseOut = reflectOut ^ BitConverter.IsLittleEndian;
-        _finalXorValue = finalXorValue;
-        ProcessInitialization();
-    }
-
-
-    /// <summary>
-    /// Returns the default CRC-16 variant.
-    /// Also known as CRC-16/ARC.
-    /// </summary>
-    /// <remarks>
-    /// Polynom: 0x8005
-    /// Initial value: 0x0000
-    /// Reflect In: Yes
-    /// Reflect Out: Yes
-    /// Output XOR: 0x0000
-    /// </remarks>
-    public static Crc16 GetDefault() {
-        return new Crc16();
+    public static Crc16 GetCustom(short polynomial, short initialValue, bool reflectIn, bool reflectOut, short finalXorValue) {
+        return new Crc16((ushort)polynomial, (ushort)initialValue, reflectIn, reflectOut, (ushort)finalXorValue);
     }
 
 
@@ -824,7 +832,7 @@ public sealed class Crc16 : HashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetXModem() {
-        return new Crc16(unchecked((short)0x1021), 0x0000, false, false, 0x0000);
+        return new Crc16((ushort)0x1021, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
