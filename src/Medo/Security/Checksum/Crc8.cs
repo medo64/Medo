@@ -387,6 +387,24 @@ public sealed class Crc8 : HashAlgorithm {
     /// Reflect In: No
     /// Reflect Out: No
     /// Output XOR: 0x00
+    ///
+    /// On microcontrollers it could be implemented as:
+    /// <code>
+    /// uint8_t crc8(uint8_t* data, uint8_t length) {
+    ///     uint8_t crc = 0;
+    ///     while (length--) {
+    ///         crc ^= *data++;
+    ///         for (uint8_t i = 0; i < 8; i++) {
+    ///             if (crc & 0x80) {
+    ///                 crc = (uint8_t)(crc << 1u) ^ 0x2F;
+    ///             } else {
+    ///                 crc <<= 1u;
+    ///             }
+    ///         }
+    ///     }
+    ///     return crc;
+    /// }
+    /// </code>
     /// </remarks>
     public static Crc8 GetOpenSafety() {
         return new Crc8(0x2F, 0x00, false, false, 0x00);
