@@ -762,6 +762,11 @@ public interface IBBPacket {
     public byte? ToAddress { get; }
 
     /// <summary>
+    /// Gets command code.
+    /// </summary>
+    public byte CommandCode { get; }
+
+    /// <summary>
     /// Returns data bytes for the packet.
     /// </summary>
     public byte[] Data { get; }
@@ -779,6 +784,19 @@ public interface IBBPacket {
 /// Packet that is sent by the host.
 /// </summary>
 public interface IBBHostPacket : IBBPacket {
+
+    /// <summary>
+    /// Address to which packet is destined.
+    /// 0 if packet is broadcast.
+    /// 1-127 otherwise.
+    /// </summary>
+    public byte DestinationAddress { get; }
+
+    /// <summary>
+    /// Gets if reply to this packet is requested from a device.
+    /// </summary>
+    public bool IsReplyRequested { get; }
+
 }
 
 
@@ -786,6 +804,19 @@ public interface IBBHostPacket : IBBPacket {
 /// Packet that is sent by the device.
 /// </summary>
 public interface IBBDevicePacket : IBBPacket {
+
+    /// <summary>
+    /// Address from which packet originated.
+    /// 0 if packet originated from unknown device.
+    /// 1-127 otherwise.
+    /// </summary>
+    public byte SourceAddress { get; }
+
+    /// <summary>
+    /// Gets if this is an error reply.
+    /// </summary>
+    public bool IsErrorReply { get; }
+
 }
 
 
@@ -813,7 +844,7 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// <summary>
     /// Gets if reply to this packet is requested from a device.
     /// </summary>
-    public bool ReplyRequested {
+    public bool IsReplyRequested {
         get => IsReplyRequestOrError;
     }
 
@@ -960,7 +991,7 @@ public sealed record BBCustomReplyPacket : BBPacket, IBBDevicePacket {
     /// <summary>
     /// Gets if this is an error reply.
     /// </summary>
-    public bool IsError {
+    public bool IsErrorReply {
         get => IsReplyRequestOrError;
     }
 
@@ -1068,6 +1099,13 @@ public sealed record BBSystemHostPacket : BBPacket, IBBHostPacket {
     }
 
     /// <summary>
+    /// Gets if reply to this packet is requested from a device.
+    /// </summary>
+    public bool IsReplyRequested {
+        get => IsReplyRequestOrError;
+    }
+
+    /// <summary>
     /// Gets action requested.
     /// </summary>
     public byte Action {
@@ -1116,7 +1154,7 @@ public sealed record BBSystemDevicePacket : BBPacket, IBBDevicePacket {
     /// <summary>
     /// Gets if this is an error reply.
     /// </summary>
-    public bool IsError {
+    public bool IsErrorReply {
         get => IsReplyRequestOrError;
     }
 
@@ -1209,7 +1247,7 @@ public sealed record BBPingPacket : BBPacket, IBBHostPacket {
     /// <summary>
     /// Gets if reply to this packet is requested from a device.
     /// </summary>
-    public bool ReplyRequested {
+    public bool IsReplyRequested {
         get => IsReplyRequestOrError;
     }
 
@@ -1276,7 +1314,7 @@ public sealed record BBPingReplyPacket : BBPacket, IBBDevicePacket {
     /// <summary>
     /// Gets if this is an error reply.
     /// </summary>
-    public bool ErrorReply {
+    public bool IsErrorReply {
         get => IsReplyRequestOrError;
     }
 
@@ -1390,7 +1428,7 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// <summary>
     /// Gets if reply to this packet is requested from a device.
     /// </summary>
-    public bool ReplyRequested {
+    public bool IsReplyRequested {
         get => IsReplyRequestOrError;
     }
 
@@ -1566,7 +1604,7 @@ public sealed record BBStatusReplyPacket : BBPacket, IBBDevicePacket {
     /// <summary>
     /// Gets if this is an error reply.
     /// </summary>
-    public bool ErrorReply {
+    public bool IsErrorReply {
         get => IsReplyRequestOrError;
     }
 
@@ -1664,7 +1702,7 @@ public sealed record BBAddressPacket : BBPacket, IBBHostPacket {
     /// <summary>
     /// Gets if reply to this packet is requested from a device.
     /// </summary>
-    public bool ReplyRequested {
+    public bool IsReplyRequested {
         get => IsReplyRequestOrError;
     }
 
@@ -1747,7 +1785,7 @@ public sealed record BBAddressReplyPacket : BBPacket, IBBDevicePacket {
     /// <summary>
     /// Gets if this is an error reply.
     /// </summary>
-    public bool ErrorReply {
+    public bool IsErrorReply {
         get => IsReplyRequestOrError;
     }
 
