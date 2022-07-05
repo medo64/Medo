@@ -6,7 +6,6 @@ namespace Medo.Device;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -23,13 +22,13 @@ public abstract class BearBus : IDisposable {
         if (stream == null) { throw new ArgumentNullException(nameof(stream), "Stream cannot be null."); }
         Stream = stream;
 
-        ReadThread = new Thread(RunRead) {
+        ReceiveThread = new Thread(RunReceive) {
             CurrentCulture = CultureInfo.InvariantCulture,
             IsBackground = true,
             Name = "BearBus:Read",
             Priority = ThreadPriority.Normal
         };
-        ReadThread.Start();
+        ReceiveThread.Start();
     }
 
     private readonly Stream Stream;
@@ -51,21 +50,22 @@ public abstract class BearBus : IDisposable {
     }
 
 
-    #region Read
+    #region Receive
 
-    private readonly Thread ReadThread;
-    private readonly ManualResetEvent ReadCancelEvent = new(initialState: false);
-    private readonly Queue<IBBPacket> ReadQueue = new();
+    private readonly Thread ReceiveThread;
+    private readonly ManualResetEventSlim ReceiveCancelEvent = new(initialState: false);
+    private readonly ManualResetEventSlim ReceiveQueueEvent = new(initialState: false);
+    private readonly Queue<IBBPacket> ReceiveQueue = new();
 
 
     /// <summary>
-    /// Reads one packet if it exists.
+    /// Receives one packet if it exists.
     /// </summary>
     /// <param name="packet">Output packet</param>
-    private protected bool TryRead([MaybeNullWhen(false)] out IBBPacket packet) {
-        lock (ReadQueue) {
-            if (ReadQueue.Count > 0) {
-                packet = ReadQueue.Dequeue();
+    private protected bool TryReceive([MaybeNullWhen(false)] out IBBPacket packet) {
+        lock (ReceiveQueue) {
+            if (ReceiveQueue.Count > 0) {
+                packet = ReceiveQueue.Dequeue();
                 return true;
             } else {
                 packet = null;
@@ -74,16 +74,61 @@ public abstract class BearBus : IDisposable {
         }
     }
 
+    /// <summary>
+    /// Waits until packet is received.
+    /// </summary>
+    private protected IBBPacket Receive() {
+        while (true) {
+            ReceiveQueueEvent.Wait();
+            ReceiveQueueEvent.Reset();
+            if (TryReceive(out var packet)) { return packet; }
+        }
+    }
+
+    /// <summary>
+    /// Receives one packet if it exists.
+    /// </summary>
+    /// <param name="packet">Output packet</param>
+    private protected IBBPacket Receive(CancellationToken cancellationToken) {
+        while (!cancellationToken.IsCancellationRequested) {
+            WaitHandle.WaitAny(new WaitHandle[] { ReceiveQueueEvent.WaitHandle, cancellationToken.WaitHandle });
+            if (cancellationToken.IsCancellationRequested) { break; }
+            ReceiveQueueEvent.Reset();
+            if (TryReceive(out var packet)) { return packet; }
+        }
+        throw new OperationCanceledException("Receive operation was cancelled.", cancellationToken);
+    }
+
+    /// <summary>
+    /// Waits until packet is received.
+    /// </summary>
+    private protected async Task<IBBPacket> ReceiveAsync() {
+        return await Task.Run(() => {
+            return Receive();
+        });
+    }
+
+    /// <summary>
+    /// Waits until packet is received.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    private protected async Task<IBBPacket> ReceiveAsync(CancellationToken cancellationToken) {
+        return await Task.Run(() => {
+            return Receive(cancellationToken);
+        });
+    }
+
+
     private enum ParseState { SearchForHeader, InHeader, HeaderCRC8, ExtraData, DataCRC8, DataCRC16a, DataCRC16b }
     private ParseState ParsingState = ParseState.SearchForHeader;
     private byte ParsedDataCount = 0;
     private readonly byte[] ParsedData = new byte[247]; // maximum packet length
     private byte ParsedExtraDataExpected = 0;
 
-    private void RunRead() {
+    private void RunReceive() {
         var buffer = new byte[1024];
 
-        while (!ReadCancelEvent.WaitOne(0, false)) {
+        while (!ReceiveCancelEvent.Wait(0)) {
             try {
                 var len = Stream.Read(buffer);
                 if (len > 0) {
@@ -110,12 +155,12 @@ public abstract class BearBus : IDisposable {
                                 if (headerCrc8 == ParsedData[4]) {
                                     var hasEmbeededData = (ParsedData[2] & 0x40) == 0x40;
                                     if (hasEmbeededData) {
-                                        EnqueueReadPacket(ParsedData);
+                                        ProcessReceivedPacket(ParsedData);
                                         ParsingState = ParseState.SearchForHeader;  // done with embeeded byte
                                     } else {
                                         ParsedExtraDataExpected = ParsedData[3];
                                         if (ParsedExtraDataExpected == 0) {
-                                            EnqueueReadPacket(ParsedData);
+                                            ProcessReceivedPacket(ParsedData);
                                             ParsingState = ParseState.SearchForHeader;  // done when no data
                                         } else {
                                             ParsingState = ParseState.ExtraData;
@@ -141,7 +186,7 @@ public abstract class BearBus : IDisposable {
                             case ParseState.DataCRC8:
                                 var dataCrc8 = BBPacket.GetCrc8(ParsedData, 4, ParsedDataCount - 4);
                                 if (dataCrc8 == ParsedData[ParsedDataCount]) {
-                                    EnqueueReadPacket(ParsedData);
+                                    ProcessReceivedPacket(ParsedData);
                                 } else {  // CRC not OK
                                     //Debug.WriteLine("[BearBus] Invalid checksum 0x" + ParsedData[ParsedDataCount].ToString("X2") + ", 0x" + dataCrc8.ToString("X2") + " expected");
                                     ParsingState = ParseState.SearchForHeader;
@@ -157,7 +202,7 @@ public abstract class BearBus : IDisposable {
                                 var dataCrc16H = (byte)(dataCrc16 >> 8);
                                 var dataCrc16L = (byte)(dataCrc16 & 0xFF);
                                 if ((dataCrc16H == ParsedData[ParsedDataCount - 1]) && (dataCrc16L == ParsedData[ParsedDataCount])) {
-                                    EnqueueReadPacket(ParsedData);
+                                    ProcessReceivedPacket(ParsedData);
                                 } else {  // CRC not OK
                                     //Debug.WriteLine("[BearBus] Invalid checksum 0x" + ParsedData[ParsedDataCount - 1].ToString("X2") + ParsedData[ParsedDataCount].ToString("X2") + ", 0x" + dataCrc16H.ToString("X2") + dataCrc16L.ToString("X2") + " expected");
                                 }
@@ -178,7 +223,7 @@ public abstract class BearBus : IDisposable {
         }
     }
 
-    private void EnqueueReadPacket(byte[] bytes) {
+    private void ProcessReceivedPacket(byte[] bytes) {
         var isOriginHost = (ParsedData[1] & 0x80) == 0x80;
         var address = (byte)(ParsedData[1] & 0x7F);
         var isReplyOrError = (ParsedData[2] & 0x80) == 0x80;
@@ -187,54 +232,55 @@ public abstract class BearBus : IDisposable {
         var datumOrLength = ParsedData[3];
 
         if (hasEmbeededData) {
-            EnqueueReadPacket(isOriginHost, address, isReplyOrError, commandCode, new byte[] { datumOrLength });
+            EnqueueReceivedPacket(isOriginHost, address, isReplyOrError, commandCode, new byte[] { datumOrLength });
         } else if (datumOrLength == 0) {
-            EnqueueReadPacket(isOriginHost, address, isReplyOrError, commandCode, Array.Empty<byte>());
+            EnqueueReceivedPacket(isOriginHost, address, isReplyOrError, commandCode, Array.Empty<byte>());
         } else {
             var data = new byte[datumOrLength];
             Buffer.BlockCopy(bytes, 5, data, 0, datumOrLength);
-            EnqueueReadPacket(isOriginHost, address, isReplyOrError, commandCode, data);
+            EnqueueReceivedPacket(isOriginHost, address, isReplyOrError, commandCode, data);
         }
     }
 
-    private void EnqueueReadPacket(bool isOriginHost, byte address, bool isReplyOrError, byte commandCode, byte[] data) {
+    private void EnqueueReceivedPacket(bool isOriginHost, byte address, bool isReplyOrError, byte commandCode, byte[] data) {
         if (isOriginHost) {
             switch (commandCode) {
-                case 0x00: ReadQueue.Enqueue(new BBSystemHostPacket(address, data)); break;
-                case 0x3D: ReadQueue.Enqueue(new BBPingPacket(address, isReplyOrError, data)); break;
-                case 0x3E: ReadQueue.Enqueue(new BBStatusPacket(address, isReplyOrError, data)); break;
-                case 0x3F: ReadQueue.Enqueue(new BBAddressPacket(address, isReplyOrError, data)); break;
-                default: ReadQueue.Enqueue(new BBCustomPacket(address, isReplyOrError, commandCode, data)); break;
+                case 0x00: ReceiveQueue.Enqueue(new BBSystemHostPacket(address, data)); break;
+                case 0x3D: ReceiveQueue.Enqueue(new BBPingPacket(address, isReplyOrError, data)); break;
+                case 0x3E: ReceiveQueue.Enqueue(new BBStatusPacket(address, isReplyOrError, data)); break;
+                case 0x3F: ReceiveQueue.Enqueue(new BBAddressPacket(address, isReplyOrError, data)); break;
+                default: ReceiveQueue.Enqueue(new BBCustomPacket(address, isReplyOrError, commandCode, data)); break;
             }
         } else {
             switch (commandCode) {
-                case 0x00: ReadQueue.Enqueue(new BBSystemDevicePacket(address, isReplyOrError, data)); break;
-                case 0x3D: ReadQueue.Enqueue(new BBPingReplyPacket(address, isReplyOrError, data)); break;
-                case 0x3E: ReadQueue.Enqueue(new BBStatusReplyPacket(address, isReplyOrError, data)); break;
-                case 0x3F: ReadQueue.Enqueue(new BBAddressReplyPacket(address, isReplyOrError, data)); break;
-                default: ReadQueue.Enqueue(new BBCustomReplyPacket(address, isReplyOrError, commandCode, data)); break;
+                case 0x00: ReceiveQueue.Enqueue(new BBSystemDevicePacket(address, isReplyOrError, data)); break;
+                case 0x3D: ReceiveQueue.Enqueue(new BBPingReplyPacket(address, isReplyOrError, data)); break;
+                case 0x3E: ReceiveQueue.Enqueue(new BBStatusReplyPacket(address, isReplyOrError, data)); break;
+                case 0x3F: ReceiveQueue.Enqueue(new BBAddressReplyPacket(address, isReplyOrError, data)); break;
+                default: ReceiveQueue.Enqueue(new BBCustomReplyPacket(address, isReplyOrError, commandCode, data)); break;
             }
         }
+        ReceiveQueueEvent.Set();
     }
 
-    #endregion Read
+    #endregion Receive
 
 
-    #region Write
+    #region Send
 
-    private readonly SemaphoreSlim WriteSemaphore = new(1);
+    private readonly SemaphoreSlim SendSemaphore = new(1);
 
     /// <summary>
     /// Sends packet to the stream.
     /// </summary>
     /// <param name="packet">Packet to send.</param>
-    private protected void Write(IBBPacket packet) {
+    private protected void Send(IBBPacket packet) {
         var bytes = packet.ToBytes();
-        WriteSemaphore.Wait();
+        SendSemaphore.Wait();
         try {
             Stream.Write(bytes);
         } finally {
-            WriteSemaphore.Release();
+            SendSemaphore.Release();
         }
     }
 
@@ -242,17 +288,32 @@ public abstract class BearBus : IDisposable {
     /// Sends packet to the stream.
     /// </summary>
     /// <param name="packet">Packet to send.</param>
-    private protected async Task WriteAsync(IBBPacket packet, CancellationToken cancellationToken) {
+    private protected async Task SendAsync(IBBPacket packet) {
         var bytes = packet.ToBytes();
-        await WriteSemaphore.WaitAsync(cancellationToken);
+        await SendSemaphore.WaitAsync();
         try {
-            await Stream.WriteAsync(bytes, cancellationToken);
+            await Stream.WriteAsync(bytes);
         } finally {
-            WriteSemaphore.Release();
+            SendSemaphore.Release();
         }
     }
 
-    #endregion Write
+    /// <summary>
+    /// Sends packet to the stream.
+    /// </summary>
+    /// <param name="packet">Packet to send.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    private protected async Task SendAsync(IBBPacket packet, CancellationToken cancellationToken) {
+        var bytes = packet.ToBytes();
+        await SendSemaphore.WaitAsync(cancellationToken);
+        try {
+            await Stream.WriteAsync(bytes, cancellationToken);
+        } finally {
+            SendSemaphore.Release();
+        }
+    }
+
+    #endregion Send
 
 
     #region IDisposable
@@ -262,7 +323,7 @@ public abstract class BearBus : IDisposable {
     protected virtual void Dispose(bool disposing) {
         if (!disposedValue) {
             if (disposing) {
-                ReadCancelEvent.Set();
+                ReceiveCancelEvent.Set();
                 Thread.Sleep(100);  // give it a bit of time to process cancel but don't bother checking
                 Stream.Flush();
                 Stream.Close();
@@ -302,8 +363,8 @@ public sealed class BearBusHost : BearBus {
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="packet">Packet received.</param>
-    public bool TryRead([MaybeNullWhen(false)] out IBBDevicePacket packet) {
-        while (base.TryRead(out var genericPacket)) {
+    public bool TryReceive([MaybeNullWhen(false)] out IBBDevicePacket packet) {
+        while (base.TryReceive(out var genericPacket)) {
             if (genericPacket is IBBDevicePacket devicePacket) {
                 packet = devicePacket;
                 return true;
@@ -314,12 +375,85 @@ public sealed class BearBusHost : BearBus {
     }
 
     /// <summary>
+    /// Returns once packet is received.
+    /// Any non-device packet is dropped.
+    /// </summary>
+    public new IBBDevicePacket Receive() {
+        while (true) {
+            var genericPacket = base.Receive();
+            if (genericPacket is IBBDevicePacket devicePacket) {
+                return devicePacket;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-device packet is dropped.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public new IBBDevicePacket Receive(CancellationToken cancellationToken) {
+        while (true) {
+            var genericPacket = base.Receive(cancellationToken);
+            if (genericPacket is IBBDevicePacket devicePacket) {
+                return devicePacket;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-device packet is dropped.
+    /// </summary>
+    public new async Task<IBBDevicePacket> ReceiveAsync() {
+        while (true) {
+            var genericPacket = await base.ReceiveAsync();
+            if (genericPacket is IBBDevicePacket devicePacket) {
+                return devicePacket;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-device packet is dropped.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public new async Task<IBBDevicePacket> ReceiveAsync(CancellationToken cancellationToken) {
+        while (true) {
+            var genericPacket = await base.ReceiveAsync(cancellationToken);
+            if (genericPacket is IBBDevicePacket devicePacket) {
+                return devicePacket;
+            }
+        }
+    }
+
+    /// <summary>
     /// Sends a packet.
     /// </summary>
     /// <param name="packet">Packet to send.</param>
-    public void Write(IBBHostPacket packet) {
+    public void Send(IBBHostPacket packet) {
         if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
-        base.Write(packet);
+        base.Send(packet);
+    }
+
+    /// <summary>
+    /// Sends a packet.
+    /// </summary>
+    /// <param name="packet">Packet to send.</param>
+    public async Task SendAsync(IBBHostPacket packet) {
+        if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
+        await base.SendAsync(packet);
+    }
+
+    /// <summary>
+    /// Sends a packet.
+    /// </summary>
+    /// <param name="packet">Packet to send.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task SendAsync(IBBHostPacket packet, CancellationToken cancellationToken) {
+        if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
+        await base.SendAsync(packet, cancellationToken);
     }
 
 }
@@ -345,8 +479,8 @@ public sealed class BearBusDevice : BearBus {
     /// Any non-host packet is dropped.
     /// </summary>
     /// <param name="packet">Packet received.</param>
-    public bool TryRead([MaybeNullWhen(false)] out IBBHostPacket packet) {
-        while (base.TryRead(out var genericPacket)) {
+    public bool TryReceive([MaybeNullWhen(false)] out IBBHostPacket packet) {
+        while (base.TryReceive(out var genericPacket)) {
             if (genericPacket is IBBHostPacket hostPacket) {
                 packet = hostPacket;
                 return true;
@@ -357,12 +491,85 @@ public sealed class BearBusDevice : BearBus {
     }
 
     /// <summary>
+    /// Returns once packet is received.
+    /// Any non-host packet is dropped.
+    /// </summary>
+    public new IBBHostPacket Receive() {
+        while (true) {
+            var genericPacket = base.Receive();
+            if (genericPacket is IBBHostPacket hostPacket) {
+                return hostPacket;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-host packet is dropped.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public new IBBHostPacket Receive(CancellationToken cancellationToken) {
+        while (true) {
+            var genericPacket = base.Receive(cancellationToken);
+            if (genericPacket is IBBHostPacket hostPacket) {
+                return hostPacket;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-host packet is dropped.
+    /// </summary>
+    public new async Task<IBBHostPacket> ReceiveAsync() {
+        while (true) {
+            var genericPacket = await base.ReceiveAsync();
+            if (genericPacket is IBBHostPacket devicePacket) {
+                return devicePacket;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-host packet is dropped.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public new async Task<IBBHostPacket> ReceiveAsync(CancellationToken cancellationToken) {
+        while (true) {
+            var genericPacket = await base.ReceiveAsync(cancellationToken);
+            if (genericPacket is IBBHostPacket devicePacket) {
+                return devicePacket;
+            }
+        }
+    }
+
+    /// <summary>
     /// Sends a packet.
     /// </summary>
     /// <param name="packet">Packet to send.</param>
-    public void Write(IBBDevicePacket packet) {
+    public void Send(IBBDevicePacket packet) {
         if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
-        base.Write(packet);
+        base.Send(packet);
+    }
+
+    /// <summary>
+    /// Sends a packet.
+    /// </summary>
+    /// <param name="packet">Packet to send.</param>
+    public async Task SendAsync(IBBDevicePacket packet) {
+        if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
+        await base.SendAsync(packet);
+    }
+
+    /// <summary>
+    /// Sends a packet.
+    /// </summary>
+    /// <param name="packet">Packet to send.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task SendAsync(IBBDevicePacket packet, CancellationToken cancellationToken) {
+        if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
+        await base.SendAsync(packet, cancellationToken);
     }
 
 }

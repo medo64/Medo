@@ -45,21 +45,21 @@ internal class App {
                     CtrlC();
                     break;
                 } else if (key.Key == ConsoleKey.P) {
-                    bus.Write(BBPingPacket.Create((byte)(1 + Random.Shared.Next(126))));
+                    bus.Send(BBPingPacket.Create((byte)(1 + Random.Shared.Next(126))));
                 } else if (key.Key == ConsoleKey.R) {
-                    bus.Write(BBSystemHostPacket.CreateReboot(0));
+                    bus.Send(BBSystemHostPacket.CreateReboot(0));
                 } else if (key.Key == ConsoleKey.X) {
                     var data = new byte[240];
                     for (var i = 0; i < data.Length; i++) { data[i] = (byte)i; }
-                    bus.Write(BBCustomPacket.Create((byte)(1 + Random.Shared.Next(126)), 42, data, true));
+                    bus.Send(BBCustomPacket.Create((byte)(1 + Random.Shared.Next(126)), 42, data, true));
                 } else if (key.Key == ConsoleKey.Y) {
                     var data = new byte[13];
                     for (var i = 0; i < data.Length; i++) { data[i] = (byte)i; }
-                    bus.Write(BBCustomPacket.Create((byte)(1 + Random.Shared.Next(126)), 42, data, true));
+                    bus.Send(BBCustomPacket.Create((byte)(1 + Random.Shared.Next(126)), 42, data, true));
                 }
             }
 
-            if (bus.TryRead(out var packet)) {
+            if (bus.TryReceive(out var packet)) {
                 WritePacket(packet);
             }
             Thread.Sleep(1);
@@ -93,36 +93,36 @@ internal class App {
                     break;
                 } else if (key.Key == ConsoleKey.A) {
                     address = (byte)((address + 1) % 128);
-                    bus.Write(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
                 } else if (key.Key == ConsoleKey.B) {
-                    bus.Write(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
                 } else if (key.Key == ConsoleKey.C) {
                     mode = BBDeviceMode.Config;
-                    bus.Write(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
                 } else if (key.Key == ConsoleKey.E) {
                     errorCode = (byte)((errorCode + 1) % 8);
-                    bus.Write(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
                 } else if (key.Key == ConsoleKey.N) {
                     mode = BBDeviceMode.Normal;
-                    bus.Write(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
                 } else if (key.Key == ConsoleKey.P) {
                     mode = BBDeviceMode.Program;
-                    bus.Write(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
                 } else if (key.Key == ConsoleKey.T) {
                     mode = BBDeviceMode.Test;
-                    bus.Write(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
                 } else if (key.Key == ConsoleKey.X) {
                     var data = new byte[240];
                     for (var i = 0; i < data.Length; i++) { data[i] = (byte)i; }
-                    bus.Write(BBCustomReplyPacket.Create(address, 42, data));
+                    bus.Send(BBCustomReplyPacket.Create(address, 42, data));
                 } else if (key.Key == ConsoleKey.Y) {
                     var data = new byte[13];
                     for (var i = 0; i < data.Length; i++) { data[i] = (byte)i; }
-                    bus.Write(BBCustomReplyPacket.Create(address, 42, data));
+                    bus.Send(BBCustomReplyPacket.Create(address, 42, data));
                 }
             }
 
-            if (bus.TryRead(out var packet)) {
+            if (bus.TryReceive(out var packet)) {
                 WritePacket(packet);
             }
 

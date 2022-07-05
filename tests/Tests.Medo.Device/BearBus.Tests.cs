@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using Medo.Device;
+using System.IO;
 
 namespace Tests.Medo.Device;
 
@@ -367,5 +368,18 @@ public class BearBusTests {
     }
 
     #endregion Address Packets
+
+    #region Stream
+
+    [Fact(DisplayName = "BearBus: Host Send")]
+    public void HostSend() {
+        var stream = new MemoryStream();
+
+        var hostBus = new BearBusHost(stream);
+        hostBus.Send(BBSystemHostPacket.CreateReboot(0));
+        Assert.Equal("BB-80-40-06-2B", BitConverter.ToString(stream.ToArray()));
+    }
+
+    #endregion Stream
 
 }
