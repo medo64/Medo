@@ -54,7 +54,7 @@ public abstract class BearBus : IDisposable {
 
     private readonly Thread ReceiveThread;
     private readonly ManualResetEventSlim ReceiveCancelEvent = new(initialState: false);
-    private readonly SemaphoreSlim ReceiveQueueSync = new(initialCount: 0, maxCount: int.MaxValue);
+    private readonly SemaphoreSlim ReceiveQueueSync = new(initialCount: 0, maxCount: 1);
     private readonly Queue<IBBPacket> ReceiveQueue = new();
 
     /// <summary>
@@ -65,21 +65,33 @@ public abstract class BearBus : IDisposable {
         lock (ReceiveQueue) {
             if (ReceiveQueue.Count > 0) {
                 packet = ReceiveQueue.Dequeue();
+                if (ReceiveQueue.Count > 0) { ReceiveQueueSync.Release(); }  // give chance for one more
                 return true;
-            } else {
-                packet = null;
-                return false;
             }
         }
+
+        packet = null;
+        return false;
     }
 
     /// <summary>
     /// Waits until packet is received.
     /// </summary>
     private protected IBBPacket Receive() {
+        return Receive(Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Waits until packet is received.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    private protected IBBPacket Receive(int millisecondsTimeout) {
         while (true) {
-            ReceiveQueueSync.Wait();
-            if (TryReceive(out var packet)) { return packet; }
+            if (ReceiveQueueSync.Wait(millisecondsTimeout)) {
+                if (TryReceive(out var packet)) { return packet; }
+            } else {
+                throw new TimeoutException();
+            }
             Thread.Sleep(1);
         }
     }
@@ -87,11 +99,23 @@ public abstract class BearBus : IDisposable {
     /// <summary>
     /// Receives one packet if it exists.
     /// </summary>
-    /// <param name="packet">Output packet</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     private protected IBBPacket Receive(CancellationToken cancellationToken) {
+        return Receive(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Receives one packet if it exists.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    private protected IBBPacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            ReceiveQueueSync.Wait(cancellationToken);
-            if (TryReceive(out var packet)) { return packet; }
+            if (ReceiveQueueSync.Wait(millisecondsTimeout, cancellationToken)) {
+                if (TryReceive(out var packet)) { return packet; }
+            } else {
+                throw new TimeoutException();
+            }
             Thread.Sleep(1);
         }
     }
@@ -100,9 +124,20 @@ public abstract class BearBus : IDisposable {
     /// Waits until packet is received.
     /// </summary>
     private protected async Task<IBBPacket> ReceiveAsync() {
+        return await ReceiveAsync(Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Waits until packet is received.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    private protected async Task<IBBPacket> ReceiveAsync(int millisecondsTimeout) {
         while (true) {
-            await ReceiveQueueSync.WaitAsync();
-            if (TryReceive(out var packet)) { return packet; }
+            if (await ReceiveQueueSync.WaitAsync(millisecondsTimeout)) {
+                if (TryReceive(out var packet)) { return packet; }
+            } else {
+                throw new TimeoutException();
+            }
             Thread.Sleep(1);
         }
     }
@@ -112,9 +147,21 @@ public abstract class BearBus : IDisposable {
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     private protected async Task<IBBPacket> ReceiveAsync(CancellationToken cancellationToken) {
+        return await ReceiveAsync(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Waits until packet is received.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    private protected async Task<IBBPacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            await ReceiveQueueSync.WaitAsync(cancellationToken);
-            if (TryReceive(out var packet)) { return packet; }
+            if (await ReceiveQueueSync.WaitAsync(millisecondsTimeout, cancellationToken)) {
+                if (TryReceive(out var packet)) { return packet; }
+            } else {
+                throw new TimeoutException();
+            }
             Thread.Sleep(1);
         }
     }
@@ -271,7 +318,7 @@ public abstract class BearBus : IDisposable {
 
     #region Send
 
-    private readonly SemaphoreSlim SendSemaphore = new(1);
+    private readonly SemaphoreSlim SendSemaphore = new(initialCount: 1);
 
     /// <summary>
     /// Sends packet to the stream.
@@ -381,9 +428,19 @@ public sealed class BearBusHost : BearBus {
     /// Returns once packet is received.
     /// Any non-device packet is dropped.
     /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
     public new IBBDevicePacket Receive() {
+        return Receive(Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-device packet is dropped.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    public new IBBDevicePacket Receive(int millisecondsTimeout) {
         while (true) {
-            var genericPacket = base.Receive();
+            var genericPacket = base.Receive(millisecondsTimeout);
             if (genericPacket is IBBDevicePacket devicePacket) {
                 return devicePacket;
             }
@@ -396,8 +453,18 @@ public sealed class BearBusHost : BearBus {
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     public new IBBDevicePacket Receive(CancellationToken cancellationToken) {
+        return Receive(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-device packet is dropped.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public new IBBDevicePacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            var genericPacket = base.Receive(cancellationToken);
+            var genericPacket = base.Receive(millisecondsTimeout, cancellationToken);
             if (genericPacket is IBBDevicePacket devicePacket) {
                 return devicePacket;
             }
@@ -408,9 +475,19 @@ public sealed class BearBusHost : BearBus {
     /// Returns once packet is received.
     /// Any non-device packet is dropped.
     /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
     public new async Task<IBBDevicePacket> ReceiveAsync() {
+        return await ReceiveAsync(Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-device packet is dropped.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    public new async Task<IBBDevicePacket> ReceiveAsync(int millisecondsTimeout) {
         while (true) {
-            var genericPacket = await base.ReceiveAsync();
+            var genericPacket = await base.ReceiveAsync(millisecondsTimeout);
             if (genericPacket is IBBDevicePacket devicePacket) {
                 return devicePacket;
             }
@@ -423,8 +500,18 @@ public sealed class BearBusHost : BearBus {
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     public new async Task<IBBDevicePacket> ReceiveAsync(CancellationToken cancellationToken) {
+        return await ReceiveAsync(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-device packet is dropped.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public new async Task<IBBDevicePacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            var genericPacket = await base.ReceiveAsync(cancellationToken);
+            var genericPacket = await base.ReceiveAsync(millisecondsTimeout, cancellationToken);
             if (genericPacket is IBBDevicePacket devicePacket) {
                 return devicePacket;
             }
@@ -493,13 +580,23 @@ public sealed class BearBusDevice : BearBus {
         return false;
     }
 
+
     /// <summary>
     /// Returns once packet is received.
     /// Any non-host packet is dropped.
     /// </summary>
     public new IBBHostPacket Receive() {
+        return Receive(Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-host packet is dropped.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    public new IBBHostPacket Receive(int millisecondsTimeout) {
         while (true) {
-            var genericPacket = base.Receive();
+            var genericPacket = base.Receive(millisecondsTimeout);
             if (genericPacket is IBBHostPacket hostPacket) {
                 return hostPacket;
             }
@@ -512,8 +609,18 @@ public sealed class BearBusDevice : BearBus {
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     public new IBBHostPacket Receive(CancellationToken cancellationToken) {
+        return Receive(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-host packet is dropped.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public new IBBHostPacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            var genericPacket = base.Receive(cancellationToken);
+            var genericPacket = base.Receive(millisecondsTimeout, cancellationToken);
             if (genericPacket is IBBHostPacket hostPacket) {
                 return hostPacket;
             }
@@ -525,8 +632,17 @@ public sealed class BearBusDevice : BearBus {
     /// Any non-host packet is dropped.
     /// </summary>
     public new async Task<IBBHostPacket> ReceiveAsync() {
+        return await ReceiveAsync(Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-host packet is dropped.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    public new async Task<IBBHostPacket> ReceiveAsync(int millisecondsTimeout) {
         while (true) {
-            var genericPacket = await base.ReceiveAsync();
+            var genericPacket = await base.ReceiveAsync(millisecondsTimeout);
             if (genericPacket is IBBHostPacket devicePacket) {
                 return devicePacket;
             }
@@ -539,8 +655,18 @@ public sealed class BearBusDevice : BearBus {
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     public new async Task<IBBHostPacket> ReceiveAsync(CancellationToken cancellationToken) {
+        return await ReceiveAsync(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Any non-host packet is dropped.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public new async Task<IBBHostPacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            var genericPacket = await base.ReceiveAsync(cancellationToken);
+            var genericPacket = await base.ReceiveAsync(millisecondsTimeout, cancellationToken);
             if (genericPacket is IBBHostPacket devicePacket) {
                 return devicePacket;
             }

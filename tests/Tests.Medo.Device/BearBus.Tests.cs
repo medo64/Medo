@@ -388,6 +388,10 @@ public class BearBusTests {
         Assert.Equal(0, packet.DestinationAddress);
         Assert.Equal(0, packet.CommandCode);
         Assert.Equal("06", BitConverter.ToString(packet.Data));
+
+        Assert.Throws<TimeoutException>(() => {
+            deviceBus.Receive(100);
+        });
     }
 
     [Fact(DisplayName = "BearBus: Host Send And Receive Async")]
@@ -407,6 +411,10 @@ public class BearBusTests {
         Assert.Equal(0, packet.DestinationAddress);
         Assert.Equal(0, packet.CommandCode);
         Assert.Equal("06", BitConverter.ToString(packet.Data));
+
+        await Assert.ThrowsAsync<TimeoutException>(async () => {
+            await deviceBus.ReceiveAsync(100);
+        });
     }
 
     #endregion Stream
