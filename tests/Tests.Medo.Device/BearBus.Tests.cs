@@ -15,21 +15,21 @@ public class BearBusTests {
                                         commandCode: 29,
                                         datum: 0x42);
         Assert.Equal(5, packet.DestinationAddress);
-        Assert.False(packet.ReplyRequested);
+        Assert.False(packet.IsReplyRequested);
         Assert.Equal(29, packet.CommandCode);
         Assert.Equal("42", BitConverter.ToString(packet.Data));
         Assert.Equal("BB-85-5D-42-DB", BitConverter.ToString(packet.ToBytes()));
 
         var packetReply = packet.GetReply();
         Assert.Equal(5, packetReply.SourceAddress);
-        Assert.False(packetReply.IsError);
+        Assert.False(packetReply.IsErrorReply);
         Assert.Equal(29, packetReply.CommandCode);
         Assert.Equal("", BitConverter.ToString(packetReply.Data));
         Assert.Equal("BB-05-1D-00-3A", BitConverter.ToString(packetReply.ToBytes()));
 
         var packetErrorReply = packet.GetErrorReply();
         Assert.Equal(5, packetErrorReply.SourceAddress);
-        Assert.True(packetErrorReply.IsError);
+        Assert.True(packetErrorReply.IsErrorReply);
         Assert.Equal(29, packetErrorReply.CommandCode);
         Assert.Equal("", BitConverter.ToString(packetErrorReply.Data));
         Assert.Equal("BB-05-9D-00-3D", BitConverter.ToString(packetErrorReply.ToBytes()));
@@ -41,21 +41,21 @@ public class BearBusTests {
                                         commandCode: 26,
                                         data: new byte[] { 0x42, 0x43, 0x44 });
         Assert.Equal(19, packet.DestinationAddress);
-        Assert.False(packet.ReplyRequested);
+        Assert.False(packet.IsReplyRequested);
         Assert.Equal(26, packet.CommandCode);
         Assert.Equal("42-43-44", BitConverter.ToString(packet.Data));
         Assert.Equal("BB-93-1A-03-83-42-43-44-06", BitConverter.ToString(packet.ToBytes()));
 
         var packetReply = packet.GetReply(new byte[] { 0x5A, 0x5B });
         Assert.Equal(19, packetReply.SourceAddress);
-        Assert.False(packetReply.IsError);
+        Assert.False(packetReply.IsErrorReply);
         Assert.Equal(26, packetReply.CommandCode);
         Assert.Equal("5A-5B", BitConverter.ToString(packetReply.Data));
         Assert.Equal("BB-13-1A-02-61-5A-5B-B7", BitConverter.ToString(packetReply.ToBytes()));
 
         var packetErrorReply = packet.GetErrorReply(new byte[] { 0x5A, 0x5B });
         Assert.Equal(19, packetErrorReply.SourceAddress);
-        Assert.True(packetErrorReply.IsError);
+        Assert.True(packetErrorReply.IsErrorReply);
         Assert.Equal(26, packetErrorReply.CommandCode);
         Assert.Equal("5A-5B", BitConverter.ToString(packetErrorReply.Data));
         Assert.Equal("BB-13-9A-02-66-5A-5B-9D", BitConverter.ToString(packetErrorReply.ToBytes()));
@@ -67,21 +67,21 @@ public class BearBusTests {
                                         commandCode: 1,
                                         data: new byte[] { 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F });
         Assert.Equal(1, packet.DestinationAddress);
-        Assert.False(packet.ReplyRequested);
+        Assert.False(packet.IsReplyRequested);
         Assert.Equal(1, packet.CommandCode);
         Assert.Equal("42-43-44-45-46-47-48-49-4A-4B-4C-4D-4E-4F", BitConverter.ToString(packet.Data));
         Assert.Equal("BB-81-01-0E-0F-42-43-44-45-46-47-48-49-4A-4B-4C-4D-4E-4F-C2-B2", BitConverter.ToString(packet.ToBytes()));
 
         var packetReply = packet.GetReply(new byte[] { 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E });
         Assert.Equal(1, packetReply.SourceAddress);
-        Assert.False(packetReply.IsError);
+        Assert.False(packetReply.IsErrorReply);
         Assert.Equal(1, packetReply.CommandCode);
         Assert.Equal("51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-5E", BitConverter.ToString(packetReply.Data));
         Assert.Equal("BB-01-01-0E-C2-51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-5E-80-EA", BitConverter.ToString(packetReply.ToBytes()));
 
         var packetErrorReply = packet.GetErrorReply(new byte[] { 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E });
         Assert.Equal(1, packetErrorReply.SourceAddress);
-        Assert.True(packetErrorReply.IsError);
+        Assert.True(packetErrorReply.IsErrorReply);
         Assert.Equal(1, packetErrorReply.CommandCode);
         Assert.Equal("51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-5E", BitConverter.ToString(packetErrorReply.Data));
         Assert.Equal("BB-01-81-0E-C5-51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-5E-D4-DF", BitConverter.ToString(packetErrorReply.ToBytes()));
@@ -114,7 +114,7 @@ public class BearBusTests {
     public void SystemPowerOnReport() {
         var packet = BBSystemDevicePacket.CreateStatusUpdate(34, blinking: false, BBDeviceMode.Normal, 0);
         Assert.Equal(34, packet.SourceAddress);
-        Assert.False(packet.IsError);
+        Assert.False(packet.IsErrorReply);
         Assert.Equal("00", BitConverter.ToString(packet.Data));
         Assert.False(packet.Blink);
         Assert.Equal(BBDeviceMode.Normal, packet.Mode);
@@ -126,7 +126,7 @@ public class BearBusTests {
     public void SystemDuplicateAddressReport() {
         var packet = BBSystemDevicePacket.CreateDuplicateAddressReport(76, blinking: false, BBDeviceMode.Normal, 0);
         Assert.Equal(76, packet.SourceAddress);
-        Assert.True(packet.IsError);
+        Assert.True(packet.IsErrorReply);
         Assert.Equal(0x00, packet.CommandCode);
         Assert.Equal("00", BitConverter.ToString(packet.Data));
         Assert.False(packet.Blink);
@@ -139,7 +139,7 @@ public class BearBusTests {
     public void SystemAddressChange() {
         var packet = BBSystemDevicePacket.CreateStatusUpdate(77, blinking: true, BBDeviceMode.Normal, 0);
         Assert.Equal(77, packet.SourceAddress);
-        Assert.False(packet.IsError);
+        Assert.False(packet.IsErrorReply);
         Assert.Equal(0x00, packet.CommandCode);
         Assert.Equal("80", BitConverter.ToString(packet.Data));
         Assert.True(packet.Blink);
@@ -152,7 +152,7 @@ public class BearBusTests {
     public void SystemStatus() {
         var packet = BBSystemDevicePacket.CreateStatusUpdate(47, false, BBDeviceMode.Config, 2);
         Assert.Equal(47, packet.SourceAddress);
-        Assert.False(packet.IsError);
+        Assert.False(packet.IsErrorReply);
         Assert.Equal(0x00, packet.CommandCode);
         Assert.Equal("22", BitConverter.ToString(packet.Data));
         Assert.False(packet.Blink);
@@ -169,14 +169,14 @@ public class BearBusTests {
     public void ExamplePingRequest() {
         var packet = BBPingPacket.Create(15);
         Assert.Equal(15, packet.DestinationAddress);
-        Assert.True(packet.ReplyRequested);
+        Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3D, packet.CommandCode);
         var packetBytes = packet.ToBytes(); packetBytes[3] = 0x00; packetBytes[4] = 0x00;  // because we have random numbers here
         Assert.Equal("BB-8F-FD-00-00", BitConverter.ToString(packetBytes));
 
         var replyPacket = packet.GetReply();
         Assert.Equal(15, replyPacket.SourceAddress);
-        Assert.False(replyPacket.ErrorReply);
+        Assert.False(replyPacket.IsErrorReply);
         Assert.Equal(0x3D, replyPacket.CommandCode);
         Assert.Equal(packet.Data[0], replyPacket.Data[0]);  // same data
         var replyPacketBytes = replyPacket.ToBytes(); replyPacketBytes[3] = 0x00; replyPacketBytes[4] = 0x00;  // because we have random numbers here
@@ -190,7 +190,7 @@ public class BearBusTests {
     public void ExampleStatusCheck() {
         var packet = BBStatusPacket.New(47);
         Assert.Equal(47, packet.DestinationAddress);
-        Assert.True(packet.ReplyRequested);
+        Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3E, packet.CommandCode);
         Assert.Equal("", BitConverter.ToString(packet.Data));
         Assert.Null(packet.NewBlink);
@@ -199,7 +199,7 @@ public class BearBusTests {
 
         var packetReply = packet.GetReply(blinking: false, BBDeviceMode.Normal, 0x00);
         Assert.Equal(47, packetReply.SourceAddress);
-        Assert.False(packetReply.ErrorReply);
+        Assert.False(packetReply.IsErrorReply);
         Assert.Equal(0x3E, packetReply.CommandCode);
         Assert.Equal("00", BitConverter.ToString(packetReply.Data));
         Assert.False(packetReply.Blink);
@@ -209,7 +209,7 @@ public class BearBusTests {
 
         var packetReply2 = packet.GetReply(blinking: false, BBDeviceMode.Normal, 0x06);
         Assert.Equal(47, packetReply2.SourceAddress);
-        Assert.False(packetReply2.ErrorReply);
+        Assert.False(packetReply2.IsErrorReply);
         Assert.Equal(0x3E, packetReply2.CommandCode);
         Assert.Equal("00", BitConverter.ToString(packetReply.Data));
         Assert.False(packetReply2.Blink);
@@ -219,7 +219,7 @@ public class BearBusTests {
 
         var packetReplyError = packet.GetErrorReply(blinking: false, BBDeviceMode.Normal, 0x00);
         Assert.Equal(47, packetReplyError.SourceAddress);
-        Assert.True(packetReplyError.ErrorReply);
+        Assert.True(packetReplyError.IsErrorReply);
         Assert.Equal(0x3E, packetReplyError.CommandCode);
         Assert.Equal("00", BitConverter.ToString(packetReplyError.Data));
         Assert.False(packetReplyError.Blink);
@@ -233,7 +233,7 @@ public class BearBusTests {
     public void ExampleStatusChangeBlink() {
         var packet = BBStatusPacket.New(47, newBlink: true);
         Assert.Equal(47, packet.DestinationAddress);
-        Assert.True(packet.ReplyRequested);
+        Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3E, packet.CommandCode);
         Assert.Equal("90", BitConverter.ToString(packet.Data));
         Assert.True(packet.NewBlink);
@@ -242,7 +242,7 @@ public class BearBusTests {
 
         var packetReply = packet.GetReply(blinking: true, BBDeviceMode.Normal, 0x00);
         Assert.Equal(47, packetReply.SourceAddress);
-        Assert.False(packetReply.ErrorReply);
+        Assert.False(packetReply.IsErrorReply);
         Assert.Equal(0x3E, packetReply.CommandCode);
         Assert.Equal("80", BitConverter.ToString(packetReply.Data));
         Assert.True(packetReply.Blink);
@@ -252,7 +252,7 @@ public class BearBusTests {
 
         var packetReplyError = packet.GetErrorReply(blinking: false, BBDeviceMode.Normal, 0x00);
         Assert.Equal(47, packetReplyError.SourceAddress);
-        Assert.True(packetReplyError.ErrorReply);
+        Assert.True(packetReplyError.IsErrorReply);
         Assert.Equal(0x3E, packetReplyError.CommandCode);
         Assert.Equal("00", BitConverter.ToString(packetReplyError.Data));
         Assert.False(packetReplyError.Blink);
@@ -265,7 +265,7 @@ public class BearBusTests {
     public void ExampleStatusChangeMode() {
         var packet = BBStatusPacket.New(47, BBDeviceMode.Config);
         Assert.Equal(47, packet.DestinationAddress);
-        Assert.True(packet.ReplyRequested);
+        Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3E, packet.CommandCode);
         Assert.Equal("28", BitConverter.ToString(packet.Data));
         Assert.Null(packet.NewBlink);
@@ -274,7 +274,7 @@ public class BearBusTests {
 
         var packetReply = packet.GetReply(blinking: false, BBDeviceMode.Config, 0x00);
         Assert.Equal(47, packetReply.SourceAddress);
-        Assert.False(packetReply.ErrorReply);
+        Assert.False(packetReply.IsErrorReply);
         Assert.Equal(0x3E, packetReply.CommandCode);
         Assert.Equal("20", BitConverter.ToString(packetReply.Data));
         Assert.False(packetReply.Blink);
@@ -284,7 +284,7 @@ public class BearBusTests {
 
         var packetReplyError = packet.GetErrorReply(blinking: false, BBDeviceMode.Normal, 0x00);
         Assert.Equal(47, packetReplyError.SourceAddress);
-        Assert.True(packetReplyError.ErrorReply);
+        Assert.True(packetReplyError.IsErrorReply);
         Assert.Equal(0x3E, packetReplyError.CommandCode);
         Assert.Equal("00", BitConverter.ToString(packetReplyError.Data));
         Assert.False(packetReplyError.Blink);
@@ -297,7 +297,7 @@ public class BearBusTests {
     public void ExampleStatusChangeBlinkAndMode() {
         var packet = BBStatusPacket.New(47, newBlink: false, BBDeviceMode.Test);
         Assert.Equal(47, packet.DestinationAddress);
-        Assert.True(packet.ReplyRequested);
+        Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3E, packet.CommandCode);
         Assert.Equal("58", BitConverter.ToString(packet.Data));
         Assert.False(packet.NewBlink);
@@ -306,7 +306,7 @@ public class BearBusTests {
 
         var packetReply = packet.GetReply(blinking: false, BBDeviceMode.Test, 0x00);
         Assert.Equal(47, packetReply.SourceAddress);
-        Assert.False(packetReply.ErrorReply);
+        Assert.False(packetReply.IsErrorReply);
         Assert.Equal(0x3E, packetReply.CommandCode);
         Assert.Equal("40", BitConverter.ToString(packetReply.Data));
         Assert.False(packetReply.Blink);
@@ -316,7 +316,7 @@ public class BearBusTests {
 
         var packetReplyError = packet.GetErrorReply(blinking: true, BBDeviceMode.Program, 0x00);
         Assert.Equal(47, packetReplyError.SourceAddress);
-        Assert.True(packetReplyError.ErrorReply);
+        Assert.True(packetReplyError.IsErrorReply);
         Assert.Equal(0x3E, packetReplyError.CommandCode);
         Assert.Equal("E0", BitConverter.ToString(packetReplyError.Data));
         Assert.True(packetReplyError.Blink);
@@ -333,7 +333,7 @@ public class BearBusTests {
     public void ExampleAddressSetup() {
         var packet = BBAddressPacket.Create(0, newAddress: 77, replyRequested: false);
         Assert.Equal(0, packet.DestinationAddress);
-        Assert.False(packet.ReplyRequested);
+        Assert.False(packet.IsReplyRequested);
         Assert.Equal(0x3F, packet.CommandCode);
         Assert.Equal("4D", BitConverter.ToString(packet.Data));
         Assert.Equal(77, packet.NewAddress);
@@ -344,7 +344,7 @@ public class BearBusTests {
     public void ExampleAddressChange() {
         var packet = BBAddressPacket.Create(3, newAddress: 77);
         Assert.Equal(3, packet.DestinationAddress);
-        Assert.True(packet.ReplyRequested);
+        Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3F, packet.CommandCode);
         Assert.Equal("4D", BitConverter.ToString(packet.Data));
         Assert.Equal(77, packet.NewAddress);
@@ -352,7 +352,7 @@ public class BearBusTests {
 
         var packetReply = packet.GetReply();
         Assert.Equal(3, packetReply.SourceAddress);
-        Assert.False(packetReply.ErrorReply);
+        Assert.False(packetReply.IsErrorReply);
         Assert.Equal(0x3F, packetReply.CommandCode);
         Assert.Equal("4D", BitConverter.ToString(packetReply.Data));
         Assert.Equal(77, packetReply.NewAddress);
@@ -360,7 +360,7 @@ public class BearBusTests {
 
         var packetReplyError = packet.GetErrorReply();
         Assert.Equal(3, packetReplyError.SourceAddress);
-        Assert.True(packetReplyError.ErrorReply);
+        Assert.True(packetReplyError.IsErrorReply);
         Assert.Equal(0x3F, packetReplyError.CommandCode);
         Assert.Equal("4D", BitConverter.ToString(packetReplyError.Data));
         Assert.Equal(77, packetReplyError.NewAddress);
@@ -371,13 +371,42 @@ public class BearBusTests {
 
     #region Stream
 
-    [Fact(DisplayName = "BearBus: Host Send")]
-    public void HostSend() {
+    [Fact(DisplayName = "BearBus: Host Send And Receive")]
+    public void HostSendAndReceive() {
         var stream = new MemoryStream();
 
         var hostBus = new BearBusHost(stream);
         hostBus.Send(BBSystemHostPacket.CreateReboot(0));
         Assert.Equal("BB-80-40-06-2B", BitConverter.ToString(stream.ToArray()));
+
+        stream = new MemoryStream(stream.ToArray());
+
+        var deviceBus = new BearBusDevice(stream);
+        var packet = deviceBus.Receive();
+        Assert.Null(packet.FromAddress);
+        Assert.Equal((byte?)0, packet.ToAddress);
+        Assert.Equal(0, packet.DestinationAddress);
+        Assert.Equal(0, packet.CommandCode);
+        Assert.Equal("06", BitConverter.ToString(packet.Data));
+    }
+
+    [Fact(DisplayName = "BearBus: Host Send And Receive Async")]
+    public async void HostSendAndReceiveAsync() {
+        var stream = new MemoryStream();
+
+        var hostBus = new BearBusHost(stream);
+        await hostBus.SendAsync(BBSystemHostPacket.CreateReboot(0));
+        Assert.Equal("BB-80-40-06-2B", BitConverter.ToString(stream.ToArray()));
+
+        stream = new MemoryStream(stream.ToArray());
+
+        var deviceBus = new BearBusDevice(stream);
+        var packet = await deviceBus.ReceiveAsync();
+        Assert.Null(packet.FromAddress);
+        Assert.Equal((byte?)0, packet.ToAddress);
+        Assert.Equal(0, packet.DestinationAddress);
+        Assert.Equal(0, packet.CommandCode);
+        Assert.Equal("06", BitConverter.ToString(packet.Data));
     }
 
     #endregion Stream

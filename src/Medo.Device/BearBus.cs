@@ -54,9 +54,8 @@ public abstract class BearBus : IDisposable {
 
     private readonly Thread ReceiveThread;
     private readonly ManualResetEventSlim ReceiveCancelEvent = new(initialState: false);
-    private readonly ManualResetEventSlim ReceiveQueueEvent = new(initialState: false);
+    private readonly SemaphoreSlim ReceiveQueueSync = new(initialCount: 0, maxCount: int.MaxValue);
     private readonly Queue<IBBPacket> ReceiveQueue = new();
-
 
     /// <summary>
     /// Receives one packet if it exists.
@@ -79,9 +78,9 @@ public abstract class BearBus : IDisposable {
     /// </summary>
     private protected IBBPacket Receive() {
         while (true) {
-            ReceiveQueueEvent.Wait();
-            ReceiveQueueEvent.Reset();
+            ReceiveQueueSync.Wait();
             if (TryReceive(out var packet)) { return packet; }
+            Thread.Sleep(1);
         }
     }
 
@@ -90,22 +89,22 @@ public abstract class BearBus : IDisposable {
     /// </summary>
     /// <param name="packet">Output packet</param>
     private protected IBBPacket Receive(CancellationToken cancellationToken) {
-        while (!cancellationToken.IsCancellationRequested) {
-            WaitHandle.WaitAny(new WaitHandle[] { ReceiveQueueEvent.WaitHandle, cancellationToken.WaitHandle });
-            if (cancellationToken.IsCancellationRequested) { break; }
-            ReceiveQueueEvent.Reset();
+        while (true) {
+            ReceiveQueueSync.Wait(cancellationToken);
             if (TryReceive(out var packet)) { return packet; }
+            Thread.Sleep(1);
         }
-        throw new OperationCanceledException("Receive operation was cancelled.", cancellationToken);
     }
 
     /// <summary>
     /// Waits until packet is received.
     /// </summary>
     private protected async Task<IBBPacket> ReceiveAsync() {
-        return await Task.Run(() => {
-            return Receive();
-        });
+        while (true) {
+            await ReceiveQueueSync.WaitAsync();
+            if (TryReceive(out var packet)) { return packet; }
+            Thread.Sleep(1);
+        }
     }
 
     /// <summary>
@@ -113,9 +112,11 @@ public abstract class BearBus : IDisposable {
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     private protected async Task<IBBPacket> ReceiveAsync(CancellationToken cancellationToken) {
-        return await Task.Run(() => {
-            return Receive(cancellationToken);
-        });
+        while (true) {
+            await ReceiveQueueSync.WaitAsync(cancellationToken);
+            if (TryReceive(out var packet)) { return packet; }
+            Thread.Sleep(1);
+        }
     }
 
 
@@ -243,24 +244,26 @@ public abstract class BearBus : IDisposable {
     }
 
     private void EnqueueReceivedPacket(bool isOriginHost, byte address, bool isReplyOrError, byte commandCode, byte[] data) {
-        if (isOriginHost) {
-            switch (commandCode) {
-                case 0x00: ReceiveQueue.Enqueue(new BBSystemHostPacket(address, data)); break;
-                case 0x3D: ReceiveQueue.Enqueue(new BBPingPacket(address, isReplyOrError, data)); break;
-                case 0x3E: ReceiveQueue.Enqueue(new BBStatusPacket(address, isReplyOrError, data)); break;
-                case 0x3F: ReceiveQueue.Enqueue(new BBAddressPacket(address, isReplyOrError, data)); break;
-                default: ReceiveQueue.Enqueue(new BBCustomPacket(address, isReplyOrError, commandCode, data)); break;
+        lock (ReceiveQueue) {
+            if (isOriginHost) {
+                switch (commandCode) {
+                    case 0x00: ReceiveQueue.Enqueue(new BBSystemHostPacket(address, data)); break;
+                    case 0x3D: ReceiveQueue.Enqueue(new BBPingPacket(address, isReplyOrError, data)); break;
+                    case 0x3E: ReceiveQueue.Enqueue(new BBStatusPacket(address, isReplyOrError, data)); break;
+                    case 0x3F: ReceiveQueue.Enqueue(new BBAddressPacket(address, isReplyOrError, data)); break;
+                    default: ReceiveQueue.Enqueue(new BBCustomPacket(address, isReplyOrError, commandCode, data)); break;
+                }
+            } else {
+                switch (commandCode) {
+                    case 0x00: ReceiveQueue.Enqueue(new BBSystemDevicePacket(address, isReplyOrError, data)); break;
+                    case 0x3D: ReceiveQueue.Enqueue(new BBPingReplyPacket(address, isReplyOrError, data)); break;
+                    case 0x3E: ReceiveQueue.Enqueue(new BBStatusReplyPacket(address, isReplyOrError, data)); break;
+                    case 0x3F: ReceiveQueue.Enqueue(new BBAddressReplyPacket(address, isReplyOrError, data)); break;
+                    default: ReceiveQueue.Enqueue(new BBCustomReplyPacket(address, isReplyOrError, commandCode, data)); break;
+                }
             }
-        } else {
-            switch (commandCode) {
-                case 0x00: ReceiveQueue.Enqueue(new BBSystemDevicePacket(address, isReplyOrError, data)); break;
-                case 0x3D: ReceiveQueue.Enqueue(new BBPingReplyPacket(address, isReplyOrError, data)); break;
-                case 0x3E: ReceiveQueue.Enqueue(new BBStatusReplyPacket(address, isReplyOrError, data)); break;
-                case 0x3F: ReceiveQueue.Enqueue(new BBAddressReplyPacket(address, isReplyOrError, data)); break;
-                default: ReceiveQueue.Enqueue(new BBCustomReplyPacket(address, isReplyOrError, commandCode, data)); break;
-            }
+            ReceiveQueueSync.Release();
         }
-        ReceiveQueueEvent.Set();
     }
 
     #endregion Receive
