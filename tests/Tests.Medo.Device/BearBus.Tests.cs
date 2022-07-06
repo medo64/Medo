@@ -448,6 +448,69 @@ public class BearBusTests {
         }
     }
 
+    [Fact(DisplayName = "BearBus: Host Send And Receive (corrupted packet)")]
+    public void HostSendAndReceiveErrorsPacket() {
+        var stream = new MemoryStream();
+        var hostBus = new BearBusHost(stream);
+
+        hostBus.Send(BBSystemHostPacket.CreateReboot(0));
+        stream.Write(new byte[] { 0xBB, 0x00, 0x00, 0x00, 0x00 }); // bad packet
+        hostBus.Send(BBSystemHostPacket.CreateReboot(42));
+
+        stream = new MemoryStream(stream.ToArray());
+        var deviceBus = new BearBusDevice(stream);
+
+        {
+            var packet = deviceBus.Receive(100);
+            Assert.Null(packet.FromAddress);
+            Assert.Equal((byte?)0, packet.ToAddress);
+            Assert.Equal(0, packet.DestinationAddress);
+            Assert.Equal(0, packet.CommandCode);
+            Assert.Equal("06", BitConverter.ToString(packet.Data));
+        }
+
+        {
+            var packet = deviceBus.Receive(100);
+            Assert.Null(packet.FromAddress);
+            Assert.Equal((byte?)42, packet.ToAddress);
+            Assert.Equal(42, packet.DestinationAddress);
+            Assert.Equal(0, packet.CommandCode);
+            Assert.Equal("06", BitConverter.ToString(packet.Data));
+        }
+    }
+
+    //TODO: fixed up
+    //[Fact(DisplayName = "BearBus: Host Send And Receive (corrupted, uff)")]
+    //public void HostSendAndReceiveErrorsUff() {
+    //    var stream = new MemoryStream();
+    //    var hostBus = new BearBusHost(stream);
+
+    //    hostBus.Send(BBSystemHostPacket.CreateReboot(0));
+    //    stream.WriteByte(0xBB); // bad byte
+    //    hostBus.Send(BBSystemHostPacket.CreateReboot(42));
+
+    //    stream = new MemoryStream(stream.ToArray());
+    //    var deviceBus = new BearBusDevice(stream);
+
+    //    {
+    //        var packet = deviceBus.Receive(100);
+    //        Assert.Null(packet.FromAddress);
+    //        Assert.Equal((byte?)0, packet.ToAddress);
+    //        Assert.Equal(0, packet.DestinationAddress);
+    //        Assert.Equal(0, packet.CommandCode);
+    //        Assert.Equal("06", BitConverter.ToString(packet.Data));
+    //    }
+
+    //    {
+    //        var packet = deviceBus.Receive(100);
+    //        Assert.Null(packet.FromAddress);
+    //        Assert.Equal((byte?)42, packet.ToAddress);
+    //        Assert.Equal(42, packet.DestinationAddress);
+    //        Assert.Equal(0, packet.CommandCode);
+    //        Assert.Equal("06", BitConverter.ToString(packet.Data));
+    //    }
+    //}
+
     #endregion Stream
 
 }
