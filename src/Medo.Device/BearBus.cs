@@ -1,6 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-//2022-07-04: Initial release
+//2022-07-05: Initial release
 
 namespace Medo.Device;
 
@@ -291,7 +291,7 @@ public abstract class BearBus : IDisposable {
     }
 
     private void EnqueueReceivedPacket(bool isOriginHost, byte address, bool isReplyOrError, byte commandCode, byte[] data) {
-        lock (ReceiveQueue) {
+        lock (ReceiveQueue) {  // also ReceiveQueueSync inside
             if (isOriginHost) {
                 switch (commandCode) {
                     case 0x00: ReceiveQueue.Enqueue(new BBSystemHostPacket(address, data)); break;
@@ -309,7 +309,7 @@ public abstract class BearBus : IDisposable {
                     default: ReceiveQueue.Enqueue(new BBCustomReplyPacket(address, isReplyOrError, commandCode, data)); break;
                 }
             }
-            ReceiveQueueSync.Release();
+            if (ReceiveQueueSync.CurrentCount == 0) { ReceiveQueueSync.Release(); }
         }
     }
 
