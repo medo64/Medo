@@ -15,6 +15,33 @@ public class BearBusTests {
                                         commandCode: 29,
                                         datum: 0x42);
         Assert.Equal(5, packet.DestinationAddress);
+        Assert.True(packet.IsReplyRequested);
+        Assert.Equal(29, packet.CommandCode);
+        Assert.Equal("42", BitConverter.ToString(packet.Data));
+        Assert.Equal("BB-85-DD-42-DC", BitConverter.ToString(packet.ToBytes()));
+
+        var packetReply = packet.GetReply();
+        Assert.Equal(5, packetReply.SourceAddress);
+        Assert.False(packetReply.IsErrorReply);
+        Assert.Equal(29, packetReply.CommandCode);
+        Assert.Equal("", BitConverter.ToString(packetReply.Data));
+        Assert.Equal("BB-05-1D-00-3A", BitConverter.ToString(packetReply.ToBytes()));
+
+        var packetErrorReply = packet.GetErrorReply();
+        Assert.Equal(5, packetErrorReply.SourceAddress);
+        Assert.True(packetErrorReply.IsErrorReply);
+        Assert.Equal(29, packetErrorReply.CommandCode);
+        Assert.Equal("", BitConverter.ToString(packetErrorReply.Data));
+        Assert.Equal("BB-05-9D-00-3D", BitConverter.ToString(packetErrorReply.ToBytes()));
+    }
+
+    [Fact(DisplayName = "BearBus: Custom Short Packet (No Reply)")]
+    public void CustomShortNoReply() {
+        var packet = BBCustomPacket.Create(destinationAddress: 5,
+                                        commandCode: 29,
+                                        datum: 0x42,
+                                        replyRequested: false);
+        Assert.Equal(5, packet.DestinationAddress);
         Assert.False(packet.IsReplyRequested);
         Assert.Equal(29, packet.CommandCode);
         Assert.Equal("42", BitConverter.ToString(packet.Data));
@@ -35,11 +62,36 @@ public class BearBusTests {
         Assert.Equal("BB-05-9D-00-3D", BitConverter.ToString(packetErrorReply.ToBytes()));
     }
 
-    [Fact(DisplayName = "BearBus: Custom Basic Packet")]
+    [Fact(DisplayName = "BearBus: Custom Basic packet")]
     public void CustomBasic() {
+        var packet = BBCustomPacket.Create(42, 1, new byte[] { 1, 2, 3 });
+        Assert.Equal(42, packet.DestinationAddress);
+        Assert.True(packet.IsReplyRequested);
+        Assert.Equal(1, packet.CommandCode);
+        Assert.Equal("01-02-03", BitConverter.ToString(packet.Data));
+        Assert.Equal("BB-AA-81-03-41-01-02-03-C0", BitConverter.ToString(packet.ToBytes()));
+
+        var packetReply = packet.GetReply(new byte[] { 0x5A, 0x5B });
+        Assert.Equal(42, packetReply.SourceAddress);
+        Assert.False(packetReply.IsErrorReply);
+        Assert.Equal(1, packetReply.CommandCode);
+        Assert.Equal("5A-5B", BitConverter.ToString(packetReply.Data));
+        Assert.Equal("BB-2A-01-02-A4-5A-5B-BD", BitConverter.ToString(packetReply.ToBytes()));
+
+        var packetErrorReply = packet.GetErrorReply(new byte[] { 0x6A, 0x6B });
+        Assert.Equal(42, packetErrorReply.SourceAddress);
+        Assert.True(packetErrorReply.IsErrorReply);
+        Assert.Equal(1, packetErrorReply.CommandCode);
+        Assert.Equal("6A-6B", BitConverter.ToString(packetErrorReply.Data));
+        Assert.Equal("BB-2A-81-02-A3-6A-6B-25", BitConverter.ToString(packetErrorReply.ToBytes()));
+    }
+
+    [Fact(DisplayName = "BearBus: Custom Basic Packet (No Reply)")]
+    public void CustomBasicNoReply() {
         var packet = BBCustomPacket.Create(destinationAddress: 19,
                                         commandCode: 26,
-                                        data: new byte[] { 0x42, 0x43, 0x44 });
+                                        data: new byte[] { 0x42, 0x43, 0x44 },
+                                        replyRequested: false);
         Assert.Equal(19, packet.DestinationAddress);
         Assert.False(packet.IsReplyRequested);
         Assert.Equal(26, packet.CommandCode);
@@ -53,38 +105,65 @@ public class BearBusTests {
         Assert.Equal("5A-5B", BitConverter.ToString(packetReply.Data));
         Assert.Equal("BB-13-1A-02-61-5A-5B-B7", BitConverter.ToString(packetReply.ToBytes()));
 
-        var packetErrorReply = packet.GetErrorReply(new byte[] { 0x5A, 0x5B });
+        var packetErrorReply = packet.GetErrorReply(new byte[] { 0x6A, 0x6B });
         Assert.Equal(19, packetErrorReply.SourceAddress);
         Assert.True(packetErrorReply.IsErrorReply);
         Assert.Equal(26, packetErrorReply.CommandCode);
-        Assert.Equal("5A-5B", BitConverter.ToString(packetErrorReply.Data));
-        Assert.Equal("BB-13-9A-02-66-5A-5B-9D", BitConverter.ToString(packetErrorReply.ToBytes()));
+        Assert.Equal("6A-6B", BitConverter.ToString(packetErrorReply.Data));
+        Assert.Equal("BB-13-9A-02-66-6A-6B-2F", BitConverter.ToString(packetErrorReply.ToBytes()));
     }
 
     [Fact(DisplayName = "BearBus: Custom Long Packet")]
     public void CustomLong() {
         var packet = BBCustomPacket.Create(destinationAddress: 1,
                                         commandCode: 1,
-                                        data: new byte[] { 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F });
+                                        data: new byte[] { 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E });
         Assert.Equal(1, packet.DestinationAddress);
-        Assert.False(packet.IsReplyRequested);
+        Assert.True(packet.IsReplyRequested);
         Assert.Equal(1, packet.CommandCode);
-        Assert.Equal("42-43-44-45-46-47-48-49-4A-4B-4C-4D-4E-4F", BitConverter.ToString(packet.Data));
-        Assert.Equal("BB-81-01-0E-0F-42-43-44-45-46-47-48-49-4A-4B-4C-4D-4E-4F-C2-B2", BitConverter.ToString(packet.ToBytes()));
+        Assert.Equal("42-43-44-45-46-47-48-49-4A-4B-4C-4D-4E", BitConverter.ToString(packet.Data));
+        Assert.Equal("BB-81-81-0D-79-42-43-44-45-46-47-48-49-4A-4B-4C-4D-4E-D9-08", BitConverter.ToString(packet.ToBytes()));
 
-        var packetReply = packet.GetReply(new byte[] { 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E });
+        var packetReply = packet.GetReply(new byte[] { 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D });
         Assert.Equal(1, packetReply.SourceAddress);
         Assert.False(packetReply.IsErrorReply);
         Assert.Equal(1, packetReply.CommandCode);
-        Assert.Equal("51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-5E", BitConverter.ToString(packetReply.Data));
-        Assert.Equal("BB-01-01-0E-C2-51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-5E-80-EA", BitConverter.ToString(packetReply.ToBytes()));
+        Assert.Equal("51-52-53-54-55-56-57-58-59-5A-5B-5C-5D", BitConverter.ToString(packetReply.Data));
+        Assert.Equal("BB-01-01-0D-B3-51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-71-2C", BitConverter.ToString(packetReply.ToBytes()));
 
-        var packetErrorReply = packet.GetErrorReply(new byte[] { 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E });
+        var packetErrorReply = packet.GetErrorReply(new byte[] { 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D });
         Assert.Equal(1, packetErrorReply.SourceAddress);
         Assert.True(packetErrorReply.IsErrorReply);
         Assert.Equal(1, packetErrorReply.CommandCode);
-        Assert.Equal("51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-5E", BitConverter.ToString(packetErrorReply.Data));
-        Assert.Equal("BB-01-81-0E-C5-51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-5E-D4-DF", BitConverter.ToString(packetErrorReply.ToBytes()));
+        Assert.Equal("61-62-63-64-65-66-67-68-69-6A-6B-6C-6D", BitConverter.ToString(packetErrorReply.Data));
+        Assert.Equal("BB-01-81-0D-B4-61-62-63-64-65-66-67-68-69-6A-6B-6C-6D-F2-46", BitConverter.ToString(packetErrorReply.ToBytes()));
+    }
+
+    [Fact(DisplayName = "BearBus: Custom Long Packet (no reply)")]
+    public void CustomLongNoReply() {
+        var packet = BBCustomPacket.Create(destinationAddress: 1,
+                                        commandCode: 1,
+                                        data: new byte[] { 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E },
+                                        replyRequested: false);
+        Assert.Equal(1, packet.DestinationAddress);
+        Assert.False(packet.IsReplyRequested);
+        Assert.Equal(1, packet.CommandCode);
+        Assert.Equal("42-43-44-45-46-47-48-49-4A-4B-4C-4D-4E", BitConverter.ToString(packet.Data));
+        Assert.Equal("BB-81-01-0D-7E-42-43-44-45-46-47-48-49-4A-4B-4C-4D-4E-D1-69", BitConverter.ToString(packet.ToBytes()));
+
+        var packetReply = packet.GetReply(new byte[] { 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D });
+        Assert.Equal(1, packetReply.SourceAddress);
+        Assert.False(packetReply.IsErrorReply);
+        Assert.Equal(1, packetReply.CommandCode);
+        Assert.Equal("51-52-53-54-55-56-57-58-59-5A-5B-5C-5D", BitConverter.ToString(packetReply.Data));
+        Assert.Equal("BB-01-01-0D-B3-51-52-53-54-55-56-57-58-59-5A-5B-5C-5D-71-2C", BitConverter.ToString(packetReply.ToBytes()));
+
+        var packetErrorReply = packet.GetErrorReply(new byte[] { 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D });
+        Assert.Equal(1, packetErrorReply.SourceAddress);
+        Assert.True(packetErrorReply.IsErrorReply);
+        Assert.Equal(1, packetErrorReply.CommandCode);
+        Assert.Equal("61-62-63-64-65-66-67-68-69-6A-6B-6C-6D", BitConverter.ToString(packetErrorReply.Data));
+        Assert.Equal("BB-01-81-0D-B4-61-62-63-64-65-66-67-68-69-6A-6B-6C-6D-F2-46", BitConverter.ToString(packetErrorReply.ToBytes()));
     }
 
     #endregion Packets

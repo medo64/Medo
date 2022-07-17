@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-07-16: Updated for data length
 //2022-07-05: Initial release
 
 namespace Medo.Device;
@@ -223,7 +224,7 @@ public abstract class BearBus : IDisposable {
                             case ParseState.ExtraData:
                                 ParsedExtraDataExpected--;
                                 if (ParsedExtraDataExpected == 0) {
-                                    if (ParsedData[3] <= 13) {
+                                    if (ParsedData[3] <= 12) {
                                         ParsingState = ParseState.DataCRC8;
                                     } else {
                                         ParsingState = ParseState.DataCRC16a;
@@ -795,7 +796,7 @@ public abstract record BBPacket {
         var dataLength = data.Length;
         var embedData = dataLength == 1;
         var trailingData = dataLength > 1;
-        var needsCrc16 = dataLength > 13;
+        var needsCrc16 = dataLength > 12;
         var packetLength = 5;
         if (trailingData) { packetLength += needsCrc16 ? (dataLength + 2) : (dataLength + 1); }
 
@@ -986,7 +987,7 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 127.</param>
     /// <param name="commandCode">Command code. Must be between 1 and 60.</param>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode) {
-        return Create(destinationAddress, commandCode, Array.Empty<byte>(), replyRequested: false);
+        return Create(destinationAddress, commandCode, Array.Empty<byte>(), replyRequested: true);
     }
 
     /// <summary>
@@ -996,7 +997,7 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// <param name="commandCode">Command code. Must be between 1 and 60.</param>
     /// <param name="datum">Data byte.</param>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode, byte datum) {
-        return Create(destinationAddress, commandCode, new byte[] { datum }, replyRequested: false);
+        return Create(destinationAddress, commandCode, new byte[] { datum }, replyRequested: true);
     }
 
     /// <summary>
@@ -1006,7 +1007,7 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// <param name="commandCode">Command code. Must be between 1 and 60.</param>
     /// <param name="data">Data bytes.</param>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode, byte[] data) {
-        return Create(destinationAddress, commandCode, data, replyRequested: false);
+        return Create(destinationAddress, commandCode, data, replyRequested: true);
     }
 
     /// <summary>

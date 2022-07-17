@@ -4,33 +4,33 @@ BearBus is a message protocol intended for use on UART and similar interfaces.
 It allows for communication between a single host and up to 127 devices using
 up to 60 command codes.
 
-Messages can contain up to 240 bytes of extra data which is either CRC-8 (up
-to 13 bytes of data) or CRC-16 verified (14-240 bytes). The total message
-length is thus between 5 bytes (a single data byte) and 247 bytes (5 byte
-header, 240 bytes data, 2 bytes CRC-16).
+Messages can contain up to 240 bytes of extra data either CRC-8 (recommended
+for up to 12 bytes of data) or CRC-16 verified (13-240 bytes). The total
+message length is thus between 5 bytes (up to a single data byte) and 247 bytes
+(5 byte header, 240 bytes data, and 2 bytes CRC-16).
 
 All commands either originate from host or have host as their destination.
 There is no inter-device communication.
 
 There are three distinct versions of packet:
 * Short (only 5-byte header with a single byte of embedded data)
-* Basic (up to 13 bytes of data are supported)
-* Long (up to 240 bytes of data are supported)
+* Basic (up to 12 bytes of data are supported; 18 bytes total)
+* Extended (up to 240 bytes of data are supported; 247 bytes total)
 
 Packet is defined as follows:
 
-|       |                                  Bit                              |
-| Octet |        7       |       6      |  5  |  4  |  3  |  2  |  1  |  0  |
-|-------|----------------|--------------|-----|-----|-----|-----|-----|-----|
-|   0:1 | Header[0:7] (`0xBB`)                                              |
-|   1:1 | Origin[7]      | Address[0:6]                                     |
-|   2:1 | Reply/Error[7] | EmbedData[6] | Command[0:5]                      |
-|   3:1 | DataLength[0:7] {EmbedData=0}                                     |
-|   3:1 | Datum[0:7] {EmbedData=1}                                          |
-|   4:1 | HeaderCRC8[0:7]                                                   |
-|   5:N | Data {EmbedData=0}                                                |
-| 5+N:1 | DataCRC8[0:7] {EmbedData=0} {DataLength<=13}                      |
-| 5+N:2 | DataCRC16[0:15] {EmbedData=0} {DataLength>13}                     |
+|       |                                  Bit                  |                                |
+| Octet |        7       |       6      | 5 | 4 | 3 | 2 | 1 | 0 |                                |
+|-------|----------------|--------------|---|---|---|---|---|---|--------------------------------|
+|   0:1 | Header[7:0] (`0xBB`)                                  |                                |
+|   1:1 | Origin[7]      | Address[6:0]                         |                                |
+|   2:1 | Reply/Error[7] | EmbedData[6] | Command[5:0]          |                                |
+|   3:1 | DataLength[7:0]                                       | {EmbedData=0}                  |
+|   3:1 | Datum[7:0]                                            | {EmbedData=1}                  |
+|   4:1 | HeaderCRC8[7:0]                                       |                                |
+|   5:N | Data                                                  | {EmbedData=0}                  |
+| 5+N:1 | DataCRC8[7:0]                                         | {EmbedData=0} {DataLength<=12} |
+| 5+N:2 | DataCRC16[15:0]                      |                | {EmbedData=0} {DataLength>12}  |
 
 
 ## Fields
@@ -84,7 +84,7 @@ All required codes will use only Short packet format.
 
 | Code   | Command     | Datum      | Origin  | Description                                                                                            |
 |--------|-------------|------------|---------|--------------------------------------------------------------------------------------------------------|
-| `0x00` | System      | (State)    | Host    | Request system action.                                                                                 |
+| `0x00` | System      | (Action)   | Host    | Request system action.                                                                                 |
 | `0x00` | System      | (Status)   | Device  | Unsolicited device update.                                                                             |
 | `0x3D` | Ping        | (random)   | Host    | Checks connection to device.                                                                           |
 | `0x3D` | Ping        | (random)   | (reply) | Response is sent with the same `Datum`.                                                                |
@@ -130,10 +130,10 @@ These are all extra bytes. Exists only if `EmbedData`=`0`.
 ### DataCRC8
 
 This is a CRC-8 (polynomial `0x2F`) value calculated over HeaderCRC8 and all
-preceding data bytes. No CRC input XOR, output XOR or reflection is to be
+preceding data bytes. No CRC input XOR, output XOR, or reflection is to be
 applied.
 
-Field exists only if `EmbedData`=`0` and `DataLength` is between `1` and `13`.
+Field exists only if `EmbedData`=`0` and `DataLength` is between `1` and `12`.
 
 ### DataCRC16
 
@@ -143,7 +143,7 @@ applied.
 
 Field is 2 octets in length.
 
-Field exists only if `EmbedData`=`0` and `DataLength` is between `14` and
+Field exists only if `EmbedData`=`0` and `DataLength` is between `13` and
 `240`.
 
 
@@ -190,21 +190,21 @@ data bytes).
 
 ### Long Packet
 
-This is an example of a long packet with 14 bytes of data.
+This is an example of a long packet with 13 bytes of data.
 
-|             | Long Packet Example                                              |
-|-------------|------------------------------------------------------------------|
-| Packet      | `BB 81 01 0E 0F 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F C2 B2` |
-| Header      | `0xBB`                                                           |
-| Origin      | `1` (from host)                                                  |
-| Address     | `0x01` (1)                                                       |
-| Reply/Error | `0` (don't reply)                                                |
-| EmbedData   | `0` (using extra data)                                           |
-| Command     | `0x01` (1)                                                       |
-| DataLength  | `0x0E` (14)                                                      |
-| HeaderCRC8  | `0x0F`                                                           |
-| Data        | `0x42434445464748494A4B4C4D4E4F`                                 |
-| DataCRC16   | `0xC2B2` (since more than 13 data bytes are used)                |
+|             | Long Packet Example                                           |
+|-------------|---------------------------------------------------------------|
+| Packet      | `BB 81 01 0D 7E 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E D1 69` |
+| Header      | `0xBB`                                                        |
+| Origin      | `1` (from host)                                               |
+| Address     | `0x01` (1)                                                    |
+| Reply/Error | `0` (don't reply)                                             |
+| EmbedData   | `0` (using extra data)                                        |
+| Command     | `0x01` (1)                                                    |
+| DataLength  | `0x0D` (13)                                                   |
+| HeaderCRC8  | `0x7E`                                                        |
+| Data        | `0x42434445464748494A4B4C4D4E`                                |
+| DataCRC16   | `0xD169` (since more than 12 data bytes are used)             |
 
 Total length of this packet is between 21 bytes (14 data bytes) and 247 bytes
 (240 data bytes). Most microcontroller devices are not expected to support
@@ -625,13 +625,13 @@ skipping of bytes.
 
 ### Why is CRC-16 used for longer data?
 
-The maximum protection CRC-8 offers for HD=4 (detects all 3-bit errors) is
-only when data length is 119 bits (14 bytes) or less. Chosen CRC-16 variant
-offers the same for up to 2048 bits (256 bytes) of data. Since for the
-majority (if not all) messages one can expect data length to be less than 14
-bytes (1 byte for header CRC and maximum 13 bytes of data), it makes sense to
-allow for a faster and smaller CRC-8 algorithm to be used while going to a
-longer CRC only when absolutely needed.
+The maximum protection CRC-8 offers for HD=4 (detects all 3-bit errors) is only
+when data length is 119 bits (14 bytes, including CRC itself) or less. Chosen
+CRC-16 variant offers the same for up to 2048 bits (256 bytes) of data. Since
+for the majority (if not all) messages one can expect data length to be less
+than 14 bytes (1 byte for header CRC, 1 byte for data CRC itself, and  maximum
+of 12 bytes of data), it makes sense to allow for a faster and smaller CRC-8
+algorithm to be used while going to a longer CRC only when absolutely needed.
 
 This also allows for vast majority of devices to omit support for CRC-16
 altogether.
