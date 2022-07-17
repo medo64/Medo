@@ -55,7 +55,7 @@ public abstract class BearBus : IDisposable {
 
     private readonly Thread ReceiveThread;
     private readonly ManualResetEventSlim ReceiveCancelEvent = new(initialState: false);
-    private readonly SemaphoreSlim ReceiveQueueSync = new(initialCount: 0, maxCount: 1);
+    private readonly SemaphoreSlim ReceiveQueueSync = new(initialCount: 0, maxCount: Environment.ProcessorCount + 1);  // give it a few more since the whole waiting thing is a bit wishy-washy
     private readonly Queue<IBBPacket> ReceiveQueue = new();
 
     /// <summary>
@@ -66,7 +66,7 @@ public abstract class BearBus : IDisposable {
         lock (ReceiveQueue) {
             if (ReceiveQueue.Count > 0) {
                 packet = ReceiveQueue.Dequeue();
-                if (ReceiveQueue.Count > 0) { ReceiveQueueSync.Release(); }  // give chance for one more
+                if ((ReceiveQueue.Count > 0) && (ReceiveQueueSync.CurrentCount == 0)) { ReceiveQueueSync.Release(); }  // give chance for one more
                 return true;
             }
         }
