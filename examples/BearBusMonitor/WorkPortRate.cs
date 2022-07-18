@@ -16,6 +16,8 @@ internal static class WorkPortRate {
                 WorkBus.Run(BearBus.CreateMonitor(port.BaseStream));
             });
         }
+
+        Output.Line();
         Output.Select("Select baud rate (" + portName + ")", keySelection);
     }
 

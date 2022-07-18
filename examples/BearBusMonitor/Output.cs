@@ -9,8 +9,23 @@ internal static class Output {
         Console.WriteLine();
     }
 
+    public static void Line(string text) {
+        Console.WriteLine(text);
+    }
+
+    public static void Line(char ch, string text) {
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("  [");
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Console.Write(ch);
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("] ");
+        Console.ResetColor();
+        Console.WriteLine(text);
+    }
+
     public static void Header(string text) {
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.ForegroundColor = ConsoleColor.Magenta;
         Console.WriteLine(text.ToUpperInvariant() + ":");
         Console.ResetColor();
     }
@@ -79,7 +94,7 @@ internal static class Output {
             Console.Write("  ");
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Write("[");
-            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.ForegroundColor = ConsoleColor.Magenta;
             Console.Write(entry.Item1);
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Write("] ");

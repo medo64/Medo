@@ -16,6 +16,7 @@ internal static class WorkPort {
                 WorkPortRate.Run(portName);
             });
         }
+
         Output.Select("Select port", keySelection);
     }
 
