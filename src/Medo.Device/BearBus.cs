@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-07-17: Added BearBusMonitor
 //2022-07-16: Updated for data length
 //2022-07-05: Initial release
 
@@ -35,6 +36,15 @@ public abstract class BearBus : IDisposable {
     private readonly Stream Stream;
 
     /// <summary>
+    /// Creates a new instance with unrestricted behavior.
+    /// Intended for monitoring. Use CreateHost or CreateDevice for specific behaviors.
+    /// </summary>
+    /// <param name="stream">Stream.</param>
+    public static BearBusMonitor CreateMonitor(Stream stream) {
+        return new BearBusMonitor(stream);
+    }
+
+    /// <summary>
     /// Creates a new instance that will restrict behavior to Host operations.
     /// </summary>
     /// <param name="stream">Stream.</param>
@@ -59,10 +69,10 @@ public abstract class BearBus : IDisposable {
     private readonly Queue<IBBPacket> ReceiveQueue = new();
 
     /// <summary>
-    /// Receives one packet if it exists.
+    /// Returns true if packet is received.
     /// </summary>
-    /// <param name="packet">Output packet</param>
-    private protected bool TryReceive([MaybeNullWhen(false)] out IBBPacket packet) {
+    /// <param name="packet">Packet received.</param>
+    private protected bool BaseTryReceive([MaybeNullWhen(false)] out IBBPacket packet) {
         lock (ReceiveQueue) {
             if (ReceiveQueue.Count > 0) {
                 packet = ReceiveQueue.Dequeue();
@@ -76,20 +86,13 @@ public abstract class BearBus : IDisposable {
     }
 
     /// <summary>
-    /// Waits until packet is received.
-    /// </summary>
-    private protected IBBPacket Receive() {
-        return Receive(Timeout.Infinite);
-    }
-
-    /// <summary>
-    /// Waits until packet is received.
+    /// Returns packet once received.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    private protected IBBPacket Receive(int millisecondsTimeout) {
+    private protected IBBPacket BaseReceive(int millisecondsTimeout) {
         while (true) {
             if (ReceiveQueueSync.Wait(millisecondsTimeout)) {
-                if (TryReceive(out var packet)) { return packet; }
+                if (BaseTryReceive(out var packet)) { return packet; }
             } else {
                 throw new TimeoutException();
             }
@@ -98,22 +101,15 @@ public abstract class BearBus : IDisposable {
     }
 
     /// <summary>
-    /// Receives one packet if it exists.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    private protected IBBPacket Receive(CancellationToken cancellationToken) {
-        return Receive(Timeout.Infinite, cancellationToken);
-    }
-
-    /// <summary>
-    /// Receives one packet if it exists.
+    /// Returns packet once received.
+    /// Throws exception upon timeout.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    private protected IBBPacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
+    private protected IBBPacket BaseReceive(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
             if (ReceiveQueueSync.Wait(millisecondsTimeout, cancellationToken)) {
-                if (TryReceive(out var packet)) { return packet; }
+                if (BaseTryReceive(out var packet)) { return packet; }
             } else {
                 throw new TimeoutException();
             }
@@ -122,20 +118,13 @@ public abstract class BearBus : IDisposable {
     }
 
     /// <summary>
-    /// Waits until packet is received.
-    /// </summary>
-    private protected async Task<IBBPacket> ReceiveAsync() {
-        return await ReceiveAsync(Timeout.Infinite);
-    }
-
-    /// <summary>
-    /// Waits until packet is received.
+    /// Awaits for the next available packet.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    private protected async Task<IBBPacket> ReceiveAsync(int millisecondsTimeout) {
+    private protected async Task<IBBPacket> BaseReceiveAsync(int millisecondsTimeout) {
         while (true) {
             if (await ReceiveQueueSync.WaitAsync(millisecondsTimeout)) {
-                if (TryReceive(out var packet)) { return packet; }
+                if (BaseTryReceive(out var packet)) { return packet; }
             } else {
                 throw new TimeoutException();
             }
@@ -144,22 +133,14 @@ public abstract class BearBus : IDisposable {
     }
 
     /// <summary>
-    /// Waits until packet is received.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    private protected async Task<IBBPacket> ReceiveAsync(CancellationToken cancellationToken) {
-        return await ReceiveAsync(Timeout.Infinite, cancellationToken);
-    }
-
-    /// <summary>
-    /// Waits until packet is received.
+    /// Awaits for the next available packet.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    private protected async Task<IBBPacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
+    private protected async Task<IBBPacket> BaseReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
             if (await ReceiveQueueSync.WaitAsync(millisecondsTimeout, cancellationToken)) {
-                if (TryReceive(out var packet)) { return packet; }
+                if (BaseTryReceive(out var packet)) { return packet; }
             } else {
                 throw new TimeoutException();
             }
@@ -325,7 +306,7 @@ public abstract class BearBus : IDisposable {
     /// Sends packet to the stream.
     /// </summary>
     /// <param name="packet">Packet to send.</param>
-    private protected void Send(IBBPacket packet) {
+    private protected void BaseSend(IBBPacket packet) {
         var bytes = packet.ToBytes();
         SendSemaphore.Wait();
         try {
@@ -339,7 +320,7 @@ public abstract class BearBus : IDisposable {
     /// Sends packet to the stream.
     /// </summary>
     /// <param name="packet">Packet to send.</param>
-    private protected async Task SendAsync(IBBPacket packet) {
+    private protected async Task BaseSendAsync(IBBPacket packet) {
         var bytes = packet.ToBytes();
         await SendSemaphore.WaitAsync();
         try {
@@ -354,7 +335,7 @@ public abstract class BearBus : IDisposable {
     /// </summary>
     /// <param name="packet">Packet to send.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    private protected async Task SendAsync(IBBPacket packet, CancellationToken cancellationToken) {
+    private protected async Task BaseSendAsync(IBBPacket packet, CancellationToken cancellationToken) {
         var bytes = packet.ToBytes();
         await SendSemaphore.WaitAsync(cancellationToken);
         try {
@@ -397,6 +378,127 @@ public abstract class BearBus : IDisposable {
 /// <summary>
 /// BearBus host.
 /// </summary>
+public sealed class BearBusMonitor : BearBus {
+
+    /// <summary>
+    /// Createsa a new instance.
+    /// </summary>
+    /// <param name="stream">Stream.</param>
+    /// <exception cref="ArgumentNullException">Stream cannot be null.</exception>
+    public BearBusMonitor(Stream stream)
+        : base(stream) {
+    }
+
+
+    /// <summary>
+    /// Returns true if packet is received.
+    /// </summary>
+    /// <param name="packet">Packet received.</param>
+    public bool TryReceive([MaybeNullWhen(false)] out IBBPacket packet) {
+        return BaseTryReceive(out packet);
+    }
+
+    /// <summary>
+    /// Returns packet once received.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    public IBBPacket Receive() {
+        return Receive(Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Returns packet once received.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    public IBBPacket Receive(int millisecondsTimeout) {
+        return BaseReceive(millisecondsTimeout);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public IBBPacket Receive(CancellationToken cancellationToken) {
+        return Receive(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns once packet is received.
+    /// Throws exception upon timeout.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public IBBPacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
+        return BaseReceive(millisecondsTimeout, cancellationToken);
+    }
+
+    /// <summary>
+    /// Awaits for the next available packet.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    public async Task<IBBPacket> ReceiveAsync() {
+        return await ReceiveAsync(Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Awaits for the next available packet.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    public async Task<IBBPacket> ReceiveAsync(int millisecondsTimeout) {
+        return await BaseReceiveAsync(millisecondsTimeout);
+    }
+
+    /// <summary>
+    /// Awaits for the next available packet.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task<IBBPacket> ReceiveAsync(CancellationToken cancellationToken) {
+        return await ReceiveAsync(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Awaits for the next available packet.
+    /// </summary>
+    /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task<IBBPacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
+        return await BaseReceiveAsync(millisecondsTimeout, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a packet.
+    /// </summary>
+    /// <param name="packet">Packet to send.</param>
+    public void Send(IBBPacket packet) {
+        if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
+        BaseSend(packet);
+    }
+
+    /// <summary>
+    /// Sends a packet.
+    /// </summary>
+    /// <param name="packet">Packet to send.</param>
+    public async Task SendAsync(IBBPacket packet) {
+        if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
+        await BaseSendAsync(packet);
+    }
+
+    /// <summary>
+    /// Sends a packet.
+    /// </summary>
+    /// <param name="packet">Packet to send.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task SendAsync(IBBPacket packet, CancellationToken cancellationToken) {
+        if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
+        await BaseSendAsync(packet, cancellationToken);
+    }
+
+}
+
+
+/// <summary>
+/// BearBus host.
+/// </summary>
 public sealed class BearBusHost : BearBus {
 
     /// <summary>
@@ -415,7 +517,7 @@ public sealed class BearBusHost : BearBus {
     /// </summary>
     /// <param name="packet">Packet received.</param>
     public bool TryReceive([MaybeNullWhen(false)] out IBBDevicePacket packet) {
-        while (base.TryReceive(out var genericPacket)) {
+        while (BaseTryReceive(out var genericPacket)) {
             if (genericPacket is IBBDevicePacket devicePacket) {
                 packet = devicePacket;
                 return true;
@@ -426,22 +528,22 @@ public sealed class BearBusHost : BearBus {
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Returns packet once received.
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    public new IBBDevicePacket Receive() {
+    public IBBDevicePacket Receive() {
         return Receive(Timeout.Infinite);
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Returns packet once received.
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    public new IBBDevicePacket Receive(int millisecondsTimeout) {
+    public IBBDevicePacket Receive(int millisecondsTimeout) {
         while (true) {
-            var genericPacket = base.Receive(millisecondsTimeout);
+            var genericPacket = BaseReceive(millisecondsTimeout);
             if (genericPacket is IBBDevicePacket devicePacket) {
                 return devicePacket;
             }
@@ -453,19 +555,20 @@ public sealed class BearBusHost : BearBus {
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public new IBBDevicePacket Receive(CancellationToken cancellationToken) {
+    public IBBDevicePacket Receive(CancellationToken cancellationToken) {
         return Receive(Timeout.Infinite, cancellationToken);
     }
 
     /// <summary>
     /// Returns once packet is received.
+    /// Throws exception upon timeout.
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public new IBBDevicePacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
+    public IBBDevicePacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            var genericPacket = base.Receive(millisecondsTimeout, cancellationToken);
+            var genericPacket = BaseReceive(millisecondsTimeout, cancellationToken);
             if (genericPacket is IBBDevicePacket devicePacket) {
                 return devicePacket;
             }
@@ -473,22 +576,22 @@ public sealed class BearBusHost : BearBus {
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Awaits for the next available packet.
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    public new async Task<IBBDevicePacket> ReceiveAsync() {
+    public async Task<IBBDevicePacket> ReceiveAsync() {
         return await ReceiveAsync(Timeout.Infinite);
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Awaits for the next available packet.
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    public new async Task<IBBDevicePacket> ReceiveAsync(int millisecondsTimeout) {
+    public async Task<IBBDevicePacket> ReceiveAsync(int millisecondsTimeout) {
         while (true) {
-            var genericPacket = await base.ReceiveAsync(millisecondsTimeout);
+            var genericPacket = await BaseReceiveAsync(millisecondsTimeout);
             if (genericPacket is IBBDevicePacket devicePacket) {
                 return devicePacket;
             }
@@ -496,23 +599,23 @@ public sealed class BearBusHost : BearBus {
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Awaits for the next available packet.
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public new async Task<IBBDevicePacket> ReceiveAsync(CancellationToken cancellationToken) {
+    public async Task<IBBDevicePacket> ReceiveAsync(CancellationToken cancellationToken) {
         return await ReceiveAsync(Timeout.Infinite, cancellationToken);
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Awaits for the next available packet.
     /// Any non-device packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public new async Task<IBBDevicePacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
+    public async Task<IBBDevicePacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            var genericPacket = await base.ReceiveAsync(millisecondsTimeout, cancellationToken);
+            var genericPacket = await BaseReceiveAsync(millisecondsTimeout, cancellationToken);
             if (genericPacket is IBBDevicePacket devicePacket) {
                 return devicePacket;
             }
@@ -525,7 +628,7 @@ public sealed class BearBusHost : BearBus {
     /// <param name="packet">Packet to send.</param>
     public void Send(IBBHostPacket packet) {
         if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
-        base.Send(packet);
+        BaseSend(packet);
     }
 
     /// <summary>
@@ -534,7 +637,7 @@ public sealed class BearBusHost : BearBus {
     /// <param name="packet">Packet to send.</param>
     public async Task SendAsync(IBBHostPacket packet) {
         if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
-        await base.SendAsync(packet);
+        await BaseSendAsync(packet);
     }
 
     /// <summary>
@@ -544,7 +647,7 @@ public sealed class BearBusHost : BearBus {
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task SendAsync(IBBHostPacket packet, CancellationToken cancellationToken) {
         if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
-        await base.SendAsync(packet, cancellationToken);
+        await BaseSendAsync(packet, cancellationToken);
     }
 
 }
@@ -571,7 +674,7 @@ public sealed class BearBusDevice : BearBus {
     /// </summary>
     /// <param name="packet">Packet received.</param>
     public bool TryReceive([MaybeNullWhen(false)] out IBBHostPacket packet) {
-        while (base.TryReceive(out var genericPacket)) {
+        while (BaseTryReceive(out var genericPacket)) {
             if (genericPacket is IBBHostPacket hostPacket) {
                 packet = hostPacket;
                 return true;
@@ -583,21 +686,21 @@ public sealed class BearBusDevice : BearBus {
 
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Returns packet once received.
     /// Any non-host packet is dropped.
     /// </summary>
-    public new IBBHostPacket Receive() {
+    public IBBHostPacket Receive() {
         return Receive(Timeout.Infinite);
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Returns packet once received.
     /// Any non-host packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    public new IBBHostPacket Receive(int millisecondsTimeout) {
+    public IBBHostPacket Receive(int millisecondsTimeout) {
         while (true) {
-            var genericPacket = base.Receive(millisecondsTimeout);
+            var genericPacket = BaseReceive(millisecondsTimeout);
             if (genericPacket is IBBHostPacket hostPacket) {
                 return hostPacket;
             }
@@ -609,19 +712,20 @@ public sealed class BearBusDevice : BearBus {
     /// Any non-host packet is dropped.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public new IBBHostPacket Receive(CancellationToken cancellationToken) {
+    public IBBHostPacket Receive(CancellationToken cancellationToken) {
         return Receive(Timeout.Infinite, cancellationToken);
     }
 
     /// <summary>
     /// Returns once packet is received.
+    /// Throws exception upon timeout.
     /// Any non-host packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public new IBBHostPacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
+    public IBBHostPacket Receive(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            var genericPacket = base.Receive(millisecondsTimeout, cancellationToken);
+            var genericPacket = BaseReceive(millisecondsTimeout, cancellationToken);
             if (genericPacket is IBBHostPacket hostPacket) {
                 return hostPacket;
             }
@@ -629,21 +733,21 @@ public sealed class BearBusDevice : BearBus {
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Awaits for the next available packet.
     /// Any non-host packet is dropped.
     /// </summary>
-    public new async Task<IBBHostPacket> ReceiveAsync() {
+    public async Task<IBBHostPacket> ReceiveAsync() {
         return await ReceiveAsync(Timeout.Infinite);
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Awaits for the next available packet.
     /// Any non-host packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
-    public new async Task<IBBHostPacket> ReceiveAsync(int millisecondsTimeout) {
+    public async Task<IBBHostPacket> ReceiveAsync(int millisecondsTimeout) {
         while (true) {
-            var genericPacket = await base.ReceiveAsync(millisecondsTimeout);
+            var genericPacket = await BaseReceiveAsync(millisecondsTimeout);
             if (genericPacket is IBBHostPacket devicePacket) {
                 return devicePacket;
             }
@@ -651,23 +755,23 @@ public sealed class BearBusDevice : BearBus {
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Awaits for the next available packet.
     /// Any non-host packet is dropped.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public new async Task<IBBHostPacket> ReceiveAsync(CancellationToken cancellationToken) {
+    public async Task<IBBHostPacket> ReceiveAsync(CancellationToken cancellationToken) {
         return await ReceiveAsync(Timeout.Infinite, cancellationToken);
     }
 
     /// <summary>
-    /// Returns once packet is received.
+    /// Awaits for the next available packet.
     /// Any non-host packet is dropped.
     /// </summary>
     /// <param name="millisecondsTimeout">The number of milliseconds to wait, Infinite (-1) to wait indefinitely.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public new async Task<IBBHostPacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
+    public async Task<IBBHostPacket> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken) {
         while (true) {
-            var genericPacket = await base.ReceiveAsync(millisecondsTimeout, cancellationToken);
+            var genericPacket = await BaseReceiveAsync(millisecondsTimeout, cancellationToken);
             if (genericPacket is IBBHostPacket devicePacket) {
                 return devicePacket;
             }
@@ -680,7 +784,7 @@ public sealed class BearBusDevice : BearBus {
     /// <param name="packet">Packet to send.</param>
     public void Send(IBBDevicePacket packet) {
         if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
-        base.Send(packet);
+        BaseSend(packet);
     }
 
     /// <summary>
@@ -689,7 +793,7 @@ public sealed class BearBusDevice : BearBus {
     /// <param name="packet">Packet to send.</param>
     public async Task SendAsync(IBBDevicePacket packet) {
         if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
-        await base.SendAsync(packet);
+        await BaseSendAsync(packet);
     }
 
     /// <summary>
@@ -699,7 +803,7 @@ public sealed class BearBusDevice : BearBus {
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task SendAsync(IBBDevicePacket packet, CancellationToken cancellationToken) {
         if (packet == null) { throw new ArgumentNullException(nameof(packet), "Packet cannot be null."); }
-        await base.SendAsync(packet, cancellationToken);
+        await BaseSendAsync(packet, cancellationToken);
     }
 
 }
@@ -1583,7 +1687,7 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// Creates a new status check packet.
     /// </summary>
     /// <param name="destinationAddress">Destination address. Must be between 1 and 127.</param>
-    public static BBStatusPacket New(byte destinationAddress) {
+    public static BBStatusPacket Create(byte destinationAddress) {
         if (destinationAddress is < 1 or > 127) { throw new ArgumentOutOfRangeException(nameof(destinationAddress), "Destination address must be between 1 and 127."); }
 
         return new BBStatusPacket(destinationAddress, replyRequested: true, Array.Empty<byte>());
@@ -1594,10 +1698,10 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// </summary>
     /// <param name="destinationAddress">Destination address. Must be between 1 and 127.</param>
     /// <param name="newBlink">If true, blink light will be requested.</param>
-    public static BBStatusPacket New(byte destinationAddress, bool newBlink) {
+    public static BBStatusPacket Create(byte destinationAddress, bool newBlink) {
         if (destinationAddress is < 1 or > 127) { throw new ArgumentOutOfRangeException(nameof(destinationAddress), "Destination address must be between 1 and 127."); }
 
-        return New(destinationAddress, newBlink, replyRequested: true);
+        return Create(destinationAddress, newBlink, replyRequested: true);
     }
 
     /// <summary>
@@ -1606,7 +1710,7 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 127.</param>
     /// <param name="newBlink">If true, blink light will be requested.</param>
     /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    public static BBStatusPacket New(byte destinationAddress, bool newBlink, bool replyRequested) {
+    public static BBStatusPacket Create(byte destinationAddress, bool newBlink, bool replyRequested) {
         if (destinationAddress is < 0 or > 127) { throw new ArgumentOutOfRangeException(nameof(destinationAddress), "Destination address must be either 0 (broadcast) or between 1 and 127."); }
         if ((destinationAddress == 0) && replyRequested) { throw new ArgumentOutOfRangeException(nameof(replyRequested), "Cannot request reply to a broadcast packet."); }
 
@@ -1622,10 +1726,10 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// <param name="destinationAddress">Destination address. Must be between 1 and 127.</param>
     /// <param name="requestMode">Mode that device should switch to.</param>
     /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    public static BBStatusPacket New(byte destinationAddress, BBDeviceMode requestMode) {
+    public static BBStatusPacket Create(byte destinationAddress, BBDeviceMode requestMode) {
         if (destinationAddress is < 1 or > 127) { throw new ArgumentOutOfRangeException(nameof(destinationAddress), "Destination address must be between 1 and 127."); }
 
-        return New(destinationAddress, requestMode, replyRequested: true);
+        return Create(destinationAddress, requestMode, replyRequested: true);
     }
 
     /// <summary>
@@ -1634,7 +1738,7 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 127.</param>
     /// <param name="newMode">Mode that device should switch to.</param>
     /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    public static BBStatusPacket New(byte destinationAddress, BBDeviceMode newMode, bool replyRequested) {
+    public static BBStatusPacket Create(byte destinationAddress, BBDeviceMode newMode, bool replyRequested) {
         if (destinationAddress is < 0 or > 127) { throw new ArgumentOutOfRangeException(nameof(destinationAddress), "Destination address must be either 0 (broadcast) or between 1 and 127."); }
         if ((destinationAddress == 0) && replyRequested) { throw new ArgumentOutOfRangeException(nameof(replyRequested), "Cannot request reply to a broadcast packet."); }
         if ((int)newMode is < 0 or > 3) { throw new ArgumentOutOfRangeException(nameof(newMode), "Mode out of range."); }
@@ -1652,10 +1756,10 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// <param name="newBlink">If true, blink light will be requested.</param>
     /// <param name="newMode">Mode that device should switch to.</param>
     /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    public static BBStatusPacket New(byte destinationAddress, bool newBlink, BBDeviceMode newMode) {
+    public static BBStatusPacket Create(byte destinationAddress, bool newBlink, BBDeviceMode newMode) {
         if (destinationAddress is < 1 or > 127) { throw new ArgumentOutOfRangeException(nameof(destinationAddress), "Destination address must be between 1 and 127."); }
 
-        return New(destinationAddress, newBlink, newMode, replyRequested: true);
+        return Create(destinationAddress, newBlink, newMode, replyRequested: true);
     }
 
     /// <summary>
@@ -1665,7 +1769,7 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// <param name="newBlink">If true, UID light will be requested.</param>
     /// <param name="newMode">Mode that device should switch to.</param>
     /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    public static BBStatusPacket New(byte destinationAddress, bool newBlink, BBDeviceMode newMode, bool replyRequested) {
+    public static BBStatusPacket Create(byte destinationAddress, bool newBlink, BBDeviceMode newMode, bool replyRequested) {
         if (destinationAddress is < 0 or > 127) { throw new ArgumentOutOfRangeException(nameof(destinationAddress), "Destination address must be either 0 (broadcast) or between 1 and 127."); }
         if ((destinationAddress == 0) && replyRequested) { throw new ArgumentOutOfRangeException(nameof(replyRequested), "Cannot request reply to a broadcast packet."); }
         if ((int)newMode is < 0 or > 3) { throw new ArgumentOutOfRangeException(nameof(newMode), "Mode out of range."); }
@@ -1688,7 +1792,7 @@ public sealed record BBStatusPacket : BBPacket, IBBHostPacket {
     /// <param name="mode">Current device mode.</param>
     /// <param name="errorCode">Current device error code. Must be between 0 and 7</param>
     public BBStatusReplyPacket GetReply(bool blinking, BBDeviceMode mode, byte errorCode) {
-        return BBStatusReplyPacket.New(DestinationAddress, blinking, mode, errorCode);
+        return BBStatusReplyPacket.Create(DestinationAddress, blinking, mode, errorCode);
     }
 
     #endregion GetReply
@@ -1770,7 +1874,7 @@ public sealed record BBStatusReplyPacket : BBPacket, IBBDevicePacket {
     /// <param name="blinking">True if LED blink is active.</param>
     /// <param name="mode">Current device mode.</param>
     /// <param name="errorCode">Current device error code. Must be between 0 and 7</param>
-    public static BBStatusReplyPacket New(byte sourceAddress, bool blinking, BBDeviceMode mode, byte errorCode) {
+    public static BBStatusReplyPacket Create(byte sourceAddress, bool blinking, BBDeviceMode mode, byte errorCode) {
         if (sourceAddress is 0) { throw new ArgumentOutOfRangeException(nameof(sourceAddress), "Cannot send a reply to a broadcast packet."); }
         if (sourceAddress is < 1 or > 127) { throw new ArgumentOutOfRangeException(nameof(sourceAddress), "Source address must be between 1 and 127."); }
         if ((int)mode is < 0 or > 3) { throw new ArgumentOutOfRangeException(nameof(mode), "Mode out of range."); }

@@ -267,7 +267,7 @@ public class BearBusTests {
 
     [Fact(DisplayName = "BearBus: Status Check")]
     public void ExampleStatusCheck() {
-        var packet = BBStatusPacket.New(47);
+        var packet = BBStatusPacket.Create(47);
         Assert.Equal(47, packet.DestinationAddress);
         Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3E, packet.CommandCode);
@@ -310,7 +310,7 @@ public class BearBusTests {
 
     [Fact(DisplayName = "BearBus: Change Blink")]
     public void ExampleStatusChangeBlink() {
-        var packet = BBStatusPacket.New(47, newBlink: true);
+        var packet = BBStatusPacket.Create(47, newBlink: true);
         Assert.Equal(47, packet.DestinationAddress);
         Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3E, packet.CommandCode);
@@ -342,7 +342,7 @@ public class BearBusTests {
 
     [Fact(DisplayName = "BearBus: Change Mode")]
     public void ExampleStatusChangeMode() {
-        var packet = BBStatusPacket.New(47, BBDeviceMode.Config);
+        var packet = BBStatusPacket.Create(47, BBDeviceMode.Config);
         Assert.Equal(47, packet.DestinationAddress);
         Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3E, packet.CommandCode);
@@ -374,7 +374,7 @@ public class BearBusTests {
 
     [Fact(DisplayName = "BearBus: Change Blink and Mode")]
     public void ExampleStatusChangeBlinkAndMode() {
-        var packet = BBStatusPacket.New(47, newBlink: false, BBDeviceMode.Test);
+        var packet = BBStatusPacket.Create(47, newBlink: false, BBDeviceMode.Test);
         Assert.Equal(47, packet.DestinationAddress);
         Assert.True(packet.IsReplyRequested);
         Assert.Equal(0x3E, packet.CommandCode);
