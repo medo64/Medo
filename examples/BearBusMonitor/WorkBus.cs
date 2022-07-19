@@ -14,6 +14,7 @@ internal static class WorkBus {
     public static void Run(Medo.Device.BearBusMonitor bus) {
         Output.Line();
         Output.Header("Monitoring");
+        Output.Line('D', "Generate duplicate (with Shift)");
         Output.Line('P', "Ping");
         Output.Line('R', "Reset (with Shift)");
         Output.Line('U', "Light (Shift for off)");
@@ -26,6 +27,12 @@ internal static class WorkBus {
                 var key = Console.ReadKey(intercept: true);
                 if (key.Key is ConsoleKey.Escape) {
                     return;
+                } else if ((key.Key == ConsoleKey.D) && (key.Modifiers == ConsoleModifiers.Shift)) {  // Reset
+                    if (LastSource != 0) {
+                        var outPacket = BBSystemDevicePacket.CreateStatusUpdate(LastSource, false, BBDeviceMode.Normal, 0);
+                        bus.Send(outPacket);
+                        Output.Packet(outPacket);
+                    }
                 } else if (key.Key == ConsoleKey.E) {  // Edit
                     if (GetInput(out var commandCode, out var dataBytes)) {
                         var outPacket = BBCustomPacket.Create(LastSource, commandCode, dataBytes);
