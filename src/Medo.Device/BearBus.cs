@@ -169,7 +169,7 @@ public abstract class BearBus : IDisposable {
 
                         ParsedData[ParsedDataCount] = b;
 
-                        System.Diagnostics.Debug.WriteLine($"'{b:X2}' {ParsingState}[{ParsedDataCount}]");
+                        //System.Diagnostics.Debug.WriteLine($"'{b:X2}' {ParsingState}[{ParsedDataCount}]");
 
                         switch (ParsingState) {
                             case ParseState.SearchHeader:
@@ -255,7 +255,7 @@ public abstract class BearBus : IDisposable {
                                 break;
                         }
 
-                        System.Diagnostics.Debug.WriteLine($"     {ParsingState}");
+                        //System.Diagnostics.Debug.WriteLine($"     {ParsingState}");
 
                         if (ParsingState == ParseState.SearchHeader) {
                             ParsedDataCount = 0;
