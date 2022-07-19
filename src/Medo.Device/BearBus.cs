@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-07-18: Fixed packet receiving
 //2022-07-17: Added BearBusMonitor
 //2022-07-16: Updated for data length
 //2022-07-05: Initial release
@@ -149,8 +150,8 @@ public abstract class BearBus : IDisposable {
     }
 
 
-    private enum ParseState { SearchForHeader, InHeader, HeaderCRC8, ExtraData, DataCRC8, DataCRC16a, DataCRC16b }
-    private ParseState ParsingState = ParseState.SearchForHeader;
+    private enum ParseState { SearchHeader, WaitAddress, WaitCommand, WaitDataLength, WaitHeaderCrc8, WaitExtraData, WaitExtraDataCrc8, WaitExtraDataCrc16a, WaitExtraDataCrc16b }
+    private ParseState ParsingState = ParseState.SearchHeader;
     private byte ParsedDataCount = 0;
     private readonly byte[] ParsedData = new byte[247]; // maximum packet length
     private byte ParsedExtraDataExpected = 0;
@@ -162,85 +163,101 @@ public abstract class BearBus : IDisposable {
             try {
                 var len = Stream.Read(buffer);
                 if (len > 0) {
+                    int? iRollback = null;
                     for (var i = 0; i < len; i++) {
                         var b = buffer[i];
 
                         ParsedData[ParsedDataCount] = b;
 
+                        System.Diagnostics.Debug.WriteLine($"'{b:X2}' {ParsingState}[{ParsedDataCount}]");
+
                         switch (ParsingState) {
-                            case ParseState.SearchForHeader:
+                            case ParseState.SearchHeader:
                                 if (b == 0xBB) {
-                                    ParsingState = ParseState.InHeader;
+                                    ParsingState = ParseState.WaitAddress;
                                 }
                                 break;
 
-                            case ParseState.InHeader:
-                                if (ParsedDataCount == 3) {
-                                    ParsingState = ParseState.HeaderCRC8;
-                                }
+                            case ParseState.WaitAddress:
+                                if ((b == 0xBB) && (iRollback == null)) { iRollback = i; }
+                                ParsingState = ParseState.WaitCommand;
                                 break;
 
-                            case ParseState.HeaderCRC8:
+                            case ParseState.WaitCommand:
+                                if ((b == 0xBB) && (iRollback == null)) { iRollback = i; }
+                                ParsingState = ParseState.WaitDataLength;
+                                break;
+
+                            case ParseState.WaitDataLength:
+                                if ((b == 0xBB) && (iRollback == null)) { iRollback = i; }
+                                ParsingState = ParseState.WaitHeaderCrc8;
+                                break;
+
+                            case ParseState.WaitHeaderCrc8:
+                                if ((b == 0xBB) && (iRollback == null)) { iRollback = i; }
                                 var headerCrc8 = BBPacket.GetCrc8(ParsedData, 0, 4);
                                 if (headerCrc8 == ParsedData[4]) {
                                     var hasEmbeededData = (ParsedData[2] & 0x40) == 0x40;
                                     if (hasEmbeededData) {
                                         ProcessReceivedPacket(ParsedData);
-                                        ParsingState = ParseState.SearchForHeader;  // done with embeeded byte
+                                        ParsingState = ParseState.SearchHeader;  // done with embeeded byte
                                     } else {
                                         ParsedExtraDataExpected = ParsedData[3];
                                         if (ParsedExtraDataExpected == 0) {
                                             ProcessReceivedPacket(ParsedData);
-                                            ParsingState = ParseState.SearchForHeader;  // done when no data
+                                            ParsingState = ParseState.SearchHeader;  // done when no data
                                         } else {
-                                            ParsingState = ParseState.ExtraData;
+                                            ParsingState = ParseState.WaitExtraData;
                                         }
                                     }
                                 } else {  // CRC not OK
-                                    //Debug.WriteLine("[BearBus] Invalid checksum 0x" + ParsedData[4].ToString("X2") + ", 0x" + headerCrc8.ToString("X2") + " expected");
-                                    ParsingState = ParseState.SearchForHeader;
+                                    //System.Diagnostics.Debug.WriteLine("[BearBus] Invalid checksum 0x" + ParsedData[4].ToString("X2") + ", 0x" + headerCrc8.ToString("X2") + " expected");
+                                    if (iRollback != null) { i = iRollback.Value - 1; }  // try going back
+                                    ParsingState = ParseState.SearchHeader;
                                 }
                                 break;
 
-                            case ParseState.ExtraData:
+                            case ParseState.WaitExtraData:
                                 ParsedExtraDataExpected--;
                                 if (ParsedExtraDataExpected == 0) {
                                     if (ParsedData[3] <= 12) {
-                                        ParsingState = ParseState.DataCRC8;
+                                        ParsingState = ParseState.WaitExtraDataCrc8;
                                     } else {
-                                        ParsingState = ParseState.DataCRC16a;
+                                        ParsingState = ParseState.WaitExtraDataCrc16a;
                                     }
                                 }
                                 break;
 
-                            case ParseState.DataCRC8:
+                            case ParseState.WaitExtraDataCrc8:
                                 var dataCrc8 = BBPacket.GetCrc8(ParsedData, 4, ParsedDataCount - 4);
                                 if (dataCrc8 == ParsedData[ParsedDataCount]) {
                                     ProcessReceivedPacket(ParsedData);
                                 } else {  // CRC not OK
-                                    //Debug.WriteLine("[BearBus] Invalid checksum 0x" + ParsedData[ParsedDataCount].ToString("X2") + ", 0x" + dataCrc8.ToString("X2") + " expected");
-                                    ParsingState = ParseState.SearchForHeader;
+                                    //System.Diagnostics.Debug.WriteLine("[BearBus] Invalid checksum 0x" + ParsedData[ParsedDataCount].ToString("X2") + ", 0x" + dataCrc8.ToString("X2") + " expected");
                                 }
+                                ParsingState = ParseState.SearchHeader;
                                 break;
 
-                            case ParseState.DataCRC16a:
-                                ParsingState = ParseState.DataCRC16b;
+                            case ParseState.WaitExtraDataCrc16a:
+                                ParsingState = ParseState.WaitExtraDataCrc16b;
                                 break;
 
-                            case ParseState.DataCRC16b:
+                            case ParseState.WaitExtraDataCrc16b:
                                 var dataCrc16 = BBPacket.GetCrc16(ParsedData, 4, ParsedDataCount - 5);
                                 var dataCrc16H = (byte)(dataCrc16 >> 8);
                                 var dataCrc16L = (byte)(dataCrc16 & 0xFF);
                                 if ((dataCrc16H == ParsedData[ParsedDataCount - 1]) && (dataCrc16L == ParsedData[ParsedDataCount])) {
                                     ProcessReceivedPacket(ParsedData);
                                 } else {  // CRC not OK
-                                    //Debug.WriteLine("[BearBus] Invalid checksum 0x" + ParsedData[ParsedDataCount - 1].ToString("X2") + ParsedData[ParsedDataCount].ToString("X2") + ", 0x" + dataCrc16H.ToString("X2") + dataCrc16L.ToString("X2") + " expected");
+                                    //System.Diagnostics.Debug.WriteLine("[BearBus] Invalid checksum 0x" + ParsedData[ParsedDataCount - 1].ToString("X2") + ParsedData[ParsedDataCount].ToString("X2") + ", 0x" + dataCrc16H.ToString("X2") + dataCrc16L.ToString("X2") + " expected");
                                 }
-                                ParsingState = ParseState.SearchForHeader;
+                                ParsingState = ParseState.SearchHeader;
                                 break;
                         }
 
-                        if (ParsingState == ParseState.SearchForHeader) {
+                        System.Diagnostics.Debug.WriteLine($"     {ParsingState}");
+
+                        if (ParsingState == ParseState.SearchHeader) {
                             ParsedDataCount = 0;
                         } else {
                             ParsedDataCount++;
@@ -1091,7 +1108,7 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 127.</param>
     /// <param name="commandCode">Command code. Must be between 1 and 60.</param>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode) {
-        return Create(destinationAddress, commandCode, Array.Empty<byte>(), replyRequested: true);
+        return Create(destinationAddress, commandCode, Array.Empty<byte>(), replyRequested: (destinationAddress != 0));
     }
 
     /// <summary>
@@ -1101,7 +1118,7 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// <param name="commandCode">Command code. Must be between 1 and 60.</param>
     /// <param name="datum">Data byte.</param>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode, byte datum) {
-        return Create(destinationAddress, commandCode, new byte[] { datum }, replyRequested: true);
+        return Create(destinationAddress, commandCode, new byte[] { datum }, replyRequested: (destinationAddress != 0));
     }
 
     /// <summary>
@@ -1111,7 +1128,7 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// <param name="commandCode">Command code. Must be between 1 and 60.</param>
     /// <param name="data">Data bytes.</param>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode, byte[] data) {
-        return Create(destinationAddress, commandCode, data, replyRequested: true);
+        return Create(destinationAddress, commandCode, data, replyRequested: (destinationAddress != 0));
     }
 
     /// <summary>
@@ -1956,7 +1973,7 @@ public sealed record BBAddressPacket : BBPacket, IBBHostPacket {
     /// <param name="destinationAddress">Destination address.</param>
     /// <param name="newAddress">New device address.</param>
     public static BBAddressPacket Create(byte destinationAddress, byte newAddress) {
-        return Create(destinationAddress, newAddress, replyRequested: true);
+        return Create(destinationAddress, newAddress, replyRequested: (destinationAddress != 0));
     }
 
     /// <summary>
