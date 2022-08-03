@@ -45,17 +45,17 @@ internal class App {
                     CtrlC();
                     break;
                 } else if (key.Key == ConsoleKey.P) {
-                    bus.Send(BBPingPacket.Create((byte)(1 + Random.Shared.Next(126))));
+                    bus.Send(BBSystemHostPacket.CreateUpdateRequest((byte)(1 + Random.Shared.Next(255))));
                 } else if (key.Key == ConsoleKey.R) {
-                    bus.Send(BBSystemHostPacket.CreateReboot(0));
+                    bus.Send(BBSystemHostPacket.CreateRebootRequest(0));
                 } else if (key.Key == ConsoleKey.X) {
-                    var data = new byte[240];
-                    for (var i = 0; i < data.Length; i++) { data[i] = (byte)i; }
-                    bus.Send(BBCustomPacket.Create((byte)(1 + Random.Shared.Next(126)), 42, data, true));
+                    var data = new byte[248];
+                    for (var i = 0; i < data.Length; i++) { data[i] = (byte)(i + 1); }
+                    bus.Send(BBCustomPacket.Create((byte)(1 + Random.Shared.Next(126)), 30, data, true));
                 } else if (key.Key == ConsoleKey.Y) {
                     var data = new byte[13];
                     for (var i = 0; i < data.Length; i++) { data[i] = (byte)i; }
-                    bus.Send(BBCustomPacket.Create((byte)(1 + Random.Shared.Next(126)), 42, data, true));
+                    bus.Send(BBCustomPacket.Create((byte)(1 + Random.Shared.Next(126)), 30, data, true));
                 }
             }
 
@@ -70,19 +70,13 @@ internal class App {
     public static void RunDevice(Stream stream) {
         Console.WriteLine("[A]ddress: increase own address by one");
         Console.WriteLine("[B]utton : unsolicited address report");
-        Console.WriteLine("[C]onfig : switch to config mode");
         Console.WriteLine("[E]rror .: increase error code by one");
-        Console.WriteLine("[N]ormal : switch to normal mode");
-        Console.WriteLine("[P]rogram: switch to program mode");
-        Console.WriteLine("[T]est ..: switch to test mode");
         Console.WriteLine("[X]L packet: send maximum size packet");
         Console.WriteLine("[Y]L packet: send maximum CRC8 packet");
         Console.WriteLine();
 
         var bus = BearBus.CreateDevice(stream);
         var address = (byte)Random.Shared.Next(127);
-        var blinking = false;
-        var mode = BBDeviceMode.Normal;
         var errorCode = (byte)0;
 
         while (true) {
@@ -92,33 +86,21 @@ internal class App {
                     CtrlC();
                     break;
                 } else if (key.Key == ConsoleKey.A) {
-                    address = (byte)((address + 1) % 128);
-                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    address = (byte)((address + 1) % 256);
+                    bus.Send(BBSystemDevicePacket.CreateUnsolicitedUpdateReport(address, errorCode));
                 } else if (key.Key == ConsoleKey.B) {
-                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
-                } else if (key.Key == ConsoleKey.C) {
-                    mode = BBDeviceMode.Config;
-                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    bus.Send(BBSystemDevicePacket.CreateUnsolicitedUpdateReport(address, errorCode));
                 } else if (key.Key == ConsoleKey.E) {
-                    errorCode = (byte)((errorCode + 1) % 8);
-                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
-                } else if (key.Key == ConsoleKey.N) {
-                    mode = BBDeviceMode.Normal;
-                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
-                } else if (key.Key == ConsoleKey.P) {
-                    mode = BBDeviceMode.Program;
-                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
-                } else if (key.Key == ConsoleKey.T) {
-                    mode = BBDeviceMode.Test;
-                    bus.Send(BBSystemDevicePacket.CreateStatusUpdate(address, blinking, mode, errorCode));
+                    errorCode = (byte)((errorCode + 1) % 16);  // limit to 16
+                    bus.Send(BBSystemDevicePacket.CreateUnsolicitedUpdateReport(address, errorCode));
                 } else if (key.Key == ConsoleKey.X) {
-                    var data = new byte[240];
-                    for (var i = 0; i < data.Length; i++) { data[i] = (byte)i; }
-                    bus.Send(BBCustomReplyPacket.Create(address, 42, data));
+                    var data = new byte[248];
+                    for (var i = 0; i < data.Length; i++) { data[i] = (byte)(i+1); }
+                    bus.Send(BBCustomReplyPacket.Create(address, 30, data));
                 } else if (key.Key == ConsoleKey.Y) {
-                    var data = new byte[13];
+                    var data = new byte[12];
                     for (var i = 0; i < data.Length; i++) { data[i] = (byte)i; }
-                    bus.Send(BBCustomReplyPacket.Create(address, 42, data));
+                    bus.Send(BBCustomReplyPacket.Create(address, 30, data));
                 }
             }
 

@@ -15,8 +15,7 @@ internal static class WorkBus {
         Output.Line();
         Output.Header("Monitoring");
         Output.Line('D', "Generate duplicate (with Shift)");
-        Output.Line('P', "Ping");
-        Output.Line('R', "Reset (with Shift)");
+        Output.Line('R', "Reboot (with Shift)");
         Output.Line('U', "Light (Shift for off)");
 
         Output.Line();
@@ -27,9 +26,9 @@ internal static class WorkBus {
                 var key = Console.ReadKey(intercept: true);
                 if (key.Key is ConsoleKey.Escape) {
                     return;
-                } else if ((key.Key == ConsoleKey.D) && (key.Modifiers == ConsoleModifiers.Shift)) {  // Reset
+                } else if ((key.Key == ConsoleKey.D) && (key.Modifiers == ConsoleModifiers.Shift)) {  // Duplicate
                     if (LastSource != 0) {
-                        var outPacket = BBSystemDevicePacket.CreateStatusUpdate(LastSource, false, BBDeviceMode.Normal, 0);
+                        var outPacket = BBSystemDevicePacket.CreateUnsolicitedUpdateReport(LastSource);
                         bus.Send(outPacket);
                         Output.Packet(outPacket);
                     }
@@ -41,22 +40,19 @@ internal static class WorkBus {
                     } else {
                         Output.Error("Cannot parse");
                     }
-                } else if (key.Key == ConsoleKey.P) {  // Ping
+                } else if ((key.Key == ConsoleKey.R) && (key.Modifiers == ConsoleModifiers.Shift)) {  // Reboot
                     if (LastSource != 0) {
-                        var outPacket = BBPingPacket.Create(LastSource);
-                        bus.Send(outPacket);
-                        Output.Packet(outPacket);
-                    }
-                } else if ((key.Key == ConsoleKey.R) && (key.Modifiers == ConsoleModifiers.Shift)) {  // Reset
-                    if (LastSource != 0) {
-                        var outPacket = BBSystemHostPacket.CreateReboot(LastSource);
+                        var outPacket = BBSystemHostPacket.CreateRebootRequest(LastSource);
                         bus.Send(outPacket);
                         Output.Packet(outPacket);
                     }
                 } else if (key.Key == ConsoleKey.U) {  // UID light
                     if (LastSource != 0) {
                         var shouldBlink = key.Modifiers != ConsoleModifiers.Shift;  // Shift turns it off
-                        var outPacket = BBStatusPacket.Create(LastSource, newBlink: shouldBlink);
+                        var outPacket = shouldBlink switch {
+                            true => BBSetupHostPacket.CreateBlinkOnRequest(LastSource),
+                            false => BBSetupHostPacket.CreateBlinkOffRequest(LastSource),
+                        };
                         bus.Send(outPacket);
                         Output.Packet(outPacket);
                     }
