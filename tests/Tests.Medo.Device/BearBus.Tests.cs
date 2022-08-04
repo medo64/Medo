@@ -326,88 +326,39 @@ public class BearBusTests {
         Assert.Equal("BB-00-A0-06-3F", BitConverter.ToString(packet.ToBytes()));
     }
 
-    [Fact(DisplayName = "BearBus: Enter programming mode")]
-    public void SystemEnterProgrammingMode() {
-        var packet = BBSystemHostPacket.CreateProgrammingModeRequest(222);
+    [Fact(DisplayName = "BearBus: Request Blink On")]
+    public void SystemBlinkOn() {
+        var packet = BBSystemHostPacket.CreateBlinkOnRequest(129);
+        Assert.Equal(129, packet.DestinationAddress);
+        Assert.Equal(BBDeviceAction.BlinkOn, packet.Action);
+        Assert.Equal("08", BitConverter.ToString(packet.Data));
+        Assert.Equal("BB-81-A0-08-49", BitConverter.ToString(packet.ToBytes()));
+    }
+
+    [Fact(DisplayName = "BearBus: Request Blink Off")]
+    public void SystemBlinkOff() {
+        var packet = BBSystemHostPacket.CreateBlinkOffRequest(129);
+        Assert.Equal(129, packet.DestinationAddress);
+        Assert.Equal(BBDeviceAction.BlinkOff, packet.Action);
+        Assert.Equal("09", BitConverter.ToString(packet.Data));
+        Assert.Equal("BB-81-A0-09-66", BitConverter.ToString(packet.ToBytes()));
+    }
+
+    [Fact(DisplayName = "BearBus: Enter firmware upgrade mode")]
+    public void SystemEnterFirmwareUpgrade() {
+        var packet = BBSystemHostPacket.CreateFirmwareUpgradeRequest(222);
         Assert.Equal(222, packet.DestinationAddress);
-        Assert.Equal(BBDeviceAction.Program, packet.Action);
+        Assert.Equal(BBDeviceAction.FirmwareUpgrade, packet.Action);
         Assert.Equal("FF-48-65-6C-6C-6F-20-57-6F-72-6C-64", BitConverter.ToString(packet.Data));
         Assert.Equal("BB-DE-80-0C-F4-FF-48-65-6C-6C-6F-20-57-6F-72-6C-64-9F", BitConverter.ToString(packet.ToBytes()));
     }
 
     #endregion System
 
-    #region Status
+    #region Setup
 
-    [Fact(DisplayName = "BearBus: Request Blink On")]
-    public void StatusBlinkOn() {
-        var packet = BBSetupHostPacket.CreateBlinkOnRequest(129, replyRequested: false);
-        Assert.Equal(129, packet.DestinationAddress);
-        Assert.Equal(BBDeviceAction.BlinkOn, packet.Action);
-        Assert.Equal("08", BitConverter.ToString(packet.Data));
-        Assert.Equal("BB-81-BF-08-28", BitConverter.ToString(packet.ToBytes()));
-    }
 
-    [Fact(DisplayName = "BearBus: Request Blink Off")]
-    public void StatusBlinkOff() {
-        var packet = BBSetupHostPacket.CreateBlinkOffRequest(129, replyRequested: false);
-        Assert.Equal(129, packet.DestinationAddress);
-        Assert.Equal(BBDeviceAction.BlinkOff, packet.Action);
-        Assert.Equal("09", BitConverter.ToString(packet.Data));
-        Assert.Equal("BB-81-BF-09-07", BitConverter.ToString(packet.ToBytes()));
-    }
-
-    [Fact(DisplayName = "BearBus: Request Blink On (with reply)")]
-    public void StatusBlinkOnWithReply() {
-        var packet = BBSetupHostPacket.CreateBlinkOnRequest(129);
-        Assert.Equal(129, packet.DestinationAddress);
-        Assert.Equal(BBDeviceAction.BlinkOn, packet.Action);
-        Assert.Equal("08", BitConverter.ToString(packet.Data));
-        Assert.Equal("BB-81-FF-08-BC", BitConverter.ToString(packet.ToBytes()));
-
-        var packetReply = packet.GetReply();
-        Assert.Equal(129, packetReply.SourceAddress);
-        Assert.False(packetReply.IsErrorReply);
-        Assert.Equal(31, packetReply.CommandCode);
-        Assert.Equal(BBDeviceAction.BlinkOn, packetReply.Action);
-        Assert.Equal("08", BitConverter.ToString(packetReply.Data));
-        Assert.Equal("BB-81-3F-08-2F", BitConverter.ToString(packetReply.ToBytes()));
-
-        var packetErrorReply = packet.GetErrorReply();
-        Assert.Equal(129, packetErrorReply.SourceAddress);
-        Assert.True(packetErrorReply.IsErrorReply);
-        Assert.Equal(31, packetErrorReply.CommandCode);
-        Assert.Equal(BBDeviceAction.BlinkOn, packetReply.Action);
-        Assert.Equal("08", BitConverter.ToString(packetErrorReply.Data));
-        Assert.Equal("BB-81-7F-08-BB", BitConverter.ToString(packetErrorReply.ToBytes()));
-    }
-
-    [Fact(DisplayName = "BearBus: Request Blink Off (with reply)")]
-    public void StatusBlinkOffWithReply() {
-        var packet = BBSetupHostPacket.CreateBlinkOffRequest(129);
-        Assert.Equal(129, packet.DestinationAddress);
-        Assert.Equal(BBDeviceAction.BlinkOff, packet.Action);
-        Assert.Equal("09", BitConverter.ToString(packet.Data));
-        Assert.Equal("BB-81-FF-09-93", BitConverter.ToString(packet.ToBytes()));
-
-        var packetReply = packet.GetReply();
-        Assert.Equal(129, packetReply.SourceAddress);
-        Assert.False(packetReply.IsErrorReply);
-        Assert.Equal(31, packetReply.CommandCode);
-        Assert.Equal(BBDeviceAction.BlinkOff, packetReply.Action);
-        Assert.Equal("09", BitConverter.ToString(packetReply.Data));
-        Assert.Equal("BB-81-3F-09-00", BitConverter.ToString(packetReply.ToBytes()));
-
-        var packetErrorReply = packet.GetErrorReply();
-        Assert.Equal(129, packetErrorReply.SourceAddress);
-        Assert.True(packetErrorReply.IsErrorReply);
-        Assert.Equal(31, packetErrorReply.CommandCode);
-        Assert.Equal(BBDeviceAction.BlinkOff, packetReply.Action);
-        Assert.Equal("09", BitConverter.ToString(packetErrorReply.Data));
-        Assert.Equal("BB-81-7F-09-94", BitConverter.ToString(packetErrorReply.ToBytes()));
-    }
-
-    #endregion Status
+    #endregion Setup
 
 
     #region Stream

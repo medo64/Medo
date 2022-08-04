@@ -50,8 +50,8 @@ internal static class WorkBus {
                     if (LastSource != 0) {
                         var shouldBlink = key.Modifiers != ConsoleModifiers.Shift;  // Shift turns it off
                         var outPacket = shouldBlink switch {
-                            true => BBSetupHostPacket.CreateBlinkOnRequest(LastSource),
-                            false => BBSetupHostPacket.CreateBlinkOffRequest(LastSource),
+                            true => BBSystemHostPacket.CreateBlinkOnRequest(LastSource),
+                            false => BBSystemHostPacket.CreateBlinkOffRequest(LastSource),
                         };
                         bus.Send(outPacket);
                         Output.Packet(outPacket);

@@ -2,7 +2,7 @@
 
 BearBus is a message protocol intended for use on RS-485 and similar
 interfaces. It allows for communication between a single host and up to 255
-devices using up to 30 command codes.
+devices using up to 31 command codes.
 
 Messages can contain up to 255 bytes of extra data either CRC-8 (up to 12 bytes
 of data) or CRC-16 verified (13-248 bytes). The total message length is thus
@@ -84,15 +84,13 @@ added after the header.
 
 ### CommandCode
 
-`CommandCode` is a 6-bit value specifying the command code of the message.
-Custom codes are between `1` and `30`.
+`CommandCode` is a 5-bit value specifying the command code of the message.
+Custom codes are between `1` and `31`. By convention value `31` is used for
+setup messages.
 
 Value `0` denotes `System` commands that must be supported and that go against
 established request/reply convention. Their `ReplyRequested` bit will be
 ignored. All these commands should be supported (if possible).
-
-Value `31` denotes `Status` commands that follow a standard request/reply
-setup. Support for these commands can be omitted.
 
 ### DataLength
 
@@ -330,7 +328,44 @@ Host can also request a reboot of all devices.
 
 Reply is not supported.
 
-#### Reprogram
+#### Blink Request
+
+For the purpose of troubleshooting, one could ask device to turn on its Blink
+mode (usually LED flashing at regular intervals).
+
+|            | Turn On Blink                          |
+|------------|----------------------------------------|
+| Packet     | `BB 81 A0 08 49`                       |
+| Header     | `0xBB`                                 |
+| Address    | `0x81` (129)                           |
+| FromHost   | `1` (from host)                        |
+| Reply      | `0` (do not reply)                     |
+| EmbedData  | `1` (using embedded data)              |
+| Command    | `0x00` (`System`)                      |
+| Datum      | `0x08` (set Blink on)                  |
+| HeaderCRC8 | `0x49`                                 |
+
+Reply is not supported.
+
+#### Blink Off Request
+
+One could ask device to turn off Blink mode.
+
+|            | Turn Off Blink                         |
+|------------|----------------------------------------|
+| Packet     | `BB 81 A0 09 66`                       |
+| Header     | `0xBB`                                 |
+| Address    | `0x81` (129)                           |
+| FromHost   | `1` (from host)                        |
+| Reply      | `0` (do not reply)                     |
+| EmbedData  | `1` (using embedded data)              |
+| Command    | `0x00` (`System`)                      |
+| Datum      | `0x09` (set Blink off)                 |
+| HeaderCRC8 | `0x66`                                 |
+
+Reply is not supported.
+
+#### Firmware Upgrade
 
 This action will enter a special programming mode in the device. Not all
 devices are expected to support this action.
@@ -340,7 +375,7 @@ input and clear all the buffers. Once 1 second has elapsed, all data that
 follows on the same connection will be considered a part of the raw program
 code. Once all memory is programmed, device will restart itself.
 
-|            | Enter Reprogram Mode                                    |
+|            | Enter Firmware Upgrade Mode                             |
 |------------|---------------------------------------------------------|
 | Packet     | `BB DE 80 0C F4 FF 48 65 6C 6C 6F 20 57 6F 72 6C 64 9F` |
 | Header     | `0xBB`                                                  |
@@ -351,48 +386,12 @@ code. Once all memory is programmed, device will restart itself.
 | Command    | `0x00` (`System`)                                       |
 | DataLength | `0x0C` (12)                                             |
 | HeaderCRC8 | `0xF4`                                                  |
-| Data       | `0xFF48656C6C6F20576F726C64` (program)                  |
+| Data       | `0xFF48656C6C6F20576F726C64` (firmware upgrade)         |
 | DataCRC8   | `0x4E`                                                  |
 
 Please note that data MUST match given signature.
 
 Reply is not supported.
-
-
-### Setup
-
-#### Blink Request
-
-For the purpose of troubleshooting, one could ask device to turn on its Blink
-mode (usually LED flashing at regular intervals).
-
-|            | Turn On Blink                          |
-|------------|----------------------------------------|
-| Packet     | `BB 81 BF 08 28`                       |
-| Header     | `0xBB`                                 |
-| Address    | `0x81` (129)                           |
-| FromHost   | `1` (from host)                        |
-| Reply      | `0` (do not reply)                     |
-| EmbedData  | `1` (using embedded data)              |
-| Command    | `0x1F` (`Status`)                      |
-| Datum      | `0x08` (set Blink on)                  |
-| HeaderCRC8 | `0x28`                                 |
-
-#### Blink Off Request
-
-One could ask device to turn off Blink mode.
-
-|            | Turn Off Blink                         |
-|------------|----------------------------------------|
-| Packet     | `BB 81 BF 09 BF`                       |
-| Header     | `0xBB`                                 |
-| Address    | `0x81` (129)                           |
-| FromHost   | `1` (from host)                        |
-| Reply      | `0` (do not reply)                     |
-| EmbedData  | `1` (using embedded data)              |
-| Command    | `0x1F` (`Status`)                      |
-| Datum      | `0x09` (set Blink off)                 |
-| HeaderCRC8 | `0x07`                                 |
 
 
 ## Design Notes

@@ -295,13 +295,11 @@ public abstract class BearBus : IDisposable {
             if (isFromHost) {
                 switch (commandCode) {
                     case 0x00: ReceiveQueue.Enqueue(new BBSystemHostPacket(address, data)); break;
-                    case 0x1F: ReceiveQueue.Enqueue(new BBSetupHostPacket(address, isReplyOrError, data)); break;
                     default: ReceiveQueue.Enqueue(new BBCustomPacket(address, isReplyOrError, commandCode, data)); break;
                 }
             } else {
                 switch (commandCode) {
                     case 0x00: ReceiveQueue.Enqueue(new BBSystemDevicePacket(address, isReplyOrError, data)); break;
-                    case 0x1F: ReceiveQueue.Enqueue(new BBSetupReplyPacket(address, isReplyOrError, data)); break;
                     default: ReceiveQueue.Enqueue(new BBCustomReplyPacket(address, isReplyOrError, commandCode, data)); break;
                 }
             }
@@ -1107,8 +1105,8 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// Reply will be requested unless destination is broadcast.
     /// </summary>
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 30.</exception>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 31.</exception>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode) {
         return Create(destinationAddress, commandCode, Array.Empty<byte>(), replyRequested: (destinationAddress != 0));
     }
@@ -1118,9 +1116,9 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// Reply will be requested unless destination is broadcast.
     /// </summary>
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
     /// <param name="datum">Data byte.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 30.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 31.</exception>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode, byte datum) {
         return Create(destinationAddress, commandCode, new byte[] { datum }, replyRequested: (destinationAddress != 0));
     }
@@ -1130,9 +1128,9 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// Reply will be requested unless destination is broadcast.
     /// </summary>
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
     /// <param name="data">Data bytes.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 30. -or- Cannot have more than 248 bytes of data.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 31. -or- Cannot have more than 248 bytes of data.</exception>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode, byte[] data) {
         return Create(destinationAddress, commandCode, data, replyRequested: (destinationAddress != 0));
     }
@@ -1141,10 +1139,10 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// Returns a new custom request packet.
     /// </summary>
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
     /// <param name="datum">Data byte.</param>
     /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 30. -or- Cannot request reply to a broadcast packet.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 31. -or- Cannot request reply to a broadcast packet.</exception>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode, byte datum, bool replyRequested) {
         return Create(destinationAddress, commandCode, new byte[] { datum }, replyRequested);
     }
@@ -1153,12 +1151,12 @@ public sealed record BBCustomPacket : BBPacket, IBBHostPacket {
     /// Returns a new custom request packet.
     /// </summary>
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
     /// <param name="data">Data bytes.</param>
     /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 30. -or- Cannot have more than 248 bytes of data. -or- Cannot request reply to a broadcast packet.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Command code must be between 1 and 31. -or- Cannot have more than 248 bytes of data. -or- Cannot request reply to a broadcast packet.</exception>
     public static BBCustomPacket Create(byte destinationAddress, byte commandCode, byte[] data, bool replyRequested) {
-        if (commandCode is < 1 or > 30) { throw new ArgumentOutOfRangeException(nameof(commandCode), "Command code must be between 1 and 30."); }
+        if (commandCode is < 1 or > 31) { throw new ArgumentOutOfRangeException(nameof(commandCode), "Command code must be between 1 and 31."); }
         if (data == null) { throw new ArgumentNullException(nameof(data), "Data cannot be null."); }
         if (data.Length > 248) { throw new ArgumentOutOfRangeException(nameof(data), "Cannot have more than 248 bytes of data."); }
         if ((destinationAddress == 0) && replyRequested) { throw new ArgumentOutOfRangeException(nameof(replyRequested), "Cannot request reply to a broadcast packet."); }
@@ -1260,8 +1258,8 @@ public sealed record BBCustomReplyPacket : BBPacket, IBBDevicePacket {
     /// Creates a new custom reply packet.
     /// </summary>
     /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 30.</exception>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 31.</exception>
     public static BBCustomReplyPacket Create(byte sourceAddress, byte commandCode) {
         return Create(sourceAddress, commandCode, Array.Empty<byte>());
     }
@@ -1270,9 +1268,9 @@ public sealed record BBCustomReplyPacket : BBPacket, IBBDevicePacket {
     /// Creates a new custom reply packet.
     /// </summary>
     /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
     /// <param name="datum">Data byte.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 30.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 31.</exception>
     public static BBCustomReplyPacket Create(byte sourceAddress, byte commandCode, byte datum) {
         return Create(sourceAddress, commandCode, new byte[] { datum });
     }
@@ -1281,13 +1279,13 @@ public sealed record BBCustomReplyPacket : BBPacket, IBBDevicePacket {
     /// Creates a new custom reply packet.
     /// </summary>
     /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
     /// <param name="data">Data bytes.</param>
     /// <exception cref="ArgumentNullException">Data cannot be null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 30. -or- Cannot have more than 248 bytes of data.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 31. -or- Cannot have more than 248 bytes of data.</exception>
     public static BBCustomReplyPacket Create(byte sourceAddress, byte commandCode, byte[] data) {
         if (sourceAddress is 0) { throw new ArgumentOutOfRangeException(nameof(sourceAddress), "Cannot send a reply to a broadcast packet."); }
-        if (commandCode is < 1 or > 30) { throw new ArgumentOutOfRangeException(nameof(commandCode), "Command code must be between 1 and 30."); }
+        if (commandCode is < 1 or > 31) { throw new ArgumentOutOfRangeException(nameof(commandCode), "Command code must be between 1 and 31."); }
         if (data == null) { throw new ArgumentNullException(nameof(data), "Data cannot be null."); }
         if (data.Length > 248) { throw new ArgumentOutOfRangeException(nameof(data), "Cannot have more than 248 bytes of data."); }
 
@@ -1302,8 +1300,8 @@ public sealed record BBCustomReplyPacket : BBPacket, IBBDevicePacket {
     /// Creates a new custom error reply packet.
     /// </summary>
     /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 30.</exception>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 31.</exception>
     public static BBCustomReplyPacket CreateError(byte sourceAddress, byte commandCode) {
         return CreateError(sourceAddress, commandCode, Array.Empty<byte>());
     }
@@ -1312,9 +1310,9 @@ public sealed record BBCustomReplyPacket : BBPacket, IBBDevicePacket {
     /// Creates a new custom error reply packet.
     /// </summary>
     /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
     /// <param name="datum">Data byte.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 30.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 31.</exception>
     public static BBCustomReplyPacket CreateError(byte sourceAddress, byte commandCode, byte datum) {
         return CreateError(sourceAddress, commandCode, new byte[] { datum });
     }
@@ -1323,13 +1321,13 @@ public sealed record BBCustomReplyPacket : BBPacket, IBBDevicePacket {
     /// Creates a new custom error reply packet.
     /// </summary>
     /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
+    /// <param name="commandCode">Command code. Must be between 1 and 31.</param>
     /// <param name="data">Data bytes.</param>
     /// <exception cref="ArgumentNullException">Data cannot be null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 30. -or- Cannot have more than 248 bytes of data.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Command code must be between 1 and 31. -or- Cannot have more than 248 bytes of data.</exception>
     public static BBCustomReplyPacket CreateError(byte sourceAddress, byte commandCode, byte[] data) {
         if (sourceAddress is 0) { throw new ArgumentOutOfRangeException(nameof(sourceAddress), "Cannot send a reply to a broadcast packet."); }
-        if (commandCode is < 1 or > 30) { throw new ArgumentOutOfRangeException(nameof(commandCode), "Command code must be between 1 and 30."); }
+        if (commandCode is < 1 or > 31) { throw new ArgumentOutOfRangeException(nameof(commandCode), "Command code must be between 1 and 31."); }
         if (data == null) { throw new ArgumentNullException(nameof(data), "Data cannot be null."); }
         if (data.Length > 248) { throw new ArgumentOutOfRangeException(nameof(data), "Cannot have more than 248 bytes of data."); }
 
@@ -1377,7 +1375,9 @@ public sealed record BBSystemHostPacket : BBPacket, IBBHostPacket {
             return Datum switch {
                 0x00 => BBDeviceAction.Ping,
                 0x06 => BBDeviceAction.Reboot,
-                0xFF => BBDeviceAction.Program,
+                0x08 => BBDeviceAction.BlinkOn,
+                0x09 => BBDeviceAction.BlinkOff,
+                0xFF => BBDeviceAction.FirmwareUpgrade,
                 _ => BBDeviceAction.Unknown,
             };
         }
@@ -1403,10 +1403,24 @@ public sealed record BBSystemHostPacket : BBPacket, IBBHostPacket {
     }
 
     /// <summary>
-    /// Creates a new packet to enter a programming mode.
+    /// Creates a new unsolicited duplicate address report packet.
     /// </summary>
     /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    public static BBSystemHostPacket CreateProgrammingModeRequest(byte destinationAddress) {
+    /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
+    public static BBSystemHostPacket CreateBlinkOnRequest(byte destinationAddress) {
+        return new BBSystemHostPacket(destinationAddress, new byte[] { 0x08 });
+    }
+
+    /// <summary>
+    /// Creates a new unsolicited duplicate address report packet.
+    /// </summary>
+    /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
+    /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
+    public static BBSystemHostPacket CreateBlinkOffRequest(byte destinationAddress) {
+        return new BBSystemHostPacket(destinationAddress, new byte[] { 0x09 });
+    }
+
+    public static BBSystemHostPacket CreateFirmwareUpgradeRequest(byte destinationAddress) {
         return new BBSystemHostPacket(destinationAddress, new byte[] { 0xFF, 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x57, 0x6F, 0x72, 0x6C, 0x64 });
     }
 
@@ -1488,235 +1502,6 @@ public sealed record BBSystemDevicePacket : BBPacket, IBBDevicePacket {
 
 
 /// <summary>
-/// Setup packet coming from host.
-/// </summary>
-public sealed record BBSetupHostPacket : BBPacket, IBBHostPacket {
-
-    /// <summary>
-    /// Creates a new instance.
-    /// Only for internal use; not error checked.
-    /// </summary>
-    internal BBSetupHostPacket(byte sourceAddress, bool isReplyRequestOrError, byte[] data)
-        : base(isFromHost: true, sourceAddress, isReplyRequestOrError, 0x1F, data) {
-    }
-
-
-    /// <summary>
-    /// Gets destination address.
-    /// </summary>
-    public byte DestinationAddress {
-        get => Address;
-    }
-
-    /// <summary>
-    /// Gets if reply to this packet is requested from a device.
-    /// </summary>
-    public bool IsReplyRequested {
-        get => IsReplyRequestOrError;
-    }
-
-    /// <summary>
-    /// Gets action requested.
-    /// </summary>
-    public BBDeviceAction Action {
-        get {
-            return Datum switch {
-                0x08 => BBDeviceAction.BlinkOn,
-                0x09 => BBDeviceAction.BlinkOff,
-                0x80 => BBDeviceAction.SelfCalibrate,
-                _ => BBDeviceAction.Unknown,
-            };
-        }
-    }
-
-
-    #region Create
-
-    /// <summary>
-    /// Creates a new unsolicited duplicate address report packet.
-    /// </summary>
-    /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    public static BBSetupHostPacket CreateBlinkOnRequest(byte destinationAddress) {
-        return CreateBlinkOnRequest(destinationAddress, replyRequested: true);
-    }
-
-    /// <summary>
-    /// Creates a new unsolicited duplicate address report packet.
-    /// </summary>
-    /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    public static BBSetupHostPacket CreateBlinkOnRequest(byte destinationAddress, bool replyRequested) {
-        return new BBSetupHostPacket(destinationAddress, replyRequested, new byte[] { 0x08 });
-    }
-
-    /// <summary>
-    /// Creates a new unsolicited duplicate address report packet.
-    /// </summary>
-    /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    public static BBSetupHostPacket CreateBlinkOffRequest(byte destinationAddress) {
-        return CreateBlinkOffRequest(destinationAddress, replyRequested: true);
-    }
-
-    /// <summary>
-    /// Creates a new unsolicited duplicate address report packet.
-    /// </summary>
-    /// <param name="destinationAddress">Destination address. Must be either 0 (broadcast) or between 1 and 255.</param>
-    /// <param name="replyRequested">If true, a reply packet will be requested from device.</param>
-    public static BBSetupHostPacket CreateBlinkOffRequest(byte destinationAddress, bool replyRequested) {
-        return new BBSetupHostPacket(destinationAddress, replyRequested, new byte[] { 0x09 });
-    }
-
-    #endregion Create
-
-    #region GetReply
-
-    /// <summary>
-    /// Creates a new custom reply packet based on request.
-    /// </summary>
-    public BBSetupReplyPacket GetReply() {
-        return BBSetupReplyPacket.Create(DestinationAddress, Datum);
-    }
-
-    #endregion GetReply
-
-    #region GetErrorReply
-
-    /// <summary>
-    /// Creates a new custom reply packet based on request.
-    /// </summary>
-    public BBSetupReplyPacket GetErrorReply() {
-        return BBSetupReplyPacket.CreateError(DestinationAddress, Datum);
-    }
-
-    #endregion GetErrorReply
-
-}
-
-
-/// <summary>
-/// Setup packet reply coming from device.
-/// </summary>
-public sealed record BBSetupReplyPacket : BBPacket, IBBDevicePacket {
-
-    /// <summary>
-    /// Creates a new instance.
-    /// Only for internal use; not error checked.
-    /// </summary>
-    internal BBSetupReplyPacket(byte sourceAddress, bool errorReply, byte[] data)
-        : base(isFromHost: false, sourceAddress, errorReply, 0x1F, data) {
-    }
-
-
-    /// <summary>
-    /// Gets source address.
-    /// </summary>
-    public byte SourceAddress {
-        get => Address;
-    }
-
-    /// <summary>
-    /// Gets if this is an error reply.
-    /// </summary>
-    public bool IsErrorReply {
-        get => IsReplyRequestOrError;
-    }
-
-    /// <summary>
-    /// Gets action replied to.
-    /// </summary>
-    public BBDeviceAction Action {
-        get {
-            return Datum switch {
-                0x08 => BBDeviceAction.BlinkOn,
-                0x09 => BBDeviceAction.BlinkOff,
-                0x80 => BBDeviceAction.SelfCalibrate,
-                _ => BBDeviceAction.Unknown,
-            };
-        }
-    }
-
-
-    #region Create
-
-    /// <summary>
-    /// Creates a new custom reply packet.
-    /// </summary>
-    /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="commandCode">Command code. Must be between 1 and 30.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet.</exception>
-    public static BBSetupReplyPacket Create(byte sourceAddress) {
-        return Create(sourceAddress, Array.Empty<byte>());
-    }
-
-    /// <summary>
-    /// Creates a new custom reply packet.
-    /// </summary>
-    /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="datum">Data byte.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet.</exception>
-    public static BBSetupReplyPacket Create(byte sourceAddress, byte datum) {
-        return Create(sourceAddress, new byte[] { datum });
-    }
-
-    /// <summary>
-    /// Creates a new custom reply packet.
-    /// </summary>
-    /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="data">Data bytes.</param>
-    /// <exception cref="ArgumentNullException">Data cannot be null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Cannot have more than 248 bytes of data.</exception>
-    public static BBSetupReplyPacket Create(byte sourceAddress, byte[] data) {
-        if (sourceAddress is 0) { throw new ArgumentOutOfRangeException(nameof(sourceAddress), "Cannot send a reply to a broadcast packet."); }
-        if (data == null) { throw new ArgumentNullException(nameof(data), "Data cannot be null."); }
-        if (data.Length > 248) { throw new ArgumentOutOfRangeException(nameof(data), "Cannot have more than 248 bytes of data."); }
-
-        return new BBSetupReplyPacket(sourceAddress, errorReply: false, data);
-    }
-
-    #endregion Create
-
-    #region CreateError
-
-    /// <summary>
-    /// Creates a new custom error reply packet.
-    /// </summary>
-    /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet.</exception>
-    public static BBSetupReplyPacket CreateError(byte sourceAddress) {
-        return CreateError(sourceAddress, Array.Empty<byte>());
-    }
-
-    /// <summary>
-    /// Creates a new custom error reply packet.
-    /// </summary>
-    /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="datum">Data byte.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet.</exception>
-    public static BBSetupReplyPacket CreateError(byte sourceAddress, byte datum) {
-        return CreateError(sourceAddress, new byte[] { datum });
-    }
-
-    /// <summary>
-    /// Creates a new custom error reply packet.
-    /// </summary>
-    /// <param name="sourceAddress">Source address. Must be between 1 and 255.</param>
-    /// <param name="data">Data bytes.</param>
-    /// <exception cref="ArgumentNullException">Data cannot be null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Cannot send a reply to a broadcast packet. -or- Cannot have more than 248 bytes of data.</exception>
-    public static BBSetupReplyPacket CreateError(byte sourceAddress, byte[] data) {
-        if (sourceAddress is 0) { throw new ArgumentOutOfRangeException(nameof(sourceAddress), "Cannot send a reply to a broadcast packet."); }
-        if (data == null) { throw new ArgumentNullException(nameof(data), "Data cannot be null."); }
-        if (data.Length > 248) { throw new ArgumentOutOfRangeException(nameof(data), "Cannot have more than 248 bytes of data."); }
-
-        return new BBSetupReplyPacket(sourceAddress, errorReply: true, data);
-    }
-
-    #endregion CreateError
-
-}
-
-
-/// <summary>
 /// List of device actions.
 /// </summary>
 public enum BBDeviceAction {
@@ -1741,12 +1526,7 @@ public enum BBDeviceAction {
     /// </summary>
     BlinkOff = 0x09,
     /// <summary>
-    /// Calibrate.
+    /// Firmware upgrade.
     /// </summary>
-    SelfCalibrate = 0x80,
-    /// <summary>
-    /// Programming mode.
-    /// </summary>
-    Program = 0xFF,
+    FirmwareUpgrade = 0xFF,
 }
-
