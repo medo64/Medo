@@ -212,6 +212,10 @@ changed (e.g. an error occurs), it must send an unsolicited packet to the host.
 This packet should be sent even if device has no address (i.e. it's address is
 `0`).
 
+Device can also send unsolicited packet up to once a minute if no other
+communication from host is received.
+
+
 |            | Unsolicited Update                     |
 |------------|----------------------------------------|
 | Packet     | `BB C8 00 00 DC`                       |
