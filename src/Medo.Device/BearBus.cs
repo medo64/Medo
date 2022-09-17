@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-09-17: Better handling of reads
 //2022-08-03: Major protocol refactoring
 //2022-07-18: Fixed packet receiving
 //2022-07-17: Added BearBusMonitor
@@ -162,7 +163,10 @@ public abstract class BearBus : IDisposable {
 
         while (!ReceiveCancelEvent.Wait(0)) {
             try {
-                var len = Stream.Read(buffer);
+                int len = 0;
+                try {
+                    len = Stream.Read(buffer);
+                } catch (OperationCanceledException) { }  // ignore this
                 if (len > 0) {
                     int? iRollback = null;
                     for (var i = 0; i < len; i++) {
