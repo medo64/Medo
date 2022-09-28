@@ -5,6 +5,7 @@
 
 namespace Medo.Security.Checksum;
 
+using System;
 using System.Security.Cryptography;
 
 /// <summary>
@@ -18,6 +19,9 @@ using System.Security.Cryptography;
 /// var checksumValue = checksum.HashAsInt16;
 /// </code>
 /// </example>
+#if NET7_0_OR_GREATER
+[Obsolete("Use Medo.IO.Hashing.Fletcher16 instead")]
+#endif
 public sealed class Fletcher16 : HashAlgorithm {
 
     /// <summary>

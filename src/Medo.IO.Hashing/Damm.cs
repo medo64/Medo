@@ -1,15 +1,18 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-09-27: Moved to Medo.IO.Hashing
+//            Inheriting from NonCryptographicHashAlgorithm
 //2021-11-25: Refactored to use pattern matching
 //2021-10-31: Fixed reuse for new hash
 //2021-03-04: Class is sealed
 //2021-02-28: Refactored for .NET 5
 //2017-08-26: Initial version
 
-namespace Medo.Security.Checksum;
+namespace Medo.IO.Hashing;
 
 using System;
-using System.Security.Cryptography;
+using System.IO.Hashing;
+using System.Runtime.InteropServices;
 using System.Text;
 
 /// <summary>
@@ -24,19 +27,17 @@ using System.Text;
 /// <example>
 /// <code>
 /// using var checksum = new Damm();
-/// checksum.ComputeHash(Encoding.ASCII.GetBytes("42"));
+/// checksum.Append(Encoding.ASCII.GetBytes("42"));
 /// var checksumChar = checksum.HashAsChar;
 /// </code>
 /// </example>
-#if NET7_0_OR_GREATER
-[Obsolete("Use Medo.IO.Hashing.Damm instead")]
-#endif
-public sealed class Damm : HashAlgorithm {
+public sealed class Damm : NonCryptographicHashAlgorithm {
 
     /// <summary>
     /// Creates a new instance.
     /// </summary>
-    public Damm() {
+    public Damm()
+        : base(1) {
         ProcessInitialization();
     }
 
@@ -62,8 +63,8 @@ public sealed class Damm : HashAlgorithm {
         if (digits == null) { throw new ArgumentNullException(nameof(digits), "Digits cannot be null."); }
         digits = digits.Replace(" ", "").Replace("-", ""); //ignore dashes and spaces
 
-        using var checksum = new Damm();
-        checksum.ComputeHash(Encoding.ASCII.GetBytes(digits));
+        var checksum = new Damm();
+        checksum.Append(Encoding.ASCII.GetBytes(digits));
         if (returnAllDigits) {
             return digits + checksum.HashAsChar.ToString();
         } else {
@@ -84,12 +85,32 @@ public sealed class Damm : HashAlgorithm {
 
         var digits = digitsWithHash[0..^1];
         var hash = digitsWithHash[^1];
-        using var checksum = new Damm();
-        checksum.ComputeHash(Encoding.ASCII.GetBytes(digits));
+        var checksum = new Damm();
+        checksum.Append(Encoding.ASCII.GetBytes(digits));
         return (hash == checksum.HashAsChar);
     }
 
     #endregion
+
+
+    #region NonCryptographicHashAlgorithm
+
+    /// <inheritdoc/>
+    public override void Append(ReadOnlySpan<byte> source) {
+        ProcessBytes(source);
+    }
+
+    /// <inheritdoc/>
+    public override void Reset() {
+        ProcessInitialization();
+    }
+
+    protected override void GetCurrentHashCore(Span<byte> destination) {
+        var hash = (byte)(0x30 + HashAsNumber);
+        MemoryMarshal.Write(destination, ref hash);
+    }
+
+    #endregion NonCryptographicHashAlgorithm
 
 
     #region Algorithm
@@ -111,13 +132,12 @@ public sealed class Damm : HashAlgorithm {
         HashAsNumber = 0;
     }
 
-    private void ProcessBytes(byte[] bytes, int index, int count) {
+    private void ProcessBytes(ReadOnlySpan<byte> source) {
         var savedHash = HashAsNumber;
-        for (var i = index; i < (index + count); i++) {
-            var b = bytes[i];
+        foreach (var b in source) {
             if (b is < 0x30 or > 0x39) {
                 HashAsNumber = savedHash;  // restore old hash value
-                throw new ArgumentOutOfRangeException(nameof(bytes), "Only numbers 0 to 9 are allowed.");
+                throw new ArgumentOutOfRangeException(nameof(source), "Only numbers 0 to 9 are allowed.");
             }
             var row = HashAsNumber;
             var col = b - 0x30;
@@ -136,48 +156,5 @@ public sealed class Damm : HashAlgorithm {
     public char HashAsChar => (char)(0x30 + HashAsNumber);
 
     #endregion Algorithm
-
-    #region HashAlgorithm
-
-    private bool InitializationPending;
-
-    /// <summary>
-    /// Gets the size, in bits, of the computed hash code.
-    /// </summary>
-    public override int HashSize => 8;
-
-
-    /// <summary>
-    /// Initializes an instance.
-    /// </summary>
-    public override void Initialize() {
-        InitializationPending = true;  // just queue cleanup so that we can read final state before all is gone
-    }
-
-    /// <summary>
-    /// Computes the hash over the data.
-    /// </summary>
-    /// <param name="array">The input data.</param>
-    /// <param name="ibStart">The offset into the byte array from which to begin using data.</param>
-    /// <param name="cbSize">The number of bytes in the array to use as data.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Only numbers 0 to 9 are allowed.</exception>
-    protected override void HashCore(byte[] array, int ibStart, int cbSize) {
-        if (InitializationPending) {
-            ProcessInitialization();
-            InitializationPending = false;
-        }
-
-        ProcessBytes(array, ibStart, cbSize);
-    }
-
-    /// <summary>
-    /// Finalizes the hash computation.
-    /// </summary>
-    /// <returns></returns>
-    protected override byte[] HashFinal() {
-        return new byte[] { (byte)(0x30 + HashAsNumber) };
-    }
-
-    #endregion
 
 }

@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-09-27: Moved to Medo.IO.Hashing
+//            Inheriting from NonCryptographicHashAlgorithm
 //2022-06-24: Obsoleted default constructor in favor of GetCustom method
 //2022-01-05: Added more variants
 //            Fixed big-endian system operation
@@ -16,10 +18,11 @@
 //            Added internal Bitwise class
 //            Removed obsoleted constructors
 
-namespace Medo.Security.Checksum;
+namespace Medo.IO.Hashing;
 
 using System;
-using System.Security.Cryptography;
+using System.Buffers.Binary;
+using System.IO.Hashing;
 
 /// <summary>
 /// Computes hash using 32-bit CRC algorithm.
@@ -31,14 +34,11 @@ using System.Security.Cryptography;
 /// <example>
 /// <code>
 /// var crc = Crc32.GetIsoHdlc();
-/// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
+/// crc.Append(Encoding.ASCII.GetBytes("Test"));
 /// var hashValue = crc.HashAsByte;
 /// </code>
 /// </example>
-#if NET7_0_OR_GREATER
-[Obsolete("Use Medo.IO.Hashing.Crc32 instead")]
-#endif
-public sealed class Crc32 : HashAlgorithm {
+public sealed class Crc32 : NonCryptographicHashAlgorithm {
 
     /// <summary>
     /// Creates a new instance using the CRC-32/ISO-HDLC variant.
@@ -76,7 +76,8 @@ public sealed class Crc32 : HashAlgorithm {
     /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
     /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
     /// <param name="finalXorValue">Final XOR value.</param>
-    private Crc32(uint polynomial, uint initialValue, bool reflectIn, bool reflectOut, uint finalXorValue) {
+    private Crc32(uint polynomial, uint initialValue, bool reflectIn, bool reflectOut, uint finalXorValue)
+        : base(4) {
         _polynomial = polynomial;
         _initialValue = initialValue;
         _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
@@ -465,47 +466,23 @@ public sealed class Crc32 : HashAlgorithm {
     }
 
 
-    #region HashAlgorithm
+    #region NonCryptographicHashAlgorithm
 
-    /// <summary>
-    /// Gets the size, in bits, of the computed hash code.
-    /// </summary>
-    public override int HashSize => 32;
-
-    private bool _initializationPending;
-
-    /// <summary>
-    /// Initializes an instance.
-    /// </summary>
-    public override void Initialize() {
-        _initializationPending = true; //to avoid base class' HashFinal call after ComputeHash clear HashAsInt16.
+    /// <inheritdoc/>
+    public override void Append(ReadOnlySpan<byte> source) {
+        ProcessBytes(source);
     }
 
-    /// <summary>
-    /// Computes the hash over the data.
-    /// </summary>
-    /// <param name="array">The input data.</param>
-    /// <param name="ibStart">The offset into the byte array from which to begin using data.</param>
-    /// <param name="cbSize">The number of bytes in the array to use as data.</param>
-    protected override void HashCore(byte[] array, int ibStart, int cbSize) {
-        if (_initializationPending) {
-            ProcessInitialization();
-            _initializationPending = false;
-        }
-
-        ProcessBytes(array, ibStart, cbSize);
+    /// <inheritdoc/>
+    public override void Reset() {
+        ProcessInitialization();
     }
 
-    /// <summary>
-    /// Finalizes the hash computation.
-    /// </summary>
-    protected override byte[] HashFinal() {
-        var digestBytes = BitConverter.GetBytes(HashAsInt32);
-        if (BitConverter.IsLittleEndian) { Array.Reverse(digestBytes); }
-        return digestBytes;
+    protected override void GetCurrentHashCore(Span<byte> destination) {
+        BinaryPrimitives.WriteInt32BigEndian(destination, HashAsInt32);
     }
 
-    #endregion HashAlgorithm
+    #endregion NonCryptographicHashAlgorithm
 
 
     #region Algorithm
@@ -537,12 +514,12 @@ public sealed class Crc32 : HashAlgorithm {
     private readonly uint[] _lookup = new uint[256];
     private uint _currDigest;
 
-    private void ProcessBytes(byte[] bytes, int index, int count) {
-        for (var i = index; i < (index + count); i++) {
+    private void ProcessBytes(ReadOnlySpan<byte> source) {
+        foreach (var b in source) {
             if (_reverseIn) {
-                _currDigest = (_currDigest >> 8) ^ _lookup[(int)((_currDigest & 0xff) ^ _lookupBitReverse[bytes[i]])];
+                _currDigest = (_currDigest >> 8) ^ _lookup[(int)((_currDigest & 0xff) ^ _lookupBitReverse[b])];
             } else {
-                _currDigest = (_currDigest >> 8) ^ _lookup[(int)((_currDigest & 0xff) ^ (bytes[i]))];
+                _currDigest = (_currDigest >> 8) ^ _lookup[(int)((_currDigest & 0xff) ^ (b))];
             }
         }
     }

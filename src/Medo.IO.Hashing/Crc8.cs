@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-09-27: Moved to Medo.IO.Hashing
+//            Inheriting from NonCryptographicHashAlgorithm
 //2022-06-24: Removed default constructor in favor of GetCustom method
 //            Added more variants
 //2022-01-05: Added more variants
@@ -12,10 +14,14 @@
 //2008-01-05: Added resources
 //2007-10-31: New version
 
-namespace Medo.Security.Checksum;
+namespace Medo.IO.Hashing;
 
 using System;
-using System.Security.Cryptography;
+using System.Buffers.Binary;
+using System.IO;
+using System.IO.Hashing;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 /// <summary>
 /// Computes hash using the 8-bit CRC algorithm.
@@ -27,14 +33,11 @@ using System.Security.Cryptography;
 /// <example>
 /// <code>
 /// var crc = Crc8.GetOpenSafety();
-/// crc.ComputeHash(Encoding.ASCII.GetBytes("Test"));
+/// crc.Append(Encoding.ASCII.GetBytes("Test"));
 /// var hashValue = crc.HashAsByte;
 /// </code>
 /// </example>
-#if NET7_0_OR_GREATER
-[Obsolete("Use Medo.IO.Hashing.Crc8 instead")]
-#endif
-public sealed class Crc8 : HashAlgorithm {
+public sealed class Crc8 : NonCryptographicHashAlgorithm {
 
     /// <summary>
     /// Creates new instance.
@@ -44,7 +47,8 @@ public sealed class Crc8 : HashAlgorithm {
     /// <param name="reflectIn">If true, input byte is in the reflected (LSB first) bit order.</param>
     /// <param name="reflectOut">If true, digest is in the reflected (LSB first) bit order.</param>
     /// <param name="finalXorValue">The final XOR value.</param>
-    private Crc8(byte polynomial, byte initialValue, bool reflectIn, bool reflectOut, byte finalXorValue) {
+    private Crc8(byte polynomial, byte initialValue, bool reflectIn, bool reflectOut, byte finalXorValue)
+        : base(1) {
         _polynomial = polynomial;
         _initialValue = initialValue;
         _reverseIn = reflectIn ^ BitConverter.IsLittleEndian;
@@ -499,46 +503,24 @@ public sealed class Crc8 : HashAlgorithm {
     }
 
 
-    #region HashAlgorithm
+    #region NonCryptographicHashAlgorithm
 
-    /// <summary>
-    /// Gets the size, in bits, of the computed hash code.
-    /// </summary>
-    public override int HashSize => 8;
-
-    private bool _initializationPending;
-
-    /// <summary>
-    /// Initializes an instance.
-    /// </summary>
-    public override void Initialize() {
-        _initializationPending = true; //to avoid base class' HashFinal call after ComputeHash clear HashAsInt16.
+    /// <inheritdoc/>
+    public override void Append(ReadOnlySpan<byte> source) {
+        ProcessBytes(source);
     }
 
-    /// <summary>
-    /// Computes the hash over the data.
-    /// </summary>
-    /// <param name="array">The input data.</param>
-    /// <param name="ibStart">The offset into the byte array from which to begin using data.</param>
-    /// <param name="cbSize">The number of bytes in the array to use as data.</param>
-    protected override void HashCore(byte[] array, int ibStart, int cbSize) {
-        if (_initializationPending) {
-            ProcessInitialization();
-            _initializationPending = false;
-        }
-
-        ProcessBytes(array, ibStart, cbSize);
+    /// <inheritdoc/>
+    public override void Reset() {
+        ProcessInitialization();
     }
 
-    /// <summary>
-    /// Finalizes the hash computation.
-    /// </summary>
-    /// <returns></returns>
-    protected override byte[] HashFinal() {
-        return new byte[] { HashAsByte };
+    protected override void GetCurrentHashCore(Span<byte> destination) {
+        var hash = HashAsByte;
+        MemoryMarshal.Write(destination, ref hash);
     }
 
-    #endregion HashAlgorithm
+    #endregion NonCryptographicHashAlgorithm
 
 
     #region Algorithm
@@ -571,12 +553,12 @@ public sealed class Crc8 : HashAlgorithm {
     private readonly byte[] _lookup = new byte[256];
     private byte _currDigest;
 
-    private void ProcessBytes(byte[] bytes, int index, int count) {
-        for (var i = index; i < (index + count); i++) {
+    private void ProcessBytes(ReadOnlySpan<byte> source) {
+        foreach (var b in source) {
             if (_reverseIn) {
-                _currDigest = _lookup[_currDigest ^ BitwiseReverse(bytes[i])];
+                _currDigest = _lookup[_currDigest ^ BitwiseReverse(b)];
             } else {
-                _currDigest = _lookup[_currDigest ^ bytes[i]];
+                _currDigest = _lookup[_currDigest ^ b];
             }
         }
     }
@@ -623,7 +605,6 @@ public sealed class Crc8 : HashAlgorithm {
     public static byte FromReversedReciprocalPolynomial(byte reversedReciprocalPolynomial) {
         return (byte)((reversedReciprocalPolynomial << 1) | 0x01);
     }
-
 
     #endregion ReciprocalPolynomial
 
