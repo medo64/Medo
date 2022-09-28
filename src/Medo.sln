@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BearBusMonitor", "..\exampl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.IO.Hashing", "Medo.IO.Hashing\Medo.IO.Hashing.csproj", "{753D366D-69B1-48AF-B535-2082CF26F0C7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.IO.Hashing", "..\tests\Tests.IO.Hashing\Tests.IO.Hashing.csproj", "{A565AC18-5AC5-4456-BD21-1CE975A12189}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.IO.Hashing", "..\tests\Tests.Medo.IO.Hashing\Tests.Medo.IO.Hashing.csproj", "{A565AC18-5AC5-4456-BD21-1CE975A12189}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

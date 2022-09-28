@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.Device", "..\tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.IO.Hashing", "Medo.IO.Hashing\Medo.IO.Hashing.csproj", "{1E32DF56-1178-4561-BAA1-BD78549498EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.IO.Hashing", "..\tests\Tests.IO.Hashing\Tests.IO.Hashing.csproj", "{C1F20DCA-843E-451F-A4F3-5B2A414B94C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.IO.Hashing", "..\tests\Tests.Medo.IO.Hashing\Tests.Medo.IO.Hashing.csproj", "{C1F20DCA-843E-451F-A4F3-5B2A414B94C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

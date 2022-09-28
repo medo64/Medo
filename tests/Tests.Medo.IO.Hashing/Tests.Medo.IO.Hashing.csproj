@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>Tests.IO.Hashing</AssemblyName>
+    <AssemblyName>Tests.Medo.IO.Hashing</AssemblyName>
     <RootNamespace>Tests</RootNamespace>
   </PropertyGroup>
 
