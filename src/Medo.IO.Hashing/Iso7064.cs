@@ -1,13 +1,16 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-09-27: Moved to Medo.IO.Hashing
+//            Inheriting from NonCryptographicHashAlgorithm
 //2021-11-25: Refactored to use pattern matching
 //2021-10-31: Refactored for .NET 5
 //2009-01-05: Initial version.
 
-namespace Medo.Security.Checksum;
+namespace Medo.IO.Hashing;
 
 using System;
-using System.Security.Cryptography;
+using System.IO.Hashing;
+using System.Runtime.InteropServices;
 using System.Text;
 
 /// <summary>
@@ -16,19 +19,17 @@ using System.Text;
 /// <example>
 /// <code>
 /// var checksum = new Iso7064();
-/// checksum.ComputeHash(Encoding.ASCII.GetBytes("42"));
+/// checksum.Append(Encoding.ASCII.GetBytes("42"));
 /// var checkDigit = crc.HashAsChar;
 /// </code>
 /// </example>
-#if NET7_0_OR_GREATER
-[Obsolete("Use Medo.IO.Hashing.Iso7064 instead")]
-#endif
-public sealed class Iso7064 : HashAlgorithm {
+public sealed class Iso7064 : NonCryptographicHashAlgorithm {
 
     /// <summary>
     /// Creates a new instance.
     /// </summary>
-    public Iso7064() {
+    public Iso7064()
+        :base(1) {
         ProcessInitialization();
     }
 
@@ -54,8 +55,8 @@ public sealed class Iso7064 : HashAlgorithm {
         if (digits == null) { throw new ArgumentNullException(nameof(digits), "Digits cannot be null."); }
         digits = digits.Replace(" ", "").Replace("-", ""); //ignore dashes and spaces
 
-        using var checksum = new Iso7064();
-        checksum.ComputeHash(Encoding.ASCII.GetBytes(digits));
+        var checksum = new Iso7064();
+        checksum.Append(Encoding.ASCII.GetBytes(digits));
         if (returnAllDigits) {
             return digits + checksum.HashAsChar.ToString();
         } else {
@@ -76,12 +77,33 @@ public sealed class Iso7064 : HashAlgorithm {
 
         var digits = digitsWithHash[0..^1];
         var hash = digitsWithHash[^1];
-        using var checksum = new Iso7064();
-        checksum.ComputeHash(Encoding.ASCII.GetBytes(digits));
+        var checksum = new Iso7064();
+        checksum.Append(Encoding.ASCII.GetBytes(digits));
         return (hash == checksum.HashAsChar);
     }
 
     #endregion
+
+
+    #region NonCryptographicHashAlgorithm
+
+    /// <inheritdoc/>
+    public override void Append(ReadOnlySpan<byte> source) {
+        ProcessBytes(source);
+    }
+
+    /// <inheritdoc/>
+    public override void Reset() {
+        ProcessInitialization();
+    }
+
+    protected override void GetCurrentHashCore(Span<byte> destination) {
+        var hash = (byte)(0x30 + HashAsNumber);
+        MemoryMarshal.Write(destination, ref hash);
+    }
+
+    #endregion NonCryptographicHashAlgorithm
+
 
     #region Algorithm
 
@@ -91,17 +113,17 @@ public sealed class Iso7064 : HashAlgorithm {
         DigestSum = 10;
     }
 
-    private void ProcessBytes(byte[] bytes, int index, int count) {
+    private void ProcessBytes(ReadOnlySpan<byte> source) {
         int oldDigest = DigestSum;
-        for (var i = index; i < (index + count); i++) {
-            if (bytes[i] is >= (byte)'0' and <= (byte)'9') {
-                DigestSum += (bytes[i] - '0');
+        foreach (var b in source) {
+            if (b is >= (byte)'0' and <= (byte)'9') {
+                DigestSum += (b - '0');
                 if (DigestSum > 10) { DigestSum -= 10; }
                 DigestSum *= 2;
                 if (DigestSum >= 11) { DigestSum -= 11; }
             } else {
                 DigestSum = oldDigest;
-                throw new ArgumentOutOfRangeException(nameof(bytes), "Only numeric data is supported.");
+                throw new ArgumentOutOfRangeException(nameof(source), "Only numeric data is supported.");
             }
         }
     }
@@ -131,46 +153,5 @@ public sealed class Iso7064 : HashAlgorithm {
     public char HashAsChar => (char)(0x30 + HashAsNumber);
 
     #endregion Algorithm
-
-    #region HashAlgorithm
-
-    private bool InitializationPending;
-
-    /// <summary>
-    /// Gets the size, in bits, of the computed hash code.
-    /// </summary>
-    public override int HashSize => 8;
-
-    /// <summary>
-    /// Initializes an instance.
-    /// </summary>
-    public override void Initialize() {
-        InitializationPending = true;  // just queue cleanup so that we can read final state before all is gone
-    }
-
-    /// <summary>
-    /// Computes the hash over the data.
-    /// </summary>
-    /// <param name="array">The input data.</param>
-    /// <param name="ibStart">The offset into the byte array from which to begin using data.</param>
-    /// <param name="cbSize">The number of bytes in the array to use as data.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Only numeric data is supported.</exception>
-    protected override void HashCore(byte[] array, int ibStart, int cbSize) {
-        if (InitializationPending) {
-            ProcessInitialization();
-            InitializationPending = false;
-        }
-
-        ProcessBytes(array, ibStart, cbSize);
-    }
-
-    /// <summary>
-    /// Finalizes the hash computation.
-    /// </summary>
-    protected override byte[] HashFinal() {
-        return new byte[] { HashAsByte };
-    }
-
-    #endregion HashAlgorithm
 
 }
