@@ -652,6 +652,72 @@ public class Crc16_Tests {
     }
 
 
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42() {
+        string expected = "0x3CE5";
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
+        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+    }
+
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42_2() {
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0x5C1F, (ushort)crc.HashAsInt16);
+    }
+
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42_3() {
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes(""));
+        Assert.AreEqual(0x0000, (ushort)crc.HashAsInt16);
+    }
+
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42_4() {
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes("1"));
+        Assert.AreEqual(0x931A, (ushort)crc.HashAsInt16);
+    }
+
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42_5() {
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes("12"));
+        Assert.AreEqual(0x1CCD, (ushort)crc.HashAsInt16);
+    }
+
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42_6() {
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes("123"));
+        Assert.AreEqual(0x1C3B, (ushort)crc.HashAsInt16);
+    }
+
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42_7() {
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes("1234"));
+        Assert.AreEqual(0xC37C, (ushort)crc.HashAsInt16);
+    }
+
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42_8() {
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes("12356"));
+        Assert.AreEqual(0xEC54, (ushort)crc.HashAsInt16);
+    }
+
+    [TestMethod]  // CRC-16F/4.2
+    public void Crc16_Crc16F42_9() {
+        var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
+        crc.Append(Encoding.ASCII.GetBytes("1234567"));
+        Assert.AreEqual(0x8925, (ushort)crc.HashAsInt16);
+    }
+
+
     [TestMethod]
     public void Crc16_Reuse() {
         var checksum = Crc16.GetIeee8023();
@@ -734,6 +800,8 @@ public class Crc16_Tests {
             Assert.AreEqual((short)0x1FB7, Crc16.FromReversedReciprocalPolynomial((int)0x8FDB));  // 15 @ HD=8
             Assert.AreEqual((short)0xD25F, Crc16.FromReversedReciprocalPolynomial((int)0xE92F));  // 6 @ HD=9
             Assert.AreEqual((short)0xDA5F, Crc16.FromReversedReciprocalPolynomial((int)0xED2F));  // 5 @ HD=10
+
+            Assert.AreEqual((short)0xA2EB, Crc16.FromReversedReciprocalPolynomial((int)0xD175));
         }
     }
 
