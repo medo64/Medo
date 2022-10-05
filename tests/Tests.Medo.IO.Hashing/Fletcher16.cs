@@ -1,8 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Medo.IO.Hashing;
-using System.Diagnostics;
 
 namespace Tests;
 
