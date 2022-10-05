@@ -1,9 +1,8 @@
 using System;
 using System.IO;
-using System.Text;
-using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Medo.Device;
+using System.Threading.Tasks;
 
 namespace Tests;
 
@@ -441,7 +440,7 @@ public class BearBus_Tests {
     }
 
     [TestMethod]
-    public async void BearBus_HostSendAndReceiveAsync() {
+    public async Task BearBus_HostSendAndReceiveAsync() {
         var stream = new MemoryStream();
 
         var hostBus = new BearBusHost(stream);
