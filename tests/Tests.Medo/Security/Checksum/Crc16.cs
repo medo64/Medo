@@ -8,6 +8,8 @@ namespace Tests;
 [TestClass]
 public class Crc16_Tests {
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
     [TestMethod]
     public void Crc16_GetCustom() {
         string expected = "0x178C";
@@ -735,5 +737,7 @@ public class Crc16_Tests {
             Assert.AreEqual((short)0xDA5F, Crc16.FromReversedReciprocalPolynomial((int)0xED2F));  // 5 @ HD=10
         }
     }
+
+#pragma warning restore CS0618 // Type or member is obsolete
 
 }
