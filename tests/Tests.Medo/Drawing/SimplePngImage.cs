@@ -189,83 +189,79 @@ public class SimplePngImage_Tests {
 
 
     [DataTestMethod]
-    [DataRow("Example2-Color32.png")]
-    [DataRow("Example2-Color24.png")]
-    [DataRow("Example2-Color8.png")]
-    [DataRow("Example2-Color4.png")]
-    [DataRow("Example2-Color2.png")]
-    [DataRow("Example2-Color1.png")]
+    [DataRow("Drawing.SimplePngImage.Example2-Color32.png")]
+    [DataRow("Drawing.SimplePngImage.Example2-Color24.png")]
+    [DataRow("Drawing.SimplePngImage.Example2-Color8.png")]
+    [DataRow("Drawing.SimplePngImage.Example2-Color4.png")]
+    [DataRow("Drawing.SimplePngImage.Example2-Color2.png")]
+    [DataRow("Drawing.SimplePngImage.Example2-Color1.png")]
     public void SimplePngImage_ValidateColor2(string fileName) {
         var bmpOriginal = GetExampleImageColor2();
-        var bmp = new SimplePngImage(GetResourceStreamBytes(fileName));
+        var bmp = new SimplePngImage(Helper.GetResourceStream(fileName));
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-" + fileName));
         Assert.IsTrue(AreImagesSame(bmp, bmpOriginal));
     }
 
     [DataTestMethod]
-    [DataRow("Example4-Color32.png")]
-    [DataRow("Example4-Color24.png")]
-    [DataRow("Example4-Color8.png")]
-    [DataRow("Example4-Color4.png")]
-    [DataRow("Example4-Color2.png")]
+    [DataRow("Drawing.SimplePngImage.Example4-Color32.png")]
+    [DataRow("Drawing.SimplePngImage.Example4-Color24.png")]
+    [DataRow("Drawing.SimplePngImage.Example4-Color8.png")]
+    [DataRow("Drawing.SimplePngImage.Example4-Color4.png")]
+    [DataRow("Drawing.SimplePngImage.Example4-Color2.png")]
     public void SimplePngImage_ValidateColor4(string fileName) {
         var bmpOriginal = GetExampleImageColor4();
-        var bmp = new SimplePngImage(GetResourceStreamBytes(fileName));
+        var bmp = new SimplePngImage(Helper.GetResourceStream(fileName));
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-" + fileName));
         Assert.IsTrue(AreImagesSame(bmp, bmpOriginal));
     }
 
     [DataTestMethod]
-    [DataRow("Example16-Color32.png")]
-    [DataRow("Example16-Color24.png")]
-    [DataRow("Example16-Color8.png")]
-    [DataRow("Example16-Color4.png")]
+    [DataRow("Drawing.SimplePngImage.Example16-Color32.png")]
+    [DataRow("Drawing.SimplePngImage.Example16-Color24.png")]
+    [DataRow("Drawing.SimplePngImage.Example16-Color8.png")]
+    [DataRow("Drawing.SimplePngImage.Example16-Color4.png")]
     public void SimplePngImage_ValidateColor16(string fileName) {
         var bmpOriginal = GetExampleImageColor16();
-        var bmp = new SimplePngImage(GetResourceStreamBytes(fileName));
+        var bmp = new SimplePngImage(Helper.GetResourceStream(fileName));
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-" + fileName));
         Assert.IsTrue(AreImagesSame(bmp, bmpOriginal));
     }
 
     [DataTestMethod]
-    [DataRow("Example64-Color32.png")]
-    [DataRow("Example64-Color24.png")]
-    [DataRow("Example64-Color8.png")]
+    [DataRow("Drawing.SimplePngImage.Example64-Color32.png")]
+    [DataRow("Drawing.SimplePngImage.Example64-Color24.png")]
+    [DataRow("Drawing.SimplePngImage.Example64-Color8.png")]
     public void SimplePngImage_ValidateColor64(string fileName) {
         var bmpOriginal = GetExampleImageColor64();
-        var bmp = new SimplePngImage(GetResourceStreamBytes(fileName));
+        var bmp = new SimplePngImage(Helper.GetResourceStream(fileName));
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-" + fileName));
         Assert.IsTrue(AreImagesSame(bmp, bmpOriginal));
     }
 
     [DataTestMethod]
-    [DataRow("Example256-Color32.png")]
-    [DataRow("Example256-Color24.png")]
-    [DataRow("Example256-Color8.png")]
+    [DataRow("Drawing.SimplePngImage.Example256-Color32.png")]
+    [DataRow("Drawing.SimplePngImage.Example256-Color24.png")]
+    [DataRow("Drawing.SimplePngImage.Example256-Color8.png")]
     public void SimplePngImage_ValidateColor256(string fileName) {
         var bmpOriginal = GetExampleImageColor256();
-        var bmp = new SimplePngImage(GetResourceStreamBytes(fileName));
+        var bmp = new SimplePngImage(Helper.GetResourceStream(fileName));
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-" + fileName));
         Assert.IsTrue(AreImagesSame(bmp, bmpOriginal));
     }
 
     [DataTestMethod]
-    [DataRow("Example256-Mono32.png")]
-    [DataRow("Example256-Mono24.png")]
-    [DataRow("Example256-Mono8.png")]
+    [DataRow("Drawing.SimplePngImage.Example256-Mono32.png")]
+    [DataRow("Drawing.SimplePngImage.Example256-Mono24.png")]
+    [DataRow("Drawing.SimplePngImage.Example256-Mono8.png")]
     public void SimplePngImage_ValidateMono256(string fileName) {
         var bmpOriginal = GetExampleImageMonochrome256();
-        var bmp = new SimplePngImage(GetResourceStreamBytes(fileName));
+        var bmp = new SimplePngImage(Helper.GetResourceStream(fileName));
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-" + fileName));
         Assert.IsTrue(AreImagesSame(bmp, bmpOriginal));
     }
 
 
     #region Helper
-
-    private static Stream GetResourceStreamBytes(string fileName) {
-        return Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Drawing.SimplePngImage." + fileName);
-    }
 
     private static bool AreImagesSame(SimplePngImage image1, SimplePngImage image2) {
         if (image1.Width != image2.Width) { return false; }

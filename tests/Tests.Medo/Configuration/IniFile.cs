@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Medo.Configuration;
 
@@ -38,13 +37,13 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_EmptyFile() {
-        var ini = new IniFile(GetResourceStream("Empty.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.Empty.ini"));
         Assert.AreEqual(0, ini.Count);
     }
 
     [TestMethod]
     public void IniFile_SectionCharactersAfterEnd() {
-        var ini = new IniFile(GetResourceStream("SectionCharactersAfterEnd.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.SectionCharactersAfterEnd.ini"));
         Assert.AreEqual(1, ini.Count);
 
         Assert.AreEqual("Value", ini.Read("Section]Extra", "Key"));
@@ -55,7 +54,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_SectionIgnoresInnerBrackets() {
-        var ini = new IniFile(GetResourceStream("SectionIgnoresInnerBrackets.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.SectionIgnoresInnerBrackets.ini"));
         Assert.AreEqual(1, ini.Count);
 
         Assert.AreEqual("Value", ini.Read("Section[i]", "Key"));
@@ -66,7 +65,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_SectionImplicitEnd() {
-        var ini = new IniFile(GetResourceStream("SectionImplicitEnd.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.SectionImplicitEnd.ini"));
         Assert.AreEqual(1, ini.Count);
 
         Assert.AreEqual("Value", ini.Read("Section", "Key"));
@@ -77,7 +76,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_EmptyKey() {
-        var ini = new IniFile(GetResourceStream("EmptyKey.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.EmptyKey.ini"));
         Assert.AreEqual(1, ini.Count);
 
         Assert.AreEqual("Value", ini.Read("", ""));
@@ -88,7 +87,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_Comment() {
-        var ini = new IniFile(GetResourceStream("Comment.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.Comment.ini"));
         //Assert.AreEqual(1, ini.Count);
 
         Assert.AreEqual("Value", ini.Read("", "Key"));
@@ -99,7 +98,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_Conversions() {
-        var ini = new IniFile(GetResourceStream("Conversions.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.Conversions.ini"));
         Assert.AreEqual(23, ini.Count);
 
         Assert.AreEqual(5, ini.GetSections().Count);
@@ -140,7 +139,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_MergeSections() {
-        var ini = new IniFile(GetResourceStream("MergeSections.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.MergeSections.ini"));
         Assert.AreEqual(3, ini.Count);
 
         Assert.AreEqual("A", ini.Read("Section", "Key1"));
@@ -153,7 +152,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_IgnoreEmptySections() {
-        var ini = new IniFile(GetResourceStream("IgnoreEmptySections.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.IgnoreEmptySections.ini"));
         Assert.AreEqual(0, ini.Count);
 
         Assert.AreEqual(0, ini.GetSections().Count);
@@ -161,7 +160,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_IgnoreIncompleteProperties() {
-        var ini = new IniFile(GetResourceStream("IgnoreIncompleteProperties.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.IgnoreIncompleteProperties.ini"));
         Assert.AreEqual(0, ini.Count);
 
         Assert.AreEqual(0, ini.GetSections().Count);
@@ -169,21 +168,21 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_WhitespaceAtStart() {
-        var ini = new IniFile(GetResourceStream("WhitespaceAtStart.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.WhitespaceAtStart.ini"));
         Assert.AreEqual(1, ini.Count);
         Assert.AreEqual("Value", ini.Read("Section", "Key"));
     }
 
     [TestMethod]
     public void IniFile_WhitespaceAtEnd() {
-        var ini = new IniFile(GetResourceStream("WhitespaceAtEnd.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.WhitespaceAtEnd.ini"));
         Assert.AreEqual(1, ini.Count);
         Assert.AreEqual("Value", ini.Read("Section", "Key"));
     }
 
     [TestMethod]
     public void IniFile_SingleQuote() {
-        var ini = new IniFile(GetResourceStream("SingleQuote.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.SingleQuote.ini"));
         Assert.AreEqual(3, ini.Count);
         Assert.AreEqual("Value'd", ini.Read("Section", "Normal"));
         Assert.AreEqual(" Whitespace'd ", ini.Read("Section", "Whitespace"));
@@ -192,7 +191,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_DoubleQuote() {
-        var ini = new IniFile(GetResourceStream("DoubleQuote.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.DoubleQuote.ini"));
         Assert.AreEqual(10, ini.Count);
         Assert.AreEqual("Value'd", ini.Read("Section", "Normal"));
         Assert.AreEqual(" Whitespace'd ", ini.Read("Section", "Whitespace"));
@@ -208,7 +207,7 @@ public class IniFile_Tests {
 
     [TestMethod]
     public void IniFile_Mixed() {
-        var ini = new IniFile(GetResourceStream("Mixed.ini"));
+        var ini = new IniFile(Helper.GetResourceStream("Configuration.IniFile.Mixed.ini"));
         Assert.AreEqual(9, ini.Count);
         Assert.AreEqual(" Start Middle End ", ini.Read("Section", "Quoting"));
         Assert.AreEqual("Normal", ini.Read("Section", "ExtraWhitespace1"));
@@ -220,15 +219,5 @@ public class IniFile_Tests {
         Assert.AreEqual("A Normal", ini.Read("Section", "ExtraWhitespace7"));
         Assert.AreEqual("A Normal", ini.Read("Section", "ExtraWhitespace8"));
     }
-
-
-    #region Utils
-
-    private static Stream GetResourceStream(string resourceName) {
-        var resAssembly = typeof(IniFile_Tests).GetTypeInfo().Assembly;
-        return resAssembly.GetManifestResourceStream("Tests._Resources.Configuration.IniFile." + resourceName);
-    }
-
-    #endregion
 
 }

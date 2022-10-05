@@ -150,14 +150,9 @@ public class CsvTextOutput_Tests {
     }
 
     private static string[] GetLines(string name) {
-        using var stream = GetStream(name);
+        using var stream = Helper.GetResourceStream("Text.CsvTextOutput." + name);
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd().Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-    }
-
-    private static Stream GetStream(string name) {
-        var streamName = "Tests._Resources.Text.CsvTextOutput." + name;
-        return Assembly.GetExecutingAssembly().GetManifestResourceStream(streamName);
     }
 
     #endregion Private

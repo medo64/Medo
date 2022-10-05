@@ -261,7 +261,7 @@ public class RabbitManaged_Tests {
     }
 
     private static void RetrieveVectors(string fileName, out byte[] key, out byte[] iv, out Queue<KeyValuePair<int, byte[]>> data) {
-        using var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Rabbit." + fileName));
+        using var reader = new StreamReader(Helper.GetResourceStream("Security.Cryptography.Rabbit." + fileName));
 
         key = GetLineBytes(reader.ReadLine().Trim(), out var headerText);
         if (!headerText.Equals("KEY", StringComparison.InvariantCultureIgnoreCase)) { throw new InvalidDataException(); }

@@ -16,7 +16,7 @@ public class TwofishManaged_Tests {
 
     [TestMethod]
     public void TwofishManaged_KnownAnswers_ECB() {
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.ECB_TBL.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_TBL.TXT"));
         foreach (var test in tests) {
             using var algorithm = new TwofishManaged() { KeySize = test.KeySize, Mode = CipherMode.ECB, Padding = PaddingMode.None };
             var ct = Encrypt(algorithm, test.Key, null, test.PlainText);
@@ -30,7 +30,7 @@ public class TwofishManaged_Tests {
     [Ignore]
     [TestMethod]
     public void TwofishManaged_MonteCarlo_ECB_Encrypt() { //takes ages
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.ECB_E_M.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_E_M.TXT"));
         var sw = Stopwatch.StartNew();
         foreach (var test in tests) {
             MonteCarlo_ECB_E(test);
@@ -41,7 +41,7 @@ public class TwofishManaged_Tests {
 
     [TestMethod]
     public void TwofishManaged_MonteCarlo_ECB_Encrypt_One() {
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.ECB_E_M.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_E_M.TXT"));
         var test = tests[Rnd.Next(tests.Count)];
         MonteCarlo_ECB_E(test);
     }
@@ -50,7 +50,7 @@ public class TwofishManaged_Tests {
     [Ignore]
     [TestMethod]
     public void TwofishManaged_MonteCarlo_ECB_Decrypt() { //takes ages
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.ECB_D_M.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_D_M.TXT"));
         var sw = Stopwatch.StartNew();
         foreach (var test in tests) {
             MonteCarlo_ECB_D(test);
@@ -61,7 +61,7 @@ public class TwofishManaged_Tests {
 
     [TestMethod]
     public void TwofishManaged_MonteCarlo_ECB_Decrypt_One() {
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.ECB_D_M.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_D_M.TXT"));
         var test = tests[Rnd.Next(tests.Count)];
         MonteCarlo_ECB_D(test);
     }
@@ -70,7 +70,7 @@ public class TwofishManaged_Tests {
     [Ignore]
     [TestMethod]
     public void TwofishManaged_MonteCarlo_CBC_Encrypt() { //takes ages
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.CBC_E_M.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.CBC_E_M.TXT"));
         var sw = Stopwatch.StartNew();
         foreach (var test in tests) {
             MonteCarlo_CBC_E(test);
@@ -81,7 +81,7 @@ public class TwofishManaged_Tests {
 
     [TestMethod]
     public void TwofishManaged_MonteCarlo_CBC_Encrypt_One() {
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.CBC_E_M.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.CBC_E_M.TXT"));
         var test = tests[Rnd.Next(tests.Count)];
         MonteCarlo_CBC_E(test);
     }
@@ -90,7 +90,7 @@ public class TwofishManaged_Tests {
     [Ignore]
     [TestMethod]
     public void TwofishManaged_MonteCarlo_CBC_Decrypt() { //takes ages
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.CBC_D_M.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.CBC_D_M.TXT"));
         var sw = Stopwatch.StartNew();
         foreach (var test in tests) {
             MonteCarlo_CBC_D(test);
@@ -101,7 +101,7 @@ public class TwofishManaged_Tests {
 
     [TestMethod]
     public void TwofishManaged_MonteCarlo_CBC_Decrypt_One() {
-        var tests = GetTestBlocks(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.Twofish.CBC_D_M.TXT"));
+        var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.CBC_D_M.TXT"));
         var test = tests[Rnd.Next(tests.Count)];
         MonteCarlo_CBC_D(test);
     }

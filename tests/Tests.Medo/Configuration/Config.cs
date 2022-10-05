@@ -526,10 +526,10 @@ public class Config_Tests {
             if (File.Exists(resourceFileName)) {
                 Bytes = File.ReadAllBytes(resourceFileName);
             } else {
-                Bytes = (resourceFileName != null) ? GetResourceStreamBytes(resourceFileName) : null;
+                Bytes = (resourceFileName != null) ? Helper.GetResourceBytes("Configuration.Config." + resourceFileName) : null;
             }
-            GoodBytes = (resourceFileNameGood != null) ? GetResourceStreamBytes(resourceFileNameGood) : null;
-            var overrideBytes = (resourceOverrideFileName != null) ? GetResourceStreamBytes(resourceOverrideFileName) : null;
+            GoodBytes = (resourceFileNameGood != null) ? Helper.GetResourceBytes("Configuration.Config." + resourceFileNameGood) : null;
+            var overrideBytes = (resourceOverrideFileName != null) ? Helper.GetResourceBytes("Configuration.Config." + resourceOverrideFileName) : null;
 
             FileName = Path.GetTempFileName();
             if (resourceFileName == null) {
@@ -574,14 +574,6 @@ public class Config_Tests {
 
         #endregion
 
-    }
-
-    private static byte[] GetResourceStreamBytes(string fileName) {
-        var resAssembly = typeof(Config_Tests).GetTypeInfo().Assembly;
-        var resStream = resAssembly.GetManifestResourceStream("Tests._Resources.Configuration.Config." + fileName);
-        var buffer = new byte[(int)resStream.Length];
-        resStream.Read(buffer, 0, buffer.Length);
-        return buffer;
     }
 
     #endregion

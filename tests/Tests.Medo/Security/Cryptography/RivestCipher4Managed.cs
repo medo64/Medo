@@ -310,7 +310,7 @@ public class RivestCipher4Managed_Tests {
     }
 
     private static void RetrieveVectors(string fileName, out byte[] key, out Queue<KeyValuePair<int, byte[]>> data) {
-        using var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tests._Resources.Security.Cryptography.RivestCipher4." + fileName));
+        using var reader = new StreamReader(Helper.GetResourceStream("Security.Cryptography.RivestCipher4." + fileName));
 
         key = GetBytes(reader.ReadLine().Trim(), out var headerText);
         if (!headerText.Equals("KEY", StringComparison.InvariantCultureIgnoreCase)) { throw new InvalidDataException(); }
