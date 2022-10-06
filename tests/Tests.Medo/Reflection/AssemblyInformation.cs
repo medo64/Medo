@@ -22,10 +22,16 @@ public class AssemblyInformation_Tests {
 
     [TestMethod]
     public void AssemblyInformation_Calling() {
-        Assert.AreEqual("System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e", AssemblyInformation.Calling.FullName);
         Assert.AreEqual("System.Private.CoreLib", AssemblyInformation.Calling.Name);
+#if NET6_0
+        Assert.AreEqual("System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e", AssemblyInformation.Calling.FullName);
+        Assert.AreEqual(new Version(6, 0, 0, 0), AssemblyInformation.Calling.Version);
+        Assert.AreEqual("6.0.0", AssemblyInformation.Calling.SemanticVersionText);
+#elif NET7_0
+        Assert.AreEqual("System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e", AssemblyInformation.Calling.FullName);
         Assert.AreEqual(new Version(7, 0, 0, 0), AssemblyInformation.Calling.Version);
         Assert.AreEqual("7.0.0", AssemblyInformation.Calling.SemanticVersionText);
+#endif
         Assert.AreEqual("System.Private.CoreLib", AssemblyInformation.Calling.Title);
         Assert.AreEqual("Microsoft® .NET", AssemblyInformation.Calling.Product);
         Assert.AreEqual("System.Private.CoreLib", AssemblyInformation.Calling.Description);
