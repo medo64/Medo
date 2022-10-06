@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-10-05: Added generic variant
 //2021-03-24: Added Count property
 //2021-03-04: Refactored for .NET 5
 //2011-03-05: Moved to Medo.Math
@@ -13,6 +14,7 @@ namespace Medo.Math;
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 /// <summary>
 /// Calculates moving average for the added items.
@@ -25,6 +27,9 @@ using System.Collections.Generic;
 /// var output = stats.Average;
 /// </code>
 /// </example>
+#if NET7_0_OR_GREATER
+[Obsolete("Use generic MovingAverage instead (e.g. MovingAverage<double>).")]
+#endif
 public sealed class MovingAverage {
 
     /// <summary>
@@ -135,3 +140,130 @@ public sealed class MovingAverage {
     #endregion Algorithm
 
 }
+
+
+#if NET7_0_OR_GREATER
+
+/// <summary>
+/// Calculates moving average for the added items.
+/// </summary>
+/// <example>
+/// <code>
+/// var stats = new MovingAverage&lt;double&gt;();
+/// stats.Add(4);
+/// stats.Add(2);
+/// var output = stats.Average;
+/// </code>
+/// </example>
+public sealed class MovingAverage<T> where T : IFloatingPoint<T> {
+
+    /// <summary>
+    /// Creates new instance with a total of 10 items.
+    /// </summary>
+    public MovingAverage()
+        : this(10) {
+    }
+
+    /// <summary>
+    /// Creates a new instance.
+    /// Only finite numbers from collection are added.
+    /// </summary>
+    /// <param name="collection">Collection.</param>
+    /// <exception cref="ArgumentNullException">Collection cannot be null.</exception>
+    public MovingAverage(IEnumerable<T> collection)
+        : this(10, collection) {
+    }
+
+    /// <summary>
+    /// Creates new instance.
+    /// </summary>
+    /// <param name="subsetSize">Number of items to use for calculation.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
+    public MovingAverage(int subsetSize) {
+        if (subsetSize < 1) { throw new ArgumentOutOfRangeException(nameof(subsetSize), "Count must be larger than 0."); }
+        _subsetSize = subsetSize;
+    }
+
+    /// <summary>
+    /// Creates a new instance.
+    /// Only finite numbers from collection are added.
+    /// </summary>
+    /// <param name="subsetSize">Number of items to use for calculation.</param>
+    /// <param name="collection">Collection.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Count must be larger than 0.</exception>
+    /// <exception cref="ArgumentNullException">Collection cannot be null.</exception>
+    public MovingAverage(int subsetSize, IEnumerable<T> collection)
+        : this(subsetSize) {
+        AddRange(collection);
+    }
+
+
+    /// <summary>
+    /// Adds an value.
+    /// </summary>
+    /// <param name="value">Value to be added.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Value must be a finite number.</exception>
+    public void Add(T value) {
+        if (!T.IsFinite(value)) { throw new ArgumentOutOfRangeException(nameof(value), "Value must be a finite number."); }
+        AddOne(value);
+    }
+
+    /// <summary>
+    /// Adds elements of collection.
+    /// Only finite numbers from collection are added.
+    /// </summary>
+    /// <param name="collection">Collection to add.</param>
+    /// <exception cref="NullReferenceException">Collection cannot be null.</exception>
+    public void AddRange(IEnumerable<T> collection) {
+        if (collection == null) { throw new ArgumentNullException(nameof(collection), "Collection cannot be null."); }
+        foreach (var value in collection) {
+            if (T.IsFinite(value)) { AddOne(value); }
+        }
+    }
+
+
+    /// <summary>
+    /// Gets current count.
+    /// </summary>
+    public long Count {
+        get { return _count; }
+    }
+
+    /// <summary>
+    /// Returns average or 0 if there is no data to calculate.
+    /// </summary>
+    public T Average {
+        get {
+            if (_items.Count > 0) {
+                var count = (T)Convert.ChangeType(_items.Count, typeof(T));
+                var sum = T.Zero;
+                foreach (var value in _items) {
+                    sum += value;
+                }
+                return (sum / count);
+            } else {
+                return T.Zero;
+            }
+        }
+    }
+
+
+    #region Algorithm
+
+    private long _count;
+    private readonly Queue<T> _items = new();
+    private readonly int _subsetSize;
+
+    private void AddOne(T value) {
+        _items.Enqueue(value);
+        while (_items.Count > _subsetSize) {
+            _items.Dequeue();
+        }
+        _count += 1;
+    }
+
+    #endregion Algorithm
+
+}
+
+#endif
