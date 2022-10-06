@@ -90,9 +90,9 @@ public class LinearCalibration_Tests {
         target.AddCalibrationPoint(50, 50);
         target.AddCalibrationPoint(100, 99.5);
         Assert.AreEqual(1, target.CorrelationCoefficient);
-        Assert.AreEqual(24.74747, target.GetAdjustedValue(25), 5);
+        Assert.AreEqual(24.7474747, target.GetAdjustedValue(25), 0.0000001);
         Assert.AreEqual(50, target.GetAdjustedValue(50));
-        Assert.AreEqual(75.25253, target.GetAdjustedValue(75), 5);
+        Assert.AreEqual(75.2525253, target.GetAdjustedValue(75), 0.0000001);
     }
 
     [TestMethod]
@@ -101,10 +101,10 @@ public class LinearCalibration_Tests {
         target.AddCalibrationPoint(0, 1);
         target.AddCalibrationPoint(50, 49);
         target.AddCalibrationPoint(100, 100);
-        Assert.AreEqual(0.99985, target.CorrelationCoefficient, 5);
-        Assert.AreEqual(24.74747, target.GetAdjustedValue(25), 5);
+        Assert.AreEqual(0.9998470, target.CorrelationCoefficient, 0.0000001);
+        Assert.AreEqual(24.74747474, target.GetAdjustedValue(25), 0.0000001);
         Assert.AreEqual(50, target.GetAdjustedValue(50));
-        Assert.AreEqual(75.25253, target.GetAdjustedValue(75), 5);
+        Assert.AreEqual(75.2525253, target.GetAdjustedValue(75), 0.0000001);
     }
 
     [TestMethod]
@@ -113,10 +113,10 @@ public class LinearCalibration_Tests {
         target.AddCalibrationPoint(0, 1);
         target.AddCalibrationPoint(20, -10);
         target.AddCalibrationPoint(100, 50);
-        Assert.AreEqual(0.93477, target.CorrelationCoefficient, 5);
-        Assert.AreEqual(60.08439, target.GetAdjustedValue(25), 5);
-        Assert.AreEqual(104.38819, target.GetAdjustedValue(50), 5);
-        Assert.AreEqual(148.69198, target.GetAdjustedValue(75), 5);
+        Assert.AreEqual(0.9347749, target.CorrelationCoefficient, 0.0000001);
+        Assert.AreEqual(60.0843882, target.GetAdjustedValue(25), 0.0000001);
+        Assert.AreEqual(104.3881857, target.GetAdjustedValue(50), 0.0000001);
+        Assert.AreEqual(148.6919831, target.GetAdjustedValue(75), 0.0000001);
     }
 
 
@@ -130,8 +130,8 @@ public class LinearCalibration_Tests {
         target.AddCalibrationPoint(4, 0.777);
         target.AddCalibrationPoint(5, 1.011);
         target.AddCalibrationPoint(6, 1.166);
-        Assert.AreEqual(0.9976, target.CoefficientOfDetermination, 4);
-        Assert.AreEqual(1.19, target.GetAdjustedValue(0.254), 2);
+        Assert.AreEqual(0.9976, target.CoefficientOfDetermination, 0.00005);
+        Assert.AreEqual(1.19, target.GetAdjustedValue(0.254), 0.005);
     }
 
 }
@@ -357,9 +357,9 @@ public class LinearCalibration_Double_Tests {
         target.AddCalibrationPoint(50, 50);
         target.AddCalibrationPoint(100, 99.5);
         Assert.AreEqual(1, target.CorrelationCoefficient);
-        Assert.AreEqual(24.74747, target.GetAdjustedValue(25), 5);
+        Assert.AreEqual(24.74747, target.GetAdjustedValue(25), 0.0000001);
         Assert.AreEqual(50, target.GetAdjustedValue(50));
-        Assert.AreEqual(75.25253, target.GetAdjustedValue(75), 5);
+        Assert.AreEqual(75.25253, target.GetAdjustedValue(75), 0.0000001);
     }
 
     [TestMethod]
@@ -368,10 +368,10 @@ public class LinearCalibration_Double_Tests {
         target.AddCalibrationPoint(0, 1);
         target.AddCalibrationPoint(50, 49);
         target.AddCalibrationPoint(100, 100);
-        Assert.AreEqual(0.99985, target.CorrelationCoefficient, 5);
-        Assert.AreEqual(24.74747, target.GetAdjustedValue(25), 5);
+        Assert.AreEqual(0.99985, target.CorrelationCoefficient, 0.0000001);
+        Assert.AreEqual(24.74747, target.GetAdjustedValue(25), 0.0000001);
         Assert.AreEqual(50, target.GetAdjustedValue(50));
-        Assert.AreEqual(75.25253, target.GetAdjustedValue(75), 5);
+        Assert.AreEqual(75.25253, target.GetAdjustedValue(75), 0.0000001);
     }
 
     [TestMethod]
@@ -380,10 +380,10 @@ public class LinearCalibration_Double_Tests {
         target.AddCalibrationPoint(0, 1);
         target.AddCalibrationPoint(20, -10);
         target.AddCalibrationPoint(100, 50);
-        Assert.AreEqual(0.93477, target.CorrelationCoefficient, 5);
-        Assert.AreEqual(60.08439, target.GetAdjustedValue(25), 5);
-        Assert.AreEqual(104.38819, target.GetAdjustedValue(50), 5);
-        Assert.AreEqual(148.69198, target.GetAdjustedValue(75), 5);
+        Assert.AreEqual(0.93477, target.CorrelationCoefficient, 0.0000001);
+        Assert.AreEqual(60.08439, target.GetAdjustedValue(25), 0.0000001);
+        Assert.AreEqual(104.38819, target.GetAdjustedValue(50), 0.0000001);
+        Assert.AreEqual(148.69198, target.GetAdjustedValue(75), 0.0000001);
     }
 
 
@@ -397,8 +397,8 @@ public class LinearCalibration_Double_Tests {
         target.AddCalibrationPoint(4, 0.777);
         target.AddCalibrationPoint(5, 1.011);
         target.AddCalibrationPoint(6, 1.166);
-        Assert.AreEqual(0.9976, target.CoefficientOfDetermination, 4);
-        Assert.AreEqual(1.19, target.GetAdjustedValue(0.254), 2);
+        Assert.AreEqual(0.9976, target.CoefficientOfDetermination, 0.0000001);
+        Assert.AreEqual(1.19, target.GetAdjustedValue(0.254), 0.0000001);
     }
 
 }
@@ -528,8 +528,8 @@ public class LinearCalibration_Single_Tests {
         target.AddCalibrationPoint(4, 0.777f);
         target.AddCalibrationPoint(5, 1.011f);
         target.AddCalibrationPoint(6, 1.166f);
-        Assert.AreEqual(0.9976, target.CoefficientOfDetermination, 4);
-        Assert.AreEqual(1.19, target.GetAdjustedValue(0.254f), 2);
+        Assert.AreEqual(0.9976, target.CoefficientOfDetermination, 0.0000001);
+        Assert.AreEqual(1.19, target.GetAdjustedValue(0.254f), 0.0000001);
     }
 
 }
