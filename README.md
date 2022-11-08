@@ -37,11 +37,6 @@ Global handling of unhandled errors.
 Barcode drawing.
 
 
-## SimplePngImage (Medo.Drawing)
-
-A simple PNG image reader/writer.
-
-
 ## Terminal (Medo.IO)
 
 Basic terminal operations supporting ANSI sequences.

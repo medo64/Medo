@@ -28,6 +28,7 @@ using System.Text;
 /// </code>
 /// </example>
 /// <remarks>https://www.w3.org/TR/2003/REC-PNG-20031110/</remarks>
+[Obsolete("Use ImageSharp or similar full-featured library instead")]
 public sealed class SimplePngImage {
 
     /// <summary>
