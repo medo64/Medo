@@ -3,6 +3,9 @@ Medo
 
 Collection of useful classes.
 
+Each class is implemented in a single file intended for direct inclusion into
+your project without any dependencies between classes.
+
 
 ## Config (Medo.Configuration)
 
