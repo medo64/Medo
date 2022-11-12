@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-11-11: Using machine-endianness when bytes are returned
 //2022-09-27: Moved to Medo.IO.Hashing
 //            Inheriting from NonCryptographicHashAlgorithm
 //2022-06-24: Obsoleted default constructor in favor of GetCustom method
@@ -479,8 +480,16 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
         ProcessInitialization();
     }
 
+    /// <summary>
+    /// It will return result as machine endian.
+    /// </summary>
+    /// <param name="destination"></param>
     protected override void GetCurrentHashCore(Span<byte> destination) {
-        BinaryPrimitives.WriteInt32BigEndian(destination, HashAsInt32);
+        if (BitConverter.IsLittleEndian) {
+            BinaryPrimitives.WriteInt32LittleEndian(destination, HashAsInt32);
+        } else {
+            BinaryPrimitives.WriteInt32BigEndian(destination, HashAsInt32);
+        }
     }
 
     #endregion NonCryptographicHashAlgorithm

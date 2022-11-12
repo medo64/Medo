@@ -10,21 +10,19 @@ public class Crc16_Tests {
 
     [TestMethod]
     public void Crc16_GetCustom() {
-        string expected = "0x178C";
         var crc = Crc16.GetCustom(unchecked((short)0x8005), 0x0000, true, true, 0x0000);
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("178C", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("8C17", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
 
     [TestMethod]  // ARC
     public void Crc16_Arc() {
-        string expected = "0x178C";
         var crc = Crc16.GetArc();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("178C", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("8C17", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // ARC
@@ -50,11 +48,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // CDMA2000
     public void Crc16_Cdma2000() {
-        string expected = "0x4A2D";
         var crc = Crc16.GetCdma2000();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("4A2D", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("2D4A", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // CDMA2000
@@ -66,11 +63,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // CMS
     public void Crc16_Cms() {
-        string expected = "0x2A12";
         var crc = Crc16.GetCms();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("2A12", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("122A", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // CMS
@@ -82,11 +78,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // DDS-110
     public void Crc16_Dds110() {
-        string expected = "0x242A";
         var crc = Crc16.GetDds110();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("242A", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("2A24", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // DDS-110
@@ -98,11 +93,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // DECT-R
     public void Crc16_DectR() {
-        string expected = "0x55C3";
         var crc = Crc16.GetDectR();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("55C3", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("C355", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // DECT-R
@@ -114,11 +108,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // DECT-X
     public void Crc16_DectX() {
-        string expected = "0x55C3";
         var crc = Crc16.GetDectR();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("55C3", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("C355", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // DECT-X
@@ -130,11 +123,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // DNP
     public void Crc16_Dnp() {
-        string expected = "0xE7BC";
         var crc = Crc16.GetDnp();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("E7BC", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("BCE7", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // DNP
@@ -146,11 +138,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // EN-13757
     public void Crc16_En13757() {
-        string expected = "0x7458";
         var crc = Crc16.GetEn13757();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("7458", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("5874", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // EN-13757
@@ -162,11 +153,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // GENIBUS
     public void Crc16_Genibus() {
-        string expected = "0x20D1";
         var crc = Crc16.GetGenibus();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("20D1", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("D120", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // GENIBUS
@@ -199,11 +189,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // GSM
     public void Crc16_Gsm() {
-        string expected = "0xA1E4";
         var crc = Crc16.GetGsm();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("A1E4", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("E4A1", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // GSM
@@ -215,11 +204,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // IBM-3740
     public void Crc16_Ibm3740() {
-        string expected = "0xDF2E";
         var crc = Crc16.GetIbm3740();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("DF2E", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("2EDF", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // IBM-3740
@@ -245,11 +233,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // IBM-SDLC
     public void Crc16_IbmSdlc() {
-        string expected = "0xCB47";
         var crc = Crc16.GetIbmSdlc();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("CB47", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("47CB", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // IBM-SDLC
@@ -282,11 +269,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // I-CODE
     public void Crc16_ICode() {
-        string expected = "0xCB47";
         var crc = Crc16.GetIbmSdlc();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("CB47", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("47CB", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // I-CODE
@@ -298,11 +284,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // KERMIT
     public void Crc16_Kermit() {
-        string expected = "0x9839";
         var crc = Crc16.GetKermit();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("9839", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("3998", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // KERMIT
@@ -335,11 +320,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // LJ1200
     public void Crc16_Lj1200() {
-        string expected = "0x1507";
         var crc = Crc16.GetLj1200();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("1507", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("0715", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]
@@ -351,11 +335,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // LJ1200
     public void Crc16_MaximDow() {
-        string expected = "0xE873";
         var crc = Crc16.GetMaximDow();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("E873", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("73E8", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // MAXIM-DOW
@@ -374,11 +357,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // MCRF4XX
     public void Crc16_Mcrf4xx() {
-        string expected = "0x34B8";
         var crc = Crc16.GetMcrf4xx();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("34B8", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("B834", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // MCRF4XX
@@ -390,11 +372,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // MODBUS
     public void Crc16_Modbus() {
-        string expected = "0x07CC";
         var crc = Crc16.GetModbus();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("07CC", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("CC07", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // MODBUS
@@ -406,11 +387,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // NRSC-5
     public void Crc16_Nrsc5() {
-        string expected = "0x8793";
         var crc = Crc16.GetNrsc5();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("8793", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("9387", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // NRSC-5
@@ -422,11 +402,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // OPENSAFETY-A
     public void Crc16_OpenSafetyA() {
-        string expected = "0xCE51";
         var crc = Crc16.GetOpenSafetyA();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("CE51", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("51CE", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // OPENSAFETY-A
@@ -438,11 +417,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // OPENSAFETY-B
     public void Crc16_OpenSafetyB() {
-        string expected = "0xDE12";
         var crc = Crc16.GetOpenSafetyB();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("DE12", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("12DE", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // OPENSAFETY-B
@@ -454,11 +432,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // PROFIBUS
     public void Crc16_Profibus() {
-        string expected = "0xD338";
         var crc = Crc16.GetProfibus();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("D338", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("38D3", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // PROFIBUS
@@ -477,11 +454,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // RIELLO
     public void Crc16_Riello() {
-        string expected = "0x2231";
         var crc = Crc16.GetRiello();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("2231", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("3122", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // RIELLO
@@ -492,11 +468,10 @@ public class Crc16_Tests {
     }
     [TestMethod]  // SPI-FUJITSU
     public void Crc16_SpiFujitsu() {
-        string expected = "0x1044";
         var crc = Crc16.GetSpiFujitsu();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("1044", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("4410", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // SPI-FUJITSU
@@ -515,11 +490,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // T10-DIF
     public void Crc16_T10Dif() {
-        string expected = "0x4C2F";
         var crc = Crc16.GetT10Dif();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("4C2F", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("2F4C", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // T10-DIF
@@ -531,11 +505,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // TELEDISK
     public void Crc16_Teledisk() {
-        string expected = "0x4CBD";
         var crc = Crc16.GetTeledisk();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("4CBD", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("BD4C", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // TELEDISK
@@ -547,11 +520,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // TMS37157
     public void Crc16_Tms37157() {
-        string expected = "0x7DB6";
         var crc = Crc16.GetTms37157();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("7DB6", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("B67D", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // TMS37157
@@ -563,11 +535,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // UMTS
     public void Crc16_Umts() {
-        string expected = "0x281A";
         var crc = Crc16.GetUmts();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("281A", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("1A28", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // UMTS
@@ -593,11 +564,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // USB
     public void Crc16_Usb() {
-        string expected = "0xF833";
         var crc = Crc16.GetUsb();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("F833", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("33F8", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  //  USB
@@ -609,11 +579,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // XMODEM
     public void Crc16_XModem() {
-        string expected = "0x5E1B";
         var crc = Crc16.GetXModem();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("5E1B", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("1B5E", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // XMODEM
@@ -654,11 +623,10 @@ public class Crc16_Tests {
 
     [TestMethod]  // CRC-16F/4.2
     public void Crc16_Crc16F42() {
-        string expected = "0x3CE5";
         var crc = Crc16.GetCustom(unchecked((short)0xA2EB), 0x0000, false, false, 0x0000);
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt16:X4}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("3CE5", $"{crc.HashAsInt16:X4}");
+        Assert.AreEqual("E53C", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // CRC-16F/4.2
@@ -722,9 +690,9 @@ public class Crc16_Tests {
     public void Crc16_Reuse() {
         var checksum = Crc16.GetIeee8023();
         checksum.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual("178C", BitConverter.ToString(checksum.GetHashAndReset()).Replace("-", ""));
+        Assert.AreEqual("8C17", BitConverter.ToString(checksum.GetHashAndReset()).Replace("-", ""));
         checksum.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual("178C", checksum.HashAsInt16.ToString("X4"));
+        Assert.AreEqual("8C17", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
     }
 
 

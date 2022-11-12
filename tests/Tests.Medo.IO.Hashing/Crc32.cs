@@ -10,21 +10,19 @@ public class Crc32_Tests {
 
     [TestMethod]
     public void Crc32_Custom() {
-        string expected = "0x1A657BE2";
         var crc = Crc32.GetCustom(0x04C11DB7, unchecked((int)0xFFFFFFFF), true, true, unchecked((int)0xFFFFFFFF));
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("1A657BE2", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("E27B651A", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
 
     [TestMethod]  // AIXM
     public void Crc32_Aixm() {
-        string expected = "0x06D88232";
         var crc = Crc32.GetAixm();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("06D88232", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("3282D806",  BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // AIXM
@@ -36,11 +34,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // AUTOSAR
     public void Crc32_Autosar() {
-        string expected = "0x510EF1D8";
         var crc = Crc32.GetAutosar();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("510EF1D8", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("D8F10E51", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // AUTOSAR
@@ -52,11 +49,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // BASE91-D
     public void Crc32_Base91D() {
-        string expected = "0x2B61E75F";
         var crc = Crc32.GetBase91D();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("2B61E75F", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("5FE7612B", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // BASE91-D
@@ -68,11 +64,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // BZIP2
     public void Crc32_BZip2() {
-        string expected = "0xBB7A12E7";
         var crc = Crc32.GetBZip2();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("BB7A12E7", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("E7127ABB", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // BZIP2
@@ -98,11 +93,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // CD-ROM-EDC
     public void Crc32_CdromEdc() {
-        string expected = "0x0006D785";
         var crc = Crc32.GetCdromEdc();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("0006D785", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("85D70600", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // CD-ROM-EDC
@@ -114,11 +108,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // CKSUM
     public void Crc32_Cksum() {
-        string expected = "0xEFC8804E";
         var crc = Crc32.GetCksum();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("EFC8804E", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("4E80C8EF", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // CKSUM
@@ -137,11 +130,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // ISCSI
     public void Crc32_IScsi() {
-        string expected = "0x1F9A516E";
         var crc = Crc32.GetIScsi();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("1F9A516E", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("6E519A1F", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // ISCSI
@@ -174,11 +166,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // ISO-HDLC
     public void Crc32_IsoHdlc() {
-        string expected = "0x1A657BE2";
         var crc = Crc32.GetIsoHdlc();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("1A657BE2", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("E27B651A", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // ISO-HDLC
@@ -186,6 +177,13 @@ public class Crc32_Tests {
         var crc = Crc32.GetIsoHdlc();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual((uint)0xCBF43926, (uint)crc.HashAsInt32);
+    }
+
+    [TestMethod]  // ISO-HDLC
+    public void Crc32_IsoHdlc_DotNet() {
+        var crcDotNet = new System.IO.Hashing.Crc32();
+        crcDotNet.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual("2639F4CB", BitConverter.ToString(crcDotNet.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // ISO-HDLC / ADCCP (A)
@@ -232,11 +230,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // JAMCRC
     public void Crc32_JamCrc() {
-        string expected = "0xE59A841D";
         var crc = Crc32.GetJamCrc();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("E59A841D", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("1D849AE5", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // JAMCRC
@@ -255,11 +252,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // MPEG-2
     public void Crc32_Mpeg2() {
-        string expected = "0x4485ED18";
         var crc = Crc32.GetMpeg2();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("4485ED18", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("18ED8544", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // MPEG-2
@@ -271,11 +267,10 @@ public class Crc32_Tests {
 
     [TestMethod]  // XFER
     public void Crc32_Xfer() {
-        string expected = "0x3A9C355C";
         var crc = Crc32.GetXfer();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsInt32:X8}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("3A9C355C", $"{crc.HashAsInt32:X8}");
+        Assert.AreEqual("5C359C3A", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // XFER
@@ -290,9 +285,9 @@ public class Crc32_Tests {
     public void Crc32_Reuse() {
         var checksum = Crc32.GetIeee();
         checksum.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual("1A657BE2", BitConverter.ToString(checksum.GetHashAndReset()).Replace("-", ""));
+        Assert.AreEqual("E27B651A", BitConverter.ToString(checksum.GetHashAndReset()).Replace("-", ""));
         checksum.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual("1A657BE2", checksum.HashAsInt32.ToString("X8"));
+        Assert.AreEqual("E27B651A", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
     }
 
 

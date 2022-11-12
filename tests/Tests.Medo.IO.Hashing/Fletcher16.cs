@@ -13,7 +13,7 @@ public class Fletcher16_Tests {
     public void Fletcher16_Basic() {
         var checksum = new Fletcher16();
         checksum.Append(new byte[] { 0x01, 0x02 });
-        Assert.AreEqual("04-03", BitConverter.ToString(checksum.GetCurrentHash()));
+        Assert.AreEqual("0304", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
         Assert.AreEqual(0x0403, checksum.HashAsInt16);
     }
 
@@ -22,13 +22,13 @@ public class Fletcher16_Tests {
         var checksum = new Fletcher16();
         {
             checksum.Append(new byte[] { 0x01, 0x02 });
-            Assert.AreEqual("04-03", BitConverter.ToString(checksum.GetCurrentHash()));
+            Assert.AreEqual("0304", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
             Assert.AreEqual(0x0403, checksum.HashAsInt16);
         }
         checksum.Reset();
         {
             checksum.Append(new byte[] { 0x01, 0x02 });
-            Assert.AreEqual("04-03", BitConverter.ToString(checksum.GetCurrentHash()));
+            Assert.AreEqual("0304", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
             Assert.AreEqual(0x0403, checksum.HashAsInt16);
         }
     }
@@ -39,7 +39,7 @@ public class Fletcher16_Tests {
         var sw = new Stopwatch();
         checksum.Append(Get16K());
         Trace.WriteLine(sw.ElapsedMilliseconds + " ms");
-        Assert.AreEqual("AF-4E", BitConverter.ToString(checksum.GetCurrentHash()));
+        Assert.AreEqual("4EAF", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
         Assert.AreEqual(unchecked((Int16)0xAF4E), checksum.HashAsInt16);
     }
 
@@ -97,9 +97,9 @@ public class Fletcher16_Tests {
     public void Fletcher16_Reuse() {
         var checksum = new Fletcher16();
         checksum.Append(Encoding.ASCII.GetBytes("140byt.es is totally rad!"));
-        Assert.AreEqual("C98F", BitConverter.ToString(checksum.GetHashAndReset()).Replace("-", ""));
+        Assert.AreEqual("8FC9", BitConverter.ToString(checksum.GetHashAndReset()).Replace("-", ""));
         checksum.Append(Encoding.ASCII.GetBytes("140byt.es is totally rad!"));
-        Assert.AreEqual("C98F", BitConverter.ToString(checksum.GetHashAndReset()).Replace("-", ""));
+        Assert.AreEqual("8FC9", BitConverter.ToString(checksum.GetHashAndReset()).Replace("-", ""));
     }
 
 

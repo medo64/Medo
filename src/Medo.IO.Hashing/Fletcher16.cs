@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-11-11: Using machine-endianness when bytes are returned
 //2022-09-27: Moved to Medo.IO.Hashing
 //            Inheriting from NonCryptographicHashAlgorithm
 //2021-03-06: Refactored for .NET 5
@@ -9,9 +10,7 @@ namespace Medo.IO.Hashing;
 
 using System;
 using System.Buffers.Binary;
-using System.Drawing;
 using System.IO.Hashing;
-using System.Runtime.InteropServices;
 
 /// <summary>
 /// Computes checksum using Fletcher-16 algorithm.
@@ -46,7 +45,11 @@ public sealed class Fletcher16 : NonCryptographicHashAlgorithm {
     }
 
     protected override void GetCurrentHashCore(Span<byte> destination) {
-        BinaryPrimitives.WriteInt16BigEndian(destination, HashAsInt16);
+        if (BitConverter.IsLittleEndian) {
+            BinaryPrimitives.WriteInt16LittleEndian(destination, HashAsInt16);
+        } else {
+            BinaryPrimitives.WriteInt16BigEndian(destination, HashAsInt16);
+        }
     }
 
     #endregion NonCryptographicHashAlgorithm
