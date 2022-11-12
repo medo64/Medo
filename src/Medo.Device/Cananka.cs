@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-11-11: Minor refactoring
 //2021-11-25: Refactored to use pattern matching
 //2021-10-08: Refactored for .NET 5
 //2018-10-28: Fixed line reading when CR is not immediately returned
@@ -771,7 +772,7 @@ public class CanankaMessage {
             if (length is < 0 or > 8) { throw new ArgumentOutOfRangeException(nameof(length), "Length must be between 0 and 8 bytes."); }
             if (data != null) { throw new ArgumentOutOfRangeException(nameof(data), "Remote request cannot contain data."); }
         } else {
-            if (data == null) { data = Array.Empty<byte>(); }
+            data ??= Array.Empty<byte>();
             if (data.Length > 8) { throw new ArgumentOutOfRangeException(nameof(data), "Data cannot be longer than 8 bytes."); }
         }
 
@@ -790,7 +791,7 @@ public class CanankaMessage {
     /// <exception cref="ArgumentOutOfRangeException">ID must be between 0 and 0x1FFFFFFF. -or- Data cannot be longer than 8 bytes.</exception>
     public CanankaMessage(int id, byte[] data) {
         if (id is < 0x00000000 or > 0x1FFFFFFF) { throw new ArgumentOutOfRangeException(nameof(id), "ID must be between 0 and 0x1FFFFFFF."); }
-        if (data == null) { data = Array.Empty<byte>(); }
+        data ??= Array.Empty<byte>();
         if (data.Length > 8) { throw new ArgumentOutOfRangeException(nameof(data), "Data cannot be longer than 8 bytes."); }
 
         Id = id;

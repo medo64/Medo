@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-11-11: Minor refactoring
 //2021-11-25: Refactored to use pattern matching
 //2021-11-08: Refactored for .NET 6
 //2021-10-10: Initial version
@@ -1214,8 +1215,8 @@ public static class Terminal {
 
     private static Stream? GetAppropriateStream() {
         if (UseAnsi) {
-            if (OutputStream is null) { OutputStream = Console.OpenStandardOutput(); }
-            if (ErrorStream is null) { ErrorStream = Console.OpenStandardError(); }
+            OutputStream ??= Console.OpenStandardOutput();
+            ErrorStream ??= Console.OpenStandardError();
             return UsingErrorStream ? ErrorStream : OutputStream;
         } else {
             return null;
