@@ -3,6 +3,9 @@ Medo
 
 Collection of useful classes.
 
+Each class is implemented in a single file intended for direct inclusion into
+your project without any dependencies between classes.
+
 
 ## Config (Medo.Configuration)
 
@@ -32,11 +35,6 @@ Global handling of unhandled errors.
 ## BarcodePattern (Medo.Drawing)
 
 Barcode drawing.
-
-
-## SimplePngImage (Medo.Drawing)
-
-A simple PNG image reader/writer.
 
 
 ## Terminal (Medo.IO)
