@@ -1,11 +1,12 @@
 using System;
 using System.Drawing;
 using System.IO;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Medo.Drawing;
 
 namespace Tests;
+
+#pragma warning disable CS0618 // Type or member is obsolete
 
 [TestClass]
 public class SimplePngImage_Tests {
@@ -365,3 +366,5 @@ public class SimplePngImage_Tests {
     #endregion Helper
 
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete
