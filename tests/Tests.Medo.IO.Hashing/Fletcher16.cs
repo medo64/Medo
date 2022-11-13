@@ -14,7 +14,7 @@ public class Fletcher16_Tests {
         var checksum = new Fletcher16();
         checksum.Append(new byte[] { 0x01, 0x02 });
         Assert.AreEqual("0304", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
-        Assert.AreEqual(0x0403, checksum.HashAsInt16);
+        Assert.AreEqual(0x0403, checksum.HashAsUInt16);
     }
 
     [TestMethod]
@@ -23,13 +23,13 @@ public class Fletcher16_Tests {
         {
             checksum.Append(new byte[] { 0x01, 0x02 });
             Assert.AreEqual("0304", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
-            Assert.AreEqual(0x0403, checksum.HashAsInt16);
+            Assert.AreEqual(0x0403, checksum.HashAsUInt16);
         }
         checksum.Reset();
         {
             checksum.Append(new byte[] { 0x01, 0x02 });
             Assert.AreEqual("0304", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
-            Assert.AreEqual(0x0403, checksum.HashAsInt16);
+            Assert.AreEqual(0x0403, checksum.HashAsUInt16);
         }
     }
 
@@ -40,7 +40,7 @@ public class Fletcher16_Tests {
         checksum.Append(Get16K());
         Trace.WriteLine(sw.ElapsedMilliseconds + " ms");
         Assert.AreEqual("4EAF", BitConverter.ToString(checksum.GetCurrentHash()).Replace("-", ""));
-        Assert.AreEqual(unchecked((Int16)0xAF4E), checksum.HashAsInt16);
+        Assert.AreEqual(unchecked((UInt16)0xAF4E), checksum.HashAsUInt16);
     }
 
     [TestMethod]
@@ -73,7 +73,7 @@ public class Fletcher16_Tests {
         var checksum1 = new Fletcher16();
         checksum1.Append(bytes0);
 
-        Assert.AreEqual(checksum0.HashAsInt16, checksum1.HashAsInt16);
+        Assert.AreEqual(checksum0.HashAsUInt16, checksum1.HashAsUInt16);
     }
 
 
@@ -81,7 +81,7 @@ public class Fletcher16_Tests {
     public void Fletcher16_Long2() {
         var checksum = new Fletcher16();
         checksum.Append(Encoding.ASCII.GetBytes("140byt.es is totally rad!"));
-        Assert.AreEqual(unchecked((Int16)51599), checksum.HashAsInt16);
+        Assert.AreEqual(unchecked((UInt16)51599), checksum.HashAsUInt16);
     }
 
 

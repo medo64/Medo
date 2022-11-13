@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-11-13: Using unsigned integers for hash output
 //2022-11-11: Using machine-endianness when bytes are returned
 //2022-09-27: Moved to Medo.IO.Hashing
 //            Inheriting from NonCryptographicHashAlgorithm
@@ -20,7 +21,7 @@ using System.IO.Hashing;
 /// <code>
 /// var checksum = new Fletcher16();
 /// checksum.Append(new byte[] { 0x01, 0x02 });
-/// var checksumValue = checksum.HashAsInt16;
+/// var checksumValue = checksum.HashAsUInt16;
 /// </code>
 /// </example>
 public sealed class Fletcher16 : NonCryptographicHashAlgorithm {
@@ -46,9 +47,9 @@ public sealed class Fletcher16 : NonCryptographicHashAlgorithm {
 
     protected override void GetCurrentHashCore(Span<byte> destination) {
         if (BitConverter.IsLittleEndian) {
-            BinaryPrimitives.WriteInt16LittleEndian(destination, HashAsInt16);
+            BinaryPrimitives.WriteUInt16LittleEndian(destination, HashAsUInt16);
         } else {
-            BinaryPrimitives.WriteInt16BigEndian(destination, HashAsInt16);
+            BinaryPrimitives.WriteUInt16BigEndian(destination, HashAsUInt16);
         }
     }
 
@@ -84,7 +85,13 @@ public sealed class Fletcher16 : NonCryptographicHashAlgorithm {
     /// <summary>
     /// Gets hash as 16-bit integer.
     /// </summary>
-    public short HashAsInt16 => (short)((_sum2 << 8) | _sum1);
+    [Obsolete("Use HashAsUInt16 instead.")]
+    public short HashAsInt16 => unchecked((short)HashAsUInt16);
+
+    /// <summary>
+    /// Gets hash as 16-bit integer.
+    /// </summary>
+    public ushort HashAsUInt16 => (ushort)((_sum2 << 8) | _sum1);
 
     #endregion Algorithm
 
