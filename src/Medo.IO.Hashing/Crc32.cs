@@ -1,6 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-//2022-11-13: Using unsigned integers for both hash input and output
+//2022-11-13: Using unsigned integers for both checksum input and output
 //2022-11-11: Using machine-endianness when bytes are returned
 //2022-09-27: Moved to Medo.IO.Hashing
 //            Inheriting from NonCryptographicHashAlgorithm

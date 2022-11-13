@@ -17,8 +17,6 @@
 namespace Medo.IO.Hashing;
 
 using System;
-using System.Buffers.Binary;
-using System.IO;
 using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -28,7 +26,7 @@ using System.Runtime.InteropServices;
 /// The following CRC-8 variants are supported: AUTOSAR, BLUETOOTH, CCITT,
 /// CDMA2000, DALLAS, DARC, DVB-S2, GSM-A, GSM-B, HITAG, I-432-1, I-CODE,
 /// ITU, LTE, MAXIM, MAXIM-DOW, MIFARE, MIFARE-MAD, NRSC-5, OpenSAFETY,
-/// ROHC, SAE-J1850, SMBUS, TECH-3250, and WCDMA2000.
+/// ROHC, SAE-J1850, SMBUS, TECH-3250, WCDMA2000, and custom definitions.
 /// </summary>
 /// <example>
 /// <code>

@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-09-27: Moved to Medo.IO.Hashing
 //2022-06-24: Removed default constructor in favor of GetCustom method
 //            Added more variants
 //2022-01-05: Added more variants

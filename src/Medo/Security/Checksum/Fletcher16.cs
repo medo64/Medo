@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-09-27: Moved to Medo.IO.Hashing
 //2021-03-06: Refactored for .NET 5
 //2017-04-24: Initial version.
 
