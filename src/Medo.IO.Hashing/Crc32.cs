@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-11-13: Using unsigned integers for both hash input and output
 //2022-11-11: Using machine-endianness when bytes are returned
 //2022-09-27: Moved to Medo.IO.Hashing
 //            Inheriting from NonCryptographicHashAlgorithm
@@ -28,16 +29,16 @@ using System.Runtime.CompilerServices;
 
 /// <summary>
 /// Computes hash using 32-bit CRC algorithm.
-/// The following CRC-16 variants are supported: AAL5, ADCCP, AIXM, AUTOSAR,
+/// The following CRC-32 variants are supported: AAL5, ADCCP, AIXM, AUTOSAR,
 /// BASE91-C, BASE91-D, BZIP2, CASTAGNOLI, CD-ROM-EDC, CKSUM, DECT-B,
 /// IEEE-802.3, INTERLAKEN, ISCSI, ISO-HDLC, JAMCRC, MPEG-2, PKZIP, POSIX,
-/// V-42, XFER, and XZ.
+/// V-42, XFER, XZ, and custom definitions.
 /// </summary>
 /// <example>
 /// <code>
 /// var crc = Crc32.GetIsoHdlc();
 /// crc.Append(Encoding.ASCII.GetBytes("Test"));
-/// var hashValue = crc.HashAsByte;
+/// var hashValue = crc.HashAsUInt32;
 /// </code>
 /// </example>
 public sealed class Crc32 : NonCryptographicHashAlgorithm {
@@ -55,19 +56,6 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     [Obsolete("Use GetCustom instead")]
     public Crc32()
         : this(0x04C11DB7, 0xFFFFFFFF, true, true, 0xFFFFFFFF) {
-    }
-
-    /// <summary>
-    /// Creates new instance.
-    /// </summary>
-    /// <param name="polynomial">Polynomial value.</param>
-    /// <param name="initialValue">Starting digest.</param>
-    /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
-    /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
-    /// <param name="finalXorValue">Final XOR value.</param>
-    [Obsolete("Use GetCustom instead")]
-    public Crc32(int polynomial, int initialValue, bool reflectIn, bool reflectOut, int finalXorValue)
-        : this(unchecked((uint)polynomial), unchecked((uint)initialValue), reflectIn, reflectOut, unchecked((uint)finalXorValue)) {
     }
 
     /// <summary>
@@ -116,8 +104,8 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// - https://reveng.sourceforge.io/crc-catalogue/17plus.htm
     /// - https://users.ece.cmu.edu/~koopman/crc/index.html
     /// </remarks>
-    public static Crc32 GetCustom(int polynomial, int initialValue, bool reflectIn, bool reflectOut, int finalXorValue) {
-        return new Crc32((uint)polynomial, (uint)initialValue, reflectIn, reflectOut, (uint)finalXorValue);
+    public static Crc32 GetCustom(uint polynomial, uint initialValue, bool reflectIn, bool reflectOut, uint finalXorValue) {
+        return new Crc32(polynomial, initialValue, reflectIn, reflectOut, finalXorValue);
     }
 
     /// <summary>
@@ -131,7 +119,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x00000000
     /// </remarks>
     public static Crc32 GetAixm() {
-        return new Crc32((uint)0x814141AB, 0x00000000, false, false, 0x00000000);
+        return new Crc32(0x814141AB, 0x00000000, false, false, 0x00000000);
     }
 
     /// <summary>
@@ -145,7 +133,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFFFFFF
     /// </remarks>
     public static Crc32 GetAutosar() {
-        return new Crc32((uint)0xF4ACFB13, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
+        return new Crc32(0xF4ACFB13, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
     }
 
     /// <summary>
@@ -159,7 +147,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFFFFFF
     /// </remarks>
     public static Crc32 GetBase91D() {
-        return new Crc32((uint)0xA833982B, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
+        return new Crc32(0xA833982B, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
     }
 
     /// <summary>
@@ -173,7 +161,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFFFFFF
     /// </remarks>
     public static Crc32 GetBZip2() {
-        return new Crc32((uint)0x04C11DB7, 0xFFFFFFFF, false, false, 0xFFFFFFFF);
+        return new Crc32(0x04C11DB7, 0xFFFFFFFF, false, false, 0xFFFFFFFF);
     }
 
     /// <summary>
@@ -217,7 +205,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x00000000
     /// </remarks>
     public static Crc32 GetCdromEdc() {
-        return new Crc32((uint)0x8001801B, 0x00000000, true, true, 0x00000000);
+        return new Crc32(0x8001801B, 0x00000000, true, true, 0x00000000);
     }
 
     /// <summary>
@@ -231,7 +219,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFFFFFF
     /// </remarks>
     public static Crc32 GetCksum() {
-        return new Crc32((uint)0x04C11DB7, 0x00000000, false, false, 0xFFFFFFFF);
+        return new Crc32(0x04C11DB7, 0x00000000, false, false, 0xFFFFFFFF);
     }
 
     /// <summary>
@@ -259,7 +247,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFFFFFF
     /// </remarks>
     public static Crc32 GetIScsi() {
-        return new Crc32((uint)0x1EDC6F41, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
+        return new Crc32(0x1EDC6F41, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
     }
 
     /// <summary>
@@ -318,7 +306,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFFFFFF
     /// </remarks>
     public static Crc32 GetIsoHdlc() {
-        return new Crc32((uint)0x04C11DB7, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
+        return new Crc32(0x04C11DB7, 0xFFFFFFFF, true, true, 0xFFFFFFFF);
     }
 
     /// <summary>
@@ -422,7 +410,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x00000000
     /// </remarks>
     public static Crc32 GetJamCrc() {
-        return new Crc32((uint)0x04C11DB7, 0xFFFFFFFF, true, true, 0x00000000);
+        return new Crc32(0x04C11DB7, 0xFFFFFFFF, true, true, 0x00000000);
     }
 
     /// <summary>
@@ -450,7 +438,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x00000000
     /// </remarks>
     public static Crc32 GetMpeg2() {
-        return new Crc32((uint)0x04C11DB7, 0xFFFFFFFF, false, false, 0x00000000);
+        return new Crc32(0x04C11DB7, 0xFFFFFFFF, false, false, 0x00000000);
     }
 
     /// <summary>
@@ -464,7 +452,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x00000000
     /// </remarks>
     public static Crc32 GetXfer() {
-        return new Crc32((uint)0x000000AF, 0x00000000, false, false, 0x00000000);
+        return new Crc32(0x000000AF, 0x00000000, false, false, 0x00000000);
     }
 
 
@@ -486,9 +474,9 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// <param name="destination"></param>
     protected override void GetCurrentHashCore(Span<byte> destination) {
         if (BitConverter.IsLittleEndian) {
-            BinaryPrimitives.WriteInt32LittleEndian(destination, HashAsInt32);
+            BinaryPrimitives.WriteUInt32LittleEndian(destination, HashAsUInt32);
         } else {
-            BinaryPrimitives.WriteInt32BigEndian(destination, HashAsInt32);
+            BinaryPrimitives.WriteUInt32BigEndian(destination, HashAsUInt32);
         }
     }
 
@@ -499,17 +487,17 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
 
     private readonly uint _polynomial;
     private readonly uint _initialValue;
-    private readonly uint _finalXorValue;
     private readonly bool _reverseIn;
     private readonly bool _reverseOut;
+    private readonly uint _finalXorValue;
 
     private void ProcessInitialization() {
         _currDigest = _initialValue;
         var polynomialR = BitwiseReverse(_polynomial);
-        for (uint i = 0; i < 256; i++) {
-            var crcValue = i;
+        for (var i = 0; i < 256; i++) {
+            var crcValue = (uint)i;
 
-            for (int j = 1; j <= 8; j++) {
+            for (var j = 1; j <= 8; j++) {
                 if ((crcValue & 1) == 1) {
                     crcValue = (crcValue >> 1) ^ polynomialR;
                 } else {
@@ -527,9 +515,9 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     private void ProcessBytes(ReadOnlySpan<byte> source) {
         foreach (var b in source) {
             if (_reverseIn) {
-                _currDigest = (_currDigest >> 8) ^ _lookup[(int)((_currDigest & 0xff) ^ _lookupBitReverse[b])];
+                _currDigest = (_currDigest >> 8) ^ _lookup[((_currDigest & 0xff) ^ _lookupBitReverse[b])];
             } else {
-                _currDigest = (_currDigest >> 8) ^ _lookup[(int)((_currDigest & 0xff) ^ (b))];
+                _currDigest = (_currDigest >> 8) ^ _lookup[((_currDigest & 0xff) ^ (b))];
             }
         }
     }
@@ -547,12 +535,20 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// <summary>
     /// Gets current digest.
     /// </summary>
+    [Obsolete("Use HashAsUInt32 instead.")]
     public int HashAsInt32 {
+        get { return (int)HashAsUInt32; }
+    }
+
+    /// <summary>
+    /// Gets current digest.
+    /// </summary>
+    public uint HashAsUInt32 {
         get {
             if (_reverseOut) {
-                return (int)(BitwiseReverse(_currDigest) ^ _finalXorValue);
+                return (BitwiseReverse(_currDigest) ^ _finalXorValue);
             } else {
-                return (int)(_currDigest ^ _finalXorValue);
+                return (_currDigest ^ _finalXorValue);
             }
         }
     }
@@ -564,36 +560,16 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// Converts polynomial to its reversed reciprocal form.
     /// </summary>
     /// <param name="polynomial">Polynomial.</param>
-    public static int ToReversedReciprocalPolynomial(int polynomial) {
-        return (polynomial >> 1) | unchecked((int)0x80000000);
-    }
-
-    /// <summary>
-    /// Converts polynomial to its reversed reciprocal form.
-    /// </summary>
-    /// <param name="polynomial">Polynomial.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Value must be between 0x00000000 and 0xFFFFFFFF.</exception>
-    public static int ToReversedReciprocalPolynomial(long polynomial) {
-        if (polynomial is < 0 or > uint.MaxValue) { throw new ArgumentOutOfRangeException(nameof(polynomial), "Value must be between 0x00000000 and 0xFFFFFFFF."); }
-        return unchecked(ToReversedReciprocalPolynomial((int)polynomial));
+    public static uint ToReversedReciprocalPolynomial(uint polynomial) {
+        return (polynomial >> 1) | 0x80000000;
     }
 
     /// <summary>
     /// Converts polynomial from its reversed reciprocal to normal form.
     /// </summary>
     /// <param name="reversedReciprocalPolynomial">Reversed reciprocal polynomial.</param>
-    public static int FromReversedReciprocalPolynomial(int reversedReciprocalPolynomial) {
+    public static uint FromReversedReciprocalPolynomial(uint reversedReciprocalPolynomial) {
         return (reversedReciprocalPolynomial << 1) | 0x01;
-    }
-
-    /// <summary>
-    /// Converts polynomial from its reversed reciprocal to normal form.
-    /// </summary>
-    /// <param name="reversedReciprocalPolynomial">Reversed reciprocal polynomial.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Value must be between 0x00000000 and 0xFFFFFFFF.</exception>
-    public static int FromReversedReciprocalPolynomial(long reversedReciprocalPolynomial) {
-        if (reversedReciprocalPolynomial is < 0 or > uint.MaxValue) { throw new ArgumentOutOfRangeException(nameof(reversedReciprocalPolynomial), "Value must be between 0x00000000 and 0xFFFFFFFF."); }
-        return unchecked(FromReversedReciprocalPolynomial((int)reversedReciprocalPolynomial));
     }
 
     #endregion ReciprocalPolynomial
