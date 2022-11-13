@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-11-13: Using unsigned integers for both hash input and output
 //2022-11-11: Using machine-endianness when bytes are returned
 //2022-09-27: Moved to Medo.IO.Hashing
 //            Inheriting from NonCryptographicHashAlgorithm
@@ -23,7 +24,6 @@ using System;
 using System.Buffers.Binary;
 using System.IO.Hashing;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 /// <summary>
 /// Computes hash using 16-bit CRC algorithm.
@@ -34,13 +34,13 @@ using System.Runtime.InteropServices;
 /// ISO-IEC-14443-3-A, ISO-IEC-14443-3-B, KERMIT, LHA, LJ1200, LTE, MAXIM,
 /// MAXIM-DOW, MCRF4XX, MODBUS, NRSC-5, OPENSAFETY-A, OPENSAFETY-B,
 /// PROFIBUS, RIELLO, SPI-FUJITSU, T10-DIF, TELEDISK, TMS37157, UMTS, USB,
-/// V-41-LSB, V-41-MSB, VERIFONE, X-25, XMODEM, and ZMODEM.
+/// V-41-LSB, V-41-MSB, VERIFONE, X-25, XMODEM, ZMODEM, and custom definitions.
 /// </summary>
 /// <example>
 /// <code>
 /// var crc = Crc16.GetArc();
 /// crc.Append(Encoding.ASCII.GetBytes("Test"));
-/// var hashValue = crc.HashAsByte;
+/// var hashValue = crc.HashAsUInt16;
 /// </code>
 /// </example>
 public sealed class Crc16 : NonCryptographicHashAlgorithm {
@@ -58,19 +58,6 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     [Obsolete("Use GetCustom instead")]
     public Crc16()
         : this(0x8005, 0x0000, true, true, 0x0000) {
-    }
-
-    /// <summary>
-    /// Creates new instance.
-    /// </summary>
-    /// <param name="polynomial">Polynomial value.</param>
-    /// <param name="initialValue">Starting digest.</param>
-    /// <param name="reflectIn">If true, input byte is in reflected (LSB first) bit order.</param>
-    /// <param name="reflectOut">If true, digest is in reflected (LSB first) bit order.</param>
-    /// <param name="finalXorValue">Final XOR value.</param>
-    [Obsolete("Use GetCustom instead")]
-    public Crc16(short polynomial, short initialValue, bool reflectIn, bool reflectOut, short finalXorValue)
-        : this(unchecked((ushort)polynomial), unchecked((ushort)initialValue), reflectIn, reflectOut, unchecked((ushort)finalXorValue)) {
     }
 
     /// <summary>
@@ -139,9 +126,8 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// - https://reveng.sourceforge.io/crc-catalogue/16.htm
     /// - https://users.ece.cmu.edu/~koopman/crc/index.html
     /// </remarks>
-    /// </remarks>
-    public static Crc16 GetCustom(short polynomial, short initialValue, bool reflectIn, bool reflectOut, short finalXorValue) {
-        return new Crc16((ushort)polynomial, (ushort)initialValue, reflectIn, reflectOut, (ushort)finalXorValue);
+    public static Crc16 GetCustom(ushort polynomial, ushort initialValue, bool reflectIn, bool reflectOut, ushort finalXorValue) {
+        return new Crc16(polynomial, initialValue, reflectIn, reflectOut, finalXorValue);
     }
 
 
@@ -156,7 +142,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetArc() {
-        return new Crc16((ushort)0x8005, 0x0000, true, true, 0x0000);
+        return new Crc16(0x8005, 0x0000, true, true, 0x0000);
     }
 
     /// <summary>
@@ -193,7 +179,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetCdma2000() {
-        return new Crc16((ushort)0xC867, 0xFFFF, false, false, 0x0000);
+        return new Crc16(0xC867, 0xFFFF, false, false, 0x0000);
     }
 
     /// <summary>
@@ -207,7 +193,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetCms() {
-        return new Crc16((ushort)0x8005, 0xFFFF, false, false, 0x0000);
+        return new Crc16(0x8005, 0xFFFF, false, false, 0x0000);
     }
 
     /// <summary>
@@ -221,7 +207,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetDds110() {
-        return new Crc16((ushort)0x8005, 0xB001, false, false, 0x0000);
+        return new Crc16(0x8005, 0xB001, false, false, 0x0000);
     }
 
     /// <summary>
@@ -235,7 +221,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0001
     /// </remarks>
     public static Crc16 GetDectR() {
-        return new Crc16((ushort)0x0589, 0x0000, false, false, 0x0001);
+        return new Crc16(0x0589, 0x0000, false, false, 0x0001);
     }
 
     /// <summary>
@@ -249,7 +235,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetDectX() {
-        return new Crc16((ushort)0x0589, 0x0000, false, false, 0x0000);
+        return new Crc16(0x0589, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
@@ -263,7 +249,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetDnp() {
-        return new Crc16((ushort)0x3D65, 0x0000, true, true, 0xFFFF);
+        return new Crc16(0x3D65, 0x0000, true, true, 0xFFFF);
     }
 
     /// <summary>
@@ -277,7 +263,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetEn13757() {
-        return new Crc16((ushort)0x3D65, 0x0000, false, false, 0xFFFF);
+        return new Crc16(0x3D65, 0x0000, false, false, 0xFFFF);
     }
 
     /// <summary>
@@ -291,7 +277,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetGenibus() {
-        return new Crc16((ushort)0x1021, 0xFFFF, false, false, 0xFFFF);
+        return new Crc16(0x1021, 0xFFFF, false, false, 0xFFFF);
     }
 
     /// <summary>
@@ -350,7 +336,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetICode() {
-        return new Crc16((ushort)0x1021, 0xFFFF, false, false, 0x0000);
+        return new Crc16(0x1021, 0xFFFF, false, false, 0x0000);
     }
 
     /// <summary>
@@ -364,7 +350,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetGsm() {
-        return new Crc16((ushort)0x1021, 0x0000, false, false, 0xFFFF);
+        return new Crc16(0x1021, 0x0000, false, false, 0xFFFF);
     }
 
     /// <summary>
@@ -378,7 +364,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetIbm3740() {
-        return new Crc16((ushort)0x1021, 0xFFFF, false, false, 0x0000);
+        return new Crc16(0x1021, 0xFFFF, false, false, 0x0000);
     }
 
     /// <summary>
@@ -422,7 +408,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetIbmSdlc() {
-        return new Crc16((ushort)0x1021, 0xFFFF, true, true, 0xFFFF);
+        return new Crc16(0x1021, 0xFFFF, true, true, 0xFFFF);
     }
 
     /// <summary>
@@ -481,7 +467,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetIsoIec144433A() {
-        return new Crc16((ushort)0x1021, 0xC6C6, true, true, 0x0000);
+        return new Crc16(0x1021, 0xC6C6, true, true, 0x0000);
     }
 
     /// <summary>
@@ -495,7 +481,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetKermit() {
-        return new Crc16((ushort)0x1021, 0x0000, true, true, 0x0000);
+        return new Crc16(0x1021, 0x0000, true, true, 0x0000);
     }
 
     /// <summary>
@@ -554,7 +540,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetLj1200() {
-        return new Crc16((ushort)0x6F63, 0x0000, false, false, 0x0000);
+        return new Crc16(0x6F63, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
@@ -568,7 +554,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetMaximDow() {
-        return new Crc16((ushort)0x8005, 0x0000, true, true, 0xFFFF);
+        return new Crc16(0x8005, 0x0000, true, true, 0xFFFF);
     }
 
     /// <summary>
@@ -597,7 +583,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetMcrf4xx() {
-        return new Crc16((ushort)0x1021, 0xFFFF, true, true, 0x0000);
+        return new Crc16(0x1021, 0xFFFF, true, true, 0x0000);
     }
 
     /// <summary>
@@ -611,7 +597,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetModbus() {
-        return new Crc16((ushort)0x8005, 0xFFFF, true, true, 0x0000);
+        return new Crc16(0x8005, 0xFFFF, true, true, 0x0000);
     }
 
     /// <summary>
@@ -625,7 +611,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetNrsc5() {
-        return new Crc16((ushort)0x080B, 0xFFFF, true, true, 0x0000);
+        return new Crc16(0x080B, 0xFFFF, true, true, 0x0000);
     }
 
     /// <summary>
@@ -639,7 +625,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetOpenSafetyA() {
-        return new Crc16((ushort)0x5935, 0x0000, false, false, 0x0000);
+        return new Crc16(0x5935, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
@@ -653,7 +639,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetOpenSafetyB() {
-        return new Crc16((ushort)0x755B, 0x0000, false, false, 0x0000);
+        return new Crc16(0x755B, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
@@ -667,7 +653,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetProfibus() {
-        return new Crc16((ushort)0x1DCF, 0xFFFF, false, false, 0xFFFF);
+        return new Crc16(0x1DCF, 0xFFFF, false, false, 0xFFFF);
     }
 
     /// <summary>
@@ -696,7 +682,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetRiello() {
-        return new Crc16((ushort)0x1021, 0x554D, true, true, 0x0000);
+        return new Crc16(0x1021, 0x554D, true, true, 0x0000);
     }
 
     /// <summary>
@@ -710,7 +696,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetSpiFujitsu() {
-        return new Crc16((ushort)0x1021, 0xF0B8, false, false, 0x0000);
+        return new Crc16(0x1021, 0xF0B8, false, false, 0x0000);
     }
 
     /// <summary>
@@ -739,7 +725,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetT10Dif() {
-        return new Crc16((ushort)0x8BB7, 0x0000, false, false, 0x0000);
+        return new Crc16(0x8BB7, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
@@ -753,7 +739,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetTeledisk() {
-        return new Crc16((ushort)0xA097, 0x0000, false, false, 0x0000);
+        return new Crc16(0xA097, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
@@ -767,7 +753,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetTms37157() {
-        return new Crc16((ushort)0x1021, 0x3791, true, true, 0x0000);
+        return new Crc16(0x1021, 0x3791, true, true, 0x0000);
     }
 
     /// <summary>
@@ -781,7 +767,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetUmts() {
-        return new Crc16((ushort)0x8005, 0x0000, false, false, 0x0000);
+        return new Crc16(0x8005, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
@@ -825,7 +811,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0xFFFF
     /// </remarks>
     public static Crc16 GetUsb() {
-        return new Crc16((ushort)0x8005, 0xFFFF, true, true, 0xFFFF);
+        return new Crc16(0x8005, 0xFFFF, true, true, 0xFFFF);
     }
 
     /// <summary>
@@ -839,7 +825,7 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Output XOR: 0x0000
     /// </remarks>
     public static Crc16 GetXModem() {
-        return new Crc16((ushort)0x1021, 0x0000, false, false, 0x0000);
+        return new Crc16(0x1021, 0x0000, false, false, 0x0000);
     }
 
     /// <summary>
@@ -917,9 +903,9 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
 
     protected override void GetCurrentHashCore(Span<byte> destination) {
         if (BitConverter.IsLittleEndian) {
-            BinaryPrimitives.WriteInt16LittleEndian(destination, HashAsInt16);
+            BinaryPrimitives.WriteUInt16LittleEndian(destination, HashAsUInt16);
         } else {
-            BinaryPrimitives.WriteInt16BigEndian(destination, HashAsInt16);
+            BinaryPrimitives.WriteUInt16BigEndian(destination, HashAsUInt16);
         }
     }
 
@@ -930,9 +916,9 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
 
     private readonly ushort _polynomial;
     private readonly ushort _initialValue;
-    private readonly ushort _finalXorValue;
     private readonly bool _reverseIn;
     private readonly bool _reverseOut;
+    private readonly ushort _finalXorValue;
 
     private void ProcessInitialization() {
         _currDigest = _initialValue;
@@ -979,12 +965,20 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// <summary>
     /// Gets current digest.
     /// </summary>
+    [Obsolete("Use HashAsUInt16 instead.")]
     public short HashAsInt16 {
+        get { return (short)HashAsUInt16; }
+    }
+
+    /// <summary>
+    /// Gets current digest.
+    /// </summary>
+    public ushort HashAsUInt16 {
         get {
             if (_reverseOut) {
-                return (short)(BitwiseReverse(_currDigest) ^ _finalXorValue);
+                return (ushort)(BitwiseReverse(_currDigest) ^ _finalXorValue);
             } else {
-                return (short)(_currDigest ^ _finalXorValue);
+                return (ushort)(_currDigest ^ _finalXorValue);
             }
         }
     }
@@ -996,36 +990,16 @@ public sealed class Crc16 : NonCryptographicHashAlgorithm {
     /// Converts polynomial to its reversed reciprocal form.
     /// </summary>
     /// <param name="polynomial">Polynomial.</param>
-    public static short ToReversedReciprocalPolynomial(short polynomial) {
-        return unchecked((short)((polynomial >> 1) | 0x8000));
-    }
-
-    /// <summary>
-    /// Converts polynomial to its reversed reciprocal form.
-    /// </summary>
-    /// <param name="polynomial">Polynomial.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Value must be between 0x0000 and 0xFFFF.</exception>
-    public static short ToReversedReciprocalPolynomial(int polynomial) {
-        if (polynomial is < 0 or > ushort.MaxValue) { throw new ArgumentOutOfRangeException(nameof(polynomial), "Value must be between 0x0000 and 0xFFFF."); }
-        return unchecked(ToReversedReciprocalPolynomial((short)polynomial));
+    public static ushort ToReversedReciprocalPolynomial(ushort polynomial) {
+        return unchecked((ushort)((polynomial >> 1) | 0x8000));
     }
 
     /// <summary>
     /// Converts polynomial from its reversed reciprocal to normal form.
     /// </summary>
     /// <param name="reversedReciprocalPolynomial">Reversed reciprocal polynomial.</param>
-    public static short FromReversedReciprocalPolynomial(short reversedReciprocalPolynomial) {
-        return unchecked((short)((reversedReciprocalPolynomial << 1) | 0x01));
-    }
-
-    /// <summary>
-    /// Converts polynomial from its reversed reciprocal to normal form.
-    /// </summary>
-    /// <param name="reversedReciprocalPolynomial">Reversed reciprocal polynomial.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Value must be between 0x0000 and 0xFFFF.</exception>
-    public static short FromReversedReciprocalPolynomial(int reversedReciprocalPolynomial) {
-        if (reversedReciprocalPolynomial is < 0 or > ushort.MaxValue) { throw new ArgumentOutOfRangeException(nameof(reversedReciprocalPolynomial), "Value must be between 0x0000 and 0xFFFF."); }
-        return unchecked(FromReversedReciprocalPolynomial((short)reversedReciprocalPolynomial));
+    public static ushort FromReversedReciprocalPolynomial(ushort reversedReciprocalPolynomial) {
+        return unchecked((ushort)((reversedReciprocalPolynomial << 1) | 0x01));
     }
 
     #endregion ReciprocalPolynomial
