@@ -40,6 +40,7 @@ public sealed class PerSecondCounter : IDisposable {
     public PerSecondCounter(int resolution) {
         if (resolution is < 100 or > 10000) { throw new ArgumentOutOfRangeException(nameof(resolution), "Resolution must be between 100 and 10000 ms."); }
         TimebaseDivisor = resolution;
+        CurrTime = Environment.TickCount64 / TimebaseDivisor;
         HeartbeatTimer = new Timer(
             delegate { Tick?.Invoke(null, EventArgs.Empty); }, null,
             resolution, resolution);
@@ -59,7 +60,7 @@ public sealed class PerSecondCounter : IDisposable {
     /// <param name="value">Value to increment by.</param>
     public void Increment(long value) {
         lock (SyncRoot) {
-            var time = Environment.TickCount / TimebaseDivisor;
+            var time = Environment.TickCount64 / TimebaseDivisor;
             if (CurrTime == time) {  // just increase value
                 CurrAccumulator += value;
             } else {  // move current value to past
@@ -118,7 +119,7 @@ public sealed class PerSecondCounter : IDisposable {
     private readonly object SyncRoot = new();
     private readonly int TimebaseDivisor;
 
-    private int CurrTime = 0, PastTime = 0;
+    private long CurrTime = 0, PastTime = 0;
     private long CurrAccumulator = 0, PastAccumulator = 0;
 
     private readonly Timer HeartbeatTimer;
