@@ -1,6 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
 //2022-11-13: Using unsigned integers for both checksum input and output
+//            Adjusted output endianness to also depend on output reflection
 //2022-11-11: Using machine-endianness when bytes are returned
 //2022-09-27: Moved to Medo.IO.Hashing
 //            Inheriting from NonCryptographicHashAlgorithm
@@ -106,6 +107,14 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// </remarks>
     public static Crc32 GetCustom(uint polynomial, uint initialValue, bool reflectIn, bool reflectOut, uint finalXorValue) {
         return new Crc32(polynomial, initialValue, reflectIn, reflectOut, finalXorValue);
+    }
+
+    /// <summary>
+    /// Returns CRC-32/ISO-HDLC variant.
+    /// Compatible with System.IO.Hashing.Crc32.
+    /// </summary>
+    public static Crc32 GetDefault() {
+        return Crc32.GetIsoHdlc();
     }
 
     /// <summary>
@@ -473,7 +482,7 @@ public sealed class Crc32 : NonCryptographicHashAlgorithm {
     /// </summary>
     /// <param name="destination"></param>
     protected override void GetCurrentHashCore(Span<byte> destination) {
-        if (BitConverter.IsLittleEndian) {
+        if (BitConverter.IsLittleEndian ^ _reverseOut) {
             BinaryPrimitives.WriteUInt32LittleEndian(destination, HashAsUInt32);
         } else {
             BinaryPrimitives.WriteUInt32BigEndian(destination, HashAsUInt32);
