@@ -10,155 +10,153 @@ public class Crc8_Tests {
 
     [TestMethod]
     public void Crc8_Custom() {
-        string expected = "0x15";
+        var crc = Crc8.GetCustom(0x2F, 0x00, false, false, 0x00);
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0x3E, crc.HashAsByte);
+    }
+
+    [TestMethod]
+    public void Crc8_Custom_2() {
         var crc = Crc8.GetCustom(0x2F, 0x00, false, false, 0x00);
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("15", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("15", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
+
 
     [TestMethod]  // AUTOSAR
     public void Crc8_Autosar() {
-        string expected = "0x2F";
-        var crc = Crc8.GetAutosar();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
-    }
-
-    [TestMethod]  // AUTOSAR
-    public void Crc8_Autosar_2() {
         var crc = Crc8.GetAutosar();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0xDF, crc.HashAsByte);
     }
 
-    [TestMethod]  // BLUETOOTH
-    public void Crc8_Bluetooth() {
-        string expected = "0x8F";
-        var crc = Crc8.GetBluetooth();
+    [TestMethod]  // AUTOSAR
+    public void Crc8_Autosar_2() {
+        var crc = Crc8.GetAutosar();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("2F", $"{ crc.HashAsByte:X2}");
+        Assert.AreEqual("2F", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // BLUETOOTH
-    public void Crc8_Bluetooth_2() {
+    public void Crc8_Bluetooth() {
         var crc = Crc8.GetBluetooth();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0x26, crc.HashAsByte);
     }
 
-    [TestMethod]  // CDMA2000
-    public void Crc8_Cdma2000() {
-        string expected = "0xCE";
-        var crc = Crc8.GetCdma2000();
+    [TestMethod]  // BLUETOOTH
+    public void Crc8_Bluetooth_2() {
+        var crc = Crc8.GetBluetooth();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("8F", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("8F", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // CDMA2000
-    public void Crc8_Cdma2000_2() {
+    public void Crc8_Cdma2000() {
         var crc = Crc8.GetCdma2000();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0xDA, crc.HashAsByte);
     }
 
-    [TestMethod]  // DARC
-    public void Crc8_Darc() {
-        string expected = "0x24";
-        var crc = Crc8.GetDarc();
+    [TestMethod]  // CDMA2000
+    public void Crc8_Cdma2000_2() {
+        var crc = Crc8.GetCdma2000();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("CE", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("CE", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // DARC
-    public void Crc8_Darc_2() {
+    public void Crc8_Darc() {
         var crc = Crc8.GetDarc();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0x15, crc.HashAsByte);
     }
 
-    [TestMethod]  // DVB-S2
-    public void Crc8_DvbS2() {
-        string expected = "0x3E";
-        var crc = Crc8.GetDvbS2();
+    [TestMethod]  // DARC
+    public void Crc8_Darc_2() {
+        var crc = Crc8.GetDarc();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("24", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("24", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // DVB-S2
-    public void Crc8_DvbS2_2() {
+    public void Crc8_DvbS2() {
         var crc = Crc8.GetDvbS2();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0xBC, crc.HashAsByte);
     }
 
-    [TestMethod]  // GSM-A
-    public void Crc8_GsmA() {
-        string expected = "0xBB";
-        var crc = Crc8.GetGsmA();
+    [TestMethod]  // DVB-S2
+    public void Crc8_DvbS2_2() {
+        var crc = Crc8.GetDvbS2();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("3E", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("3E", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // GSM-A
-    public void Crc8_GsmA_2() {
+    public void Crc8_GsmA() {
         var crc = Crc8.GetGsmA();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0x37, crc.HashAsByte);
     }
 
-    [TestMethod]  // GSM-B
-    public void Crc8_GsmB() {
-        string expected = "0xD6";
-        var crc = Crc8.GetGsmB();
+    [TestMethod]  // GSM-A
+    public void Crc8_GsmA_2() {
+        var crc = Crc8.GetGsmA();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("BB", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("BB", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // GSM-B
-    public void Crc8_GsmB_2() {
+    public void Crc8_GsmB() {
         var crc = Crc8.GetGsmB();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0x94, crc.HashAsByte);
     }
 
-    [TestMethod]  // HITAG
-    public void Crc8_Hitag() {
-        string expected = "0xEA";
-        var crc = Crc8.GetHitag();
+    [TestMethod]  // GSM-B
+    public void Crc8_GsmB_2() {
+        var crc = Crc8.GetGsmB();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("D6", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("D6", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // HITAG
-    public void Crc8_Hitag_2() {
+    public void Crc8_Hitag() {
         var crc = Crc8.GetHitag();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0xB4, crc.HashAsByte);
     }
 
+    [TestMethod]  // HITAG
+    public void Crc8_Hitag_2() {
+        var crc = Crc8.GetHitag();
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("EA", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("EA", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+    }
+
     [TestMethod]  // I-432-1
     public void Crc8_I4321() {
-        string expected = "0x8A";
         var crc = Crc8.GetI4321();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0xA1, crc.HashAsByte);
     }
 
     [TestMethod]  // I-432-1
     public void Crc8_I4321_2() {
         var crc = Crc8.GetI4321();
-        crc.Append(Encoding.ASCII.GetBytes("123456789"));
-        Assert.AreEqual(0xA1, crc.HashAsByte);
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("8A", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("8A", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // I-432-1 / CCITT (A)
@@ -177,18 +175,17 @@ public class Crc8_Tests {
 
     [TestMethod]  // I-CODE
     public void Crc8_ICode() {
-        string expected = "0xA4";
         var crc = Crc8.GetICode();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0x7E, crc.HashAsByte);
     }
 
     [TestMethod]  // I-CODE
     public void Crc8_ICode_2() {
         var crc = Crc8.GetICode();
-        crc.Append(Encoding.ASCII.GetBytes("123456789"));
-        Assert.AreEqual(0x7E, crc.HashAsByte);
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("A4", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("A4", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // I-CODE
@@ -227,34 +224,32 @@ public class Crc8_Tests {
 
     [TestMethod]  // LTE
     public void Crc8_Lte() {
-        string expected = "0xDF";
-        var crc = Crc8.GetLte();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
-    }
-
-    [TestMethod]  // LTE
-    public void Crc8_Lte_2() {
         var crc = Crc8.GetLte();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0xEA, crc.HashAsByte);
     }
 
+    [TestMethod]  // LTE
+    public void Crc8_Lte_2() {
+        var crc = Crc8.GetLte();
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("DF", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("DF", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+    }
+
     [TestMethod]  // MAXIM-DOW
     public void Crc8_MaximDow() {
-        string expected = "0x80";
         var crc = Crc8.GetMaximDow();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0xA1, crc.HashAsByte);
     }
 
     [TestMethod]  // MAXIM-DOW
     public void Crc8_MaximDow_2() {
         var crc = Crc8.GetMaximDow();
-        crc.Append(Encoding.ASCII.GetBytes("123456789"));
-        Assert.AreEqual(0xA1, crc.HashAsByte);
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("80", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("80", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // MAXIM-DOW / DALLAS (A)
@@ -273,18 +268,17 @@ public class Crc8_Tests {
 
     [TestMethod]  // MIFARE-MAD
     public void Crc8_MifareMad() {
-        string expected = "0x11";
         var crc = Crc8.GetMifareMad();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0x99, crc.HashAsByte);
     }
 
     [TestMethod]  // MIFARE-MAD
     public void Crc8_MifareMad_2() {
         var crc = Crc8.GetMifareMad();
-        crc.Append(Encoding.ASCII.GetBytes("123456789"));
-        Assert.AreEqual(0x99, crc.HashAsByte);
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("11", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("11", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // MIFARE-MAD
@@ -303,34 +297,32 @@ public class Crc8_Tests {
 
     [TestMethod]  // NRSC-5
     public void Crc8_Nrsc5() {
-        string expected = "0xE3";
-        var crc = Crc8.GetNrsc5();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
-    }
-
-    [TestMethod]  // NRSC-5
-    public void Crc8_Nrsc5_2() {
         var crc = Crc8.GetNrsc5();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0xF7, crc.HashAsByte);
     }
 
+    [TestMethod]  // NRSC-5
+    public void Crc8_Nrsc5_2() {
+        var crc = Crc8.GetNrsc5();
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("E3", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("E3", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+    }
+
     [TestMethod]  // OPENSAFETY
     public void Crc8_OpenSafety() {
-        string expected = "0x15";
         var crc = Crc8.GetOpenSafety();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0x3E, crc.HashAsByte);
     }
 
     [TestMethod]  // OPENSAFETY
     public void Crc8_OpenSafety_2() {
         var crc = Crc8.GetOpenSafety();
-        crc.Append(Encoding.ASCII.GetBytes("123456789"));
-        Assert.AreEqual(0x3E, crc.HashAsByte);
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("15", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("15", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // OPENSAFETY
@@ -363,91 +355,92 @@ public class Crc8_Tests {
 
     [TestMethod]  // C2
     public void Crc8_C2() {
-        string expected = "0x15";
+        var crc = Crc8.GetC2();
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0x3E, crc.HashAsByte);
+    }
+
+    [TestMethod]  // C2
+    public void Crc8_C2_2() {
         var crc = Crc8.GetC2();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("15", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("15", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // ROHC
     public void Crc8_Rohc() {
-        string expected = "0xA2";
-        var crc = Crc8.GetRohc();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
-    }
-
-    [TestMethod]  // ROHC
-    public void Crc8_Rohc_2() {
         var crc = Crc8.GetRohc();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0xD0, crc.HashAsByte);
     }
 
-    [TestMethod]  // SAE-J1850
-    public void Crc8_SaeJ1850() {
-        string expected = "0x15";
-        var crc = Crc8.GetSaeJ1850();
+    [TestMethod]  // ROHC
+    public void Crc8_Rohc_2() {
+        var crc = Crc8.GetRohc();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("A2", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("A2", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // SAE-J1850
-    public void Crc8_SaeJ1850_2() {
+    public void Crc8_SaeJ1850() {
         var crc = Crc8.GetSaeJ1850();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0x4B, crc.HashAsByte);
     }
 
-    [TestMethod]  // SMBUS
-    public void Crc8_SMBus() {
-        string expected = "0xDF";
-        var crc = Crc8.GetSMBus();
+    [TestMethod]  // SAE-J1850
+    public void Crc8_SaeJ1850_2() {
+        var crc = Crc8.GetSaeJ1850();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("15", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("15", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // SMBUS
-    public void Crc8_SMBus_2() {
+    public void Crc8_SMBus() {
         var crc = Crc8.GetSMBus();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0xF4, crc.HashAsByte);
     }
 
-    [TestMethod]  // TECH-3250
-    public void Crc8_Tech3250() {
-        string expected = "0x70";
-        var crc = Crc8.GetTech3250();
+    [TestMethod]  // SMBUS
+    public void Crc8_SMBus_2() {
+        var crc = Crc8.GetSMBus();
         crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        Assert.AreEqual("DF", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("DF", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
     [TestMethod]  // TECH-3250
-    public void Crc8_Tech3250_2() {
+    public void Crc8_Tech3250() {
         var crc = Crc8.GetTech3250();
         crc.Append(Encoding.ASCII.GetBytes("123456789"));
         Assert.AreEqual(0x97, crc.HashAsByte);
     }
 
+    [TestMethod]  // TECH-3250
+    public void Crc8_Tech3250_2() {
+        var crc = Crc8.GetTech3250();
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("70", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("70", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+    }
+
     [TestMethod]  // WCDMA2000
     public void Crc8_Wcdma2000() {
-        string expected = "0xD3";
         var crc = Crc8.GetWcdma2000();
-        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-        Assert.AreEqual(expected, $"0x{crc.HashAsByte:X2}");
-        Assert.AreEqual(expected, "0x" + BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
+        crc.Append(Encoding.ASCII.GetBytes("123456789"));
+        Assert.AreEqual(0x25, crc.HashAsByte);
     }
 
     [TestMethod]  // WCDMA2000
     public void Crc8_Wcdma2000_2() {
         var crc = Crc8.GetWcdma2000();
-        crc.Append(Encoding.ASCII.GetBytes("123456789"));
-        Assert.AreEqual(0x25, crc.HashAsByte);
+        crc.Append(Encoding.ASCII.GetBytes("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+        Assert.AreEqual("D3", $"{crc.HashAsByte:X2}");
+        Assert.AreEqual("D3", BitConverter.ToString(crc.GetCurrentHash()).Replace("-", ""));
     }
 
 
