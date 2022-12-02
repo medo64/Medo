@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.IO.Hashing", "Medo.IO.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.IO.Hashing", "..\tests\Tests.Medo.IO.Hashing\Tests.Medo.IO.Hashing.csproj", "{A565AC18-5AC5-4456-BD21-1CE975A12189}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingleInstanceApplication", "..\examples\SingleInstanceApplication\SingleInstanceApplication.csproj", "{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -143,6 +145,18 @@ Global
 		{A565AC18-5AC5-4456-BD21-1CE975A12189}.Release|x64.Build.0 = Release|Any CPU
 		{A565AC18-5AC5-4456-BD21-1CE975A12189}.Release|x86.ActiveCfg = Release|Any CPU
 		{A565AC18-5AC5-4456-BD21-1CE975A12189}.Release|x86.Build.0 = Release|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Debug|x64.Build.0 = Debug|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Debug|x86.Build.0 = Debug|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Release|x64.ActiveCfg = Release|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Release|x64.Build.0 = Release|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Release|x86.ActiveCfg = Release|Any CPU
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -154,6 +168,7 @@ Global
 		{085353B4-6482-408E-97BC-60C83F07581A} = {4F42D0BA-75C6-4C28-A4E8-177AD1342535}
 		{E5524CC5-6FB4-4289-A970-506223A08C9B} = {4F42D0BA-75C6-4C28-A4E8-177AD1342535}
 		{A565AC18-5AC5-4456-BD21-1CE975A12189} = {0F17F621-E6C6-4D80-839F-000B9D5BC5FC}
+		{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B} = {4F42D0BA-75C6-4C28-A4E8-177AD1342535}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {14F12047-581B-42E9-BF27-EC1D6068F33D}
