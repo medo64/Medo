@@ -180,6 +180,7 @@ public static class SingleInstance {
     }
 
 
+    [Serializable]
     private sealed record SingleInstanceArguments {  // just a storage
 #if NET7_0_OR_GREATER
         [JsonInclude]
@@ -207,15 +208,13 @@ public static class SingleInstance {
 /// <summary>
 /// Arguments for newly detected application instance.
 /// </summary>
-[Serializable()]
-public class NewInstanceEventArgs : EventArgs {
+public sealed class NewInstanceEventArgs : EventArgs {
     /// <summary>
     /// Creates new instance.
     /// </summary>
     /// <param name="commandLine">Command line.</param>
-    /// <param name="commandLineArgs">String array containing the command line arguments.</param>
-    [JsonConstructor]
-    public NewInstanceEventArgs(string commandLine, string[] commandLineArgs) {
+    /// <param name="commandLineArgs">String array containing the command line arguments in the same format as Environment.GetCommandLineArgs.</param>
+    internal NewInstanceEventArgs(string commandLine, string[] commandLineArgs) {
         CommandLine = commandLine;
         _commandLineArgs = new string[commandLineArgs.Length];
         Array.Copy(commandLineArgs, _commandLineArgs, _commandLineArgs.Length);
