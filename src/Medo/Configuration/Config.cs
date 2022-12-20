@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-12-18: Replaced Environment.Version.Major check with conditional compilation to avoid compile warnings
 //2021-11-25: Refactored to use pattern matching
 //2021-09-16: Changed executable path for .NET 5 and above
 //2021-09-12: Refactored for .NET 5
@@ -458,7 +459,11 @@ public static class Config {
 
         var company = companyValue ?? "";
         var application = productValue ?? titleValue ?? assembly.GetName().Name ?? "application";
-        var executablePath = (Environment.Version.Major >= 5) ? AppContext.BaseDirectory : assembly.Location;
+        #if NET5_0_OR_GREATER
+            var executablePath = AppContext.BaseDirectory;
+        #else
+            var executablePath = assembly.Location;
+        #endif
 
         var baseFileName = IsOSWindows
             ? application + ".cfg"
