@@ -1,7 +1,7 @@
 using System;
 using Medo.IO;
 
-namespace Medo.Examples {
+namespace Examples {
     internal static class TerminalExample {
 
         public static void RunAnsi() {

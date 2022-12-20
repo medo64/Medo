@@ -1,8 +1,9 @@
 using System;
 using System.Windows.Forms;
 using Medo.Diagnostics;
+using Medo.Windows.Forms;
 
-namespace Medo.Windows.Forms.Examples {
+namespace Examples {
     internal static class App {
         [STAThread]
         private static void Main() {

@@ -1,4 +1,4 @@
-namespace Medo.Windows.Forms.Examples {
+namespace Examples {
     partial class CyberCardForm {
         /// <summary>
         /// Required designer variable.

@@ -1,5 +1,5 @@
 
-namespace Medo.Windows.Forms.Examples {
+namespace Examples {
     partial class TpsForm {
         /// <summary>
         /// Required designer variable.

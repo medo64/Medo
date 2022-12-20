@@ -1,7 +1,7 @@
 using System;
 using Medo.IO;
 
-namespace Medo.Examples {
+namespace Examples {
     internal class App {
 
         private static void Main() {

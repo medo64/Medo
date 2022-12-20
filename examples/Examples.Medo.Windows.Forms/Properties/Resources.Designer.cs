@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Medo.Windows.Forms.Examples.Properties {
+namespace Examples.Properties {
     using System;
     
     

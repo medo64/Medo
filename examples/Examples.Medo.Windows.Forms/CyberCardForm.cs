@@ -1,8 +1,9 @@
-using Medo.Device;
 using System;
 using System.Windows.Forms;
+using Medo.Device;
+using Medo.Windows.Forms;
 
-namespace Medo.Windows.Forms.Examples {
+namespace Examples {
     public partial class CyberCardForm : Form {
         public CyberCardForm() {
             InitializeComponent();
@@ -17,7 +18,7 @@ namespace Medo.Windows.Forms.Examples {
 
         private void CyberCardForm_FormClosed(object sender, FormClosedEventArgs e) {
             tmrRefresh.Enabled = false;
-            if (Device != null) { Device.Dispose(); }
+            Device?.Dispose();
         }
 
         private CyberCard Device;

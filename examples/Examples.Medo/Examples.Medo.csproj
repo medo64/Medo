@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <AssemblyName>Examples.Medo</AssemblyName>
-    <RootNamespace>Medo.Examples</RootNamespace>
+    <RootNamespace>Examples</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>

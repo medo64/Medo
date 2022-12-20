@@ -2,8 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Medo.Windows.Forms;
 
-namespace Medo.Windows.Forms.Examples {
+namespace Examples {
     internal partial class MainForm : Form {
         public MainForm() {
             InitializeComponent();

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Medo.Timers;
 
-namespace Medo.Windows.Forms.Examples {
+namespace Examples {
     public partial class TpsForm : Form {
         public TpsForm() {
             InitializeComponent();

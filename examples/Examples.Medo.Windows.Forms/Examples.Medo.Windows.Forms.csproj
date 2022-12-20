@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <AssemblyName>Examples.Medo.Windows.Forms</AssemblyName>
-    <RootNamespace>Medo.Windows.Forms.Examples</RootNamespace>
+    <RootNamespace>Examples</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
