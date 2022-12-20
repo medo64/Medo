@@ -8,8 +8,6 @@ namespace Tests;
 [TestClass]
 public class Fletcher16_Tests {
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
     [TestMethod]
     public void Fletcher16_Basic() {
         var checksum = new Fletcher16();
@@ -117,8 +115,6 @@ public class Fletcher16_Tests {
         checksum.ComputeHash(System.Text.ASCIIEncoding.ASCII.GetBytes("140byt.es is totally rad!"));
         Assert.AreEqual(unchecked((Int16)51599), checksum.HashAsInt16);
     }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 
     #region Helpers
 

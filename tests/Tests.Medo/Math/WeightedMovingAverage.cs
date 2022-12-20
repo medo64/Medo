@@ -4,8 +4,6 @@ using Medo.Math;
 
 namespace Tests;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
 [TestClass]
 public class WeightedMovingAverage_Tests {
 
@@ -245,8 +243,6 @@ public class WeightedMovingAverage_Tests {
     }
 
 }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 
 
 #if NET7_0_OR_GREATER

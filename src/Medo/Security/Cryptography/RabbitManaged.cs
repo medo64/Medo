@@ -525,7 +525,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
     }
 
     [DebuggerDisplay("{Value}")]
-    private struct DWord {  // makes extracting bytes from uint faster and looks nicer
+    private readonly struct DWord {  // makes extracting bytes from uint faster and looks nicer
         private readonly UInt32 Value;
 
         public DWord(UInt32 value) : this() {

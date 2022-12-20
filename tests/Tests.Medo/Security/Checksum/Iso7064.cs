@@ -8,8 +8,6 @@ namespace Tests;
 [TestClass]
 public class Iso7064_Tests {
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
     [TestMethod]
     public void Iso7064_SingleDigit1() {
         var crc = new Iso7064();
@@ -202,7 +200,5 @@ public class Iso7064_Tests {
             var hash = checksum.ComputeHash(Encoding.UTF8.GetBytes("ABC"));
         });
     }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 
 }

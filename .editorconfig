@@ -132,3 +132,5 @@ dotnet_naming_style.private_style.capitalization                         = camel
 dotnet_naming_rule.private_field_naming.severity                         = none
 dotnet_naming_rule.private_field_naming.symbols                          = private_symbol
 dotnet_naming_rule.private_field_naming.style                            = private_style
+# Other
+csharp_style_prefer_utf8_string_literals                                 = false

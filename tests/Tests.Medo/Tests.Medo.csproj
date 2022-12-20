@@ -15,7 +15,12 @@
   <PropertyGroup>
     <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
     <EnableNETAnalyzers>false</EnableNETAnalyzers>
-    <NoWarn>IDE0028</NoWarn>
+    <NoWarn>CS0618,IDE0017,IDE0028,IDE0063,IDE0079</NoWarn>
+    <!-- CS0618: Member is obsolete -->
+    <!-- IDE0017: Use object initializers -->
+    <!-- IDE0028: Use collection initializers -->
+    <!-- IDE0063: Use simple 'using' statement -->
+    <!-- IDE0079: Remove unnecessary suppression -->
   </PropertyGroup>
 
   <ItemGroup>

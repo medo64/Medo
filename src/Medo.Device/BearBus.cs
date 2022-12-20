@@ -841,7 +841,7 @@ public abstract record BBPacket {
         IsReplyRequestOrError = isReplyRequestOrError;
         CommandCode = (byte)(commandCode & 0x1F);
 
-        if (data == null) { data = Array.Empty<byte>(); }
+        data ??= Array.Empty<byte>();
         var newData = new byte[data.Length <= 127 ? data.Length : 127];
         Buffer.BlockCopy(data, 0, newData, 0, newData.Length);
         DataBytes = newData;

@@ -6,8 +6,6 @@ using Medo.Drawing;
 
 namespace Tests;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
 [TestClass]
 public class SimplePngImage_Tests {
 
@@ -366,5 +364,3 @@ public class SimplePngImage_Tests {
     #endregion Helper
 
 }
-
-#pragma warning restore CS0618 // Type or member is obsolete

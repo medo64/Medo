@@ -3,8 +3,6 @@ using Medo.Math;
 
 namespace Tests;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
 [TestClass]
 public class LinearCalibration_Tests {
 
@@ -135,8 +133,6 @@ public class LinearCalibration_Tests {
     }
 
 }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 
 
 #if NET7_0_OR_GREATER

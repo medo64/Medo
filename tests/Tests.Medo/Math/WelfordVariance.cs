@@ -4,8 +4,6 @@ using Medo.Math;
 
 namespace Tests;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
 [TestClass]
 public class WelfordVariance_Tests {
 
@@ -214,8 +212,6 @@ public class WelfordVariance_Tests {
     }
 
 }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 
 
 #if NET7_0_OR_GREATER

@@ -8,8 +8,6 @@ namespace Tests;
 [TestClass]
 public class Damm_Tests {
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
     [TestMethod]
     public void Damm_Basic() {
         using var checksum = new Damm();
@@ -138,7 +136,5 @@ public class Damm_Tests {
         Assert.AreEqual(6, crc.HashAsNumber);
         Assert.AreEqual("36", BitConverter.ToString(crc.Hash).Replace("-", ""));
     }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 
 }

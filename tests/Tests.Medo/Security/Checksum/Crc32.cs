@@ -8,8 +8,6 @@ namespace Tests;
 [TestClass]
 public class Crc32_Tests {
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
     [TestMethod]
     public void Crc32_Custom() {
         string expected = "0x1A657BE2";
@@ -358,7 +356,5 @@ public class Crc32_Tests {
             Assert.AreEqual((int)0x814141AB, Crc32.FromReversedReciprocalPolynomial(0xC0A0A0D5L));
         }
     }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 
 }

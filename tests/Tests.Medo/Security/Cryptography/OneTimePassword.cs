@@ -299,7 +299,7 @@ public class OneTimePassword_Tests {
 
     [TestMethod]
     public void OneTimePassword_HOTP_Generate_SHA1() {
-        var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890")) { Digits = 8, TimeStep = 0 };
+        var o = new OneTimePassword(Encoding.ASCII.GetBytes("12345678901234567890")) { Digits = 8, TimeStep = 0 };
 
         o.Counter = 0x0000000000000001;
         Assert.AreEqual(94287082, o.GetCode());
@@ -322,7 +322,7 @@ public class OneTimePassword_Tests {
 
     [TestMethod]
     public void OneTimePassword_HOTP_Validate_SHA1() {
-        var o = new OneTimePassword(ASCIIEncoding.ASCII.GetBytes("12345678901234567890")) { Digits = 8, TimeStep = 0 };
+        var o = new OneTimePassword(Encoding.ASCII.GetBytes("12345678901234567890")) { Digits = 8, TimeStep = 0 };
 
         o.Counter = 0x0000000000000001;
         Assert.IsTrue(o.IsCodeValid(94287082));

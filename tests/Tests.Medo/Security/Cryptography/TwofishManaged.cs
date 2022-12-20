@@ -842,7 +842,7 @@ public class TwofishManaged_Tests {
     }
 
     [DebuggerDisplay("{KeySize}:{Index}")]
-    private struct TestBlock {
+    private readonly struct TestBlock {
         internal TestBlock(int keySize, int index, byte[] key, byte[] iv, byte[] plainText, byte[] cipherText) {
             KeySize = keySize;
             Index = index;
