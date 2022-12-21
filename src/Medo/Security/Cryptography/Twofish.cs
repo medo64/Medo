@@ -1,6 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 /* Algorithm designed by Bruce Schneier */
 
+//2022-12-20: Renamed to Twofish (was TwofishManaged)
 //2022-01-13: Fixing up padding support
 //2021-11-25: Refactored to use pattern matching
 //2021-11-08: Refactored for .NET 6
@@ -21,7 +22,7 @@ using System.Security.Cryptography;
 /// Twofish algorithm implementation.
 /// </summary>
 /// <code>
-/// using var algorithm = new TwofishManaged() {
+/// using var algorithm = new Twofish() {
 ///    KeySize = test.KeySize,
 ///    Mode = CipherMode.CBC,
 ///    Padding = PaddingMode.None
@@ -31,12 +32,12 @@ using System.Security.Cryptography;
 /// cs.Write(inStream, 0, inStream.Length);
 /// </code>
 /// <remarks>https://www.schneier.com/twofish.html</remarks>
-public sealed class TwofishManaged : SymmetricAlgorithm {
+public sealed class Twofish : SymmetricAlgorithm {
 
     /// <summary>
     /// Initializes a new instance.
     /// </summary>
-    public TwofishManaged()
+    public Twofish()
         : base() {
         base.KeySizeValue = KeySizeInBits;
         base.BlockSizeValue = BlockSizeInBits;
@@ -62,7 +63,7 @@ public sealed class TwofishManaged : SymmetricAlgorithm {
             if (rgbIV.Length != 16) { throw new ArgumentOutOfRangeException(nameof(rgbIV), "Invalid IV size."); }
         }
 
-        return new TwofishManagedTransform(rgbKey, rgbIV, TwofishManagedTransformMode.Decrypt, Mode, Padding);
+        return new TwofishTransform(rgbKey, rgbIV, TwofishTransformMode.Decrypt, Mode, Padding);
     }
 
     /// <inheritdoc />
@@ -76,7 +77,7 @@ public sealed class TwofishManaged : SymmetricAlgorithm {
             if (rgbIV.Length != 16) { throw new ArgumentOutOfRangeException(nameof(rgbIV), "Invalid IV size."); }
         }
 
-        return new TwofishManagedTransform(rgbKey, rgbIV, TwofishManagedTransformMode.Encrypt, Mode, Padding);
+        return new TwofishTransform(rgbKey, rgbIV, TwofishTransformMode.Encrypt, Mode, Padding);
     }
 
     /// <inheritdoc />
@@ -133,7 +134,7 @@ public sealed class TwofishManaged : SymmetricAlgorithm {
 }
 
 
-internal enum TwofishManagedTransformMode {
+internal enum TwofishTransformMode {
     Encrypt = 0,
     Decrypt = 1
 }
@@ -143,8 +144,8 @@ internal enum TwofishManagedTransformMode {
 /// Performs a cryptographic transformation of data using the Twofish algorithm.
 /// This class cannot be inherited.
 /// </summary>
-public sealed class TwofishManagedTransform : ICryptoTransform {
-    internal TwofishManagedTransform(byte[] rgbKey, byte[]? rgbIV, TwofishManagedTransformMode transformMode, CipherMode cipherMode, PaddingMode paddingMode) {
+public sealed class TwofishTransform : ICryptoTransform {
+    internal TwofishTransform(byte[] rgbKey, byte[]? rgbIV, TwofishTransformMode transformMode, CipherMode cipherMode, PaddingMode paddingMode) {
         if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
         if (rgbKey.Length is not 16 and not 24 and not 32) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "Key must be 128, 192, or 256 bits."); }
         if ((rgbIV is not null) && (rgbIV.Length != 16)) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "IV must be 128 bits."); }
@@ -175,7 +176,7 @@ public sealed class TwofishManagedTransform : ICryptoTransform {
     }
 
 
-    private readonly TwofishManagedTransformMode TransformMode;
+    private readonly TwofishTransformMode TransformMode;
     private readonly CipherMode CipherMode;
     private readonly PaddingMode PaddingMode;
 
@@ -229,7 +230,7 @@ public sealed class TwofishManagedTransform : ICryptoTransform {
         if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
         if (outputOffset + inputCount > outputBuffer.Length) { throw new ArgumentOutOfRangeException(nameof(outputOffset), "Insufficient output buffer."); }
 
-        if (TransformMode == TwofishManagedTransformMode.Encrypt) {
+        if (TransformMode == TwofishTransformMode.Encrypt) {
 
             for (var i = 0; i < inputCount; i += 16) {
                 BlockEncrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
@@ -276,7 +277,7 @@ public sealed class TwofishManagedTransform : ICryptoTransform {
         if ((PaddingMode == PaddingMode.None) && (inputCount % 16 != 0)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "No padding for final block."); }
         if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
 
-        if (TransformMode == TwofishManagedTransformMode.Encrypt) {
+        if (TransformMode == TwofishTransformMode.Encrypt) {
 
             int paddedLength;
             byte[] paddedInputBuffer;

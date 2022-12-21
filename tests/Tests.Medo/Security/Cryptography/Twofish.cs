@@ -12,13 +12,13 @@ using Medo.Security.Cryptography;
 namespace Tests;
 
 [TestClass]
-public class TwofishManaged_Tests {
+public class Twofish_Tests {
 
     [TestMethod]
-    public void TwofishManaged_KnownAnswers_ECB() {
+    public void Twofish_KnownAnswers_ECB() {
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_TBL.TXT"));
         foreach (var test in tests) {
-            using var algorithm = new TwofishManaged() { KeySize = test.KeySize, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+            using var algorithm = new Twofish() { KeySize = test.KeySize, Mode = CipherMode.ECB, Padding = PaddingMode.None };
             var ct = Encrypt(algorithm, test.Key, null, test.PlainText);
             Assert.AreEqual(BitConverter.ToString(test.CipherText), BitConverter.ToString(ct));
 
@@ -29,7 +29,7 @@ public class TwofishManaged_Tests {
 
     [Ignore]
     [TestMethod]
-    public void TwofishManaged_MonteCarlo_ECB_Encrypt() { //takes ages
+    public void Twofish_MonteCarlo_ECB_Encrypt() { //takes ages
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_E_M.TXT"));
         var sw = Stopwatch.StartNew();
         foreach (var test in tests) {
@@ -40,7 +40,7 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MonteCarlo_ECB_Encrypt_One() {
+    public void Twofish_MonteCarlo_ECB_Encrypt_One() {
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_E_M.TXT"));
         var test = tests[Rnd.Next(tests.Count)];
         MonteCarlo_ECB_E(test);
@@ -49,7 +49,7 @@ public class TwofishManaged_Tests {
 
     [Ignore]
     [TestMethod]
-    public void TwofishManaged_MonteCarlo_ECB_Decrypt() { //takes ages
+    public void Twofish_MonteCarlo_ECB_Decrypt() { //takes ages
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_D_M.TXT"));
         var sw = Stopwatch.StartNew();
         foreach (var test in tests) {
@@ -60,7 +60,7 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MonteCarlo_ECB_Decrypt_One() {
+    public void Twofish_MonteCarlo_ECB_Decrypt_One() {
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.ECB_D_M.TXT"));
         var test = tests[Rnd.Next(tests.Count)];
         MonteCarlo_ECB_D(test);
@@ -69,7 +69,7 @@ public class TwofishManaged_Tests {
 
     [Ignore]
     [TestMethod]
-    public void TwofishManaged_MonteCarlo_CBC_Encrypt() { //takes ages
+    public void Twofish_MonteCarlo_CBC_Encrypt() { //takes ages
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.CBC_E_M.TXT"));
         var sw = Stopwatch.StartNew();
         foreach (var test in tests) {
@@ -80,7 +80,7 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MonteCarlo_CBC_Encrypt_One() {
+    public void Twofish_MonteCarlo_CBC_Encrypt_One() {
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.CBC_E_M.TXT"));
         var test = tests[Rnd.Next(tests.Count)];
         MonteCarlo_CBC_E(test);
@@ -89,7 +89,7 @@ public class TwofishManaged_Tests {
 
     [Ignore]
     [TestMethod]
-    public void TwofishManaged_MonteCarlo_CBC_Decrypt() { //takes ages
+    public void Twofish_MonteCarlo_CBC_Decrypt() { //takes ages
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.CBC_D_M.TXT"));
         var sw = Stopwatch.StartNew();
         foreach (var test in tests) {
@@ -100,7 +100,7 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MonteCarlo_CBC_Decrypt_One() {
+    public void Twofish_MonteCarlo_CBC_Decrypt_One() {
         var tests = GetTestBlocks(Helper.GetResourceStream("Security.Cryptography.Twofish.CBC_D_M.TXT"));
         var test = tests[Rnd.Next(tests.Count)];
         MonteCarlo_CBC_D(test);
@@ -113,12 +113,12 @@ public class TwofishManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void TwofishManaged_PaddingFull(PaddingMode padding) {
+    public void Twofish_PaddingFull(PaddingMode padding) {
         var key = new byte[32]; RandomNumberGenerator.Fill(key);
         var iv = new byte[16]; RandomNumberGenerator.Fill(iv);
         var data = new byte[48]; RandomNumberGenerator.Fill(data);  // full blocks
 
-        var algorithm = new TwofishManaged() { Padding = padding, };
+        var algorithm = new Twofish() { Padding = padding, };
 
         var ct = Encrypt(algorithm, key, iv, data);
         var pt = Decrypt(algorithm, key, iv, ct);
@@ -131,12 +131,12 @@ public class TwofishManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void TwofishManaged_PaddingPartial(PaddingMode padding) {
+    public void Twofish_PaddingPartial(PaddingMode padding) {
         var key = new byte[32]; RandomNumberGenerator.Fill(key);
         var iv = new byte[16]; RandomNumberGenerator.Fill(iv);
         var data = new byte[42]; RandomNumberGenerator.Fill(data);
 
-        var algorithm = new TwofishManaged() { Padding = padding };
+        var algorithm = new Twofish() { Padding = padding };
 
         var ct = Encrypt(algorithm, key, iv, data);
         var pt = Decrypt(algorithm, key, iv, ct);
@@ -147,9 +147,9 @@ public class TwofishManaged_Tests {
     [DataTestMethod]
     [DataRow(CipherMode.CFB)]
     [DataRow(CipherMode.CTS)]
-    public void TwofishManaged_OnlyCbcAndEbcSupported(CipherMode mode) {
+    public void Twofish_OnlyCbcAndEbcSupported(CipherMode mode) {
         Assert.ThrowsException<CryptographicException>(() => {
-            var _ = new TwofishManaged() { Mode = mode };
+            var _ = new Twofish() { Mode = mode };
         });
     }
 
@@ -159,8 +159,8 @@ public class TwofishManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void TwofishManaged_LargeFinalBlock(PaddingMode padding) {
-        var crypto = new TwofishManaged() { Padding = padding };
+    public void Twofish_LargeFinalBlock(PaddingMode padding) {
+        var crypto = new Twofish() { Padding = padding };
         crypto.GenerateKey();
         crypto.GenerateIV();
         var text = "This is a final block wider than block size.";  // more than 128 bits of data
@@ -185,7 +185,7 @@ public class TwofishManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void TwofishManaged_BlockSizeRounding(PaddingMode padding) {
+    public void Twofish_BlockSizeRounding(PaddingMode padding) {
         var key = new byte[32]; RandomNumberGenerator.Fill(key);
         var iv = new byte[16]; RandomNumberGenerator.Fill(iv);
 
@@ -196,7 +196,7 @@ public class TwofishManaged_Tests {
             RandomNumberGenerator.Fill(data);
             if ((padding == PaddingMode.Zeros) && (data.Length > 0)) { data[^1] = 1; }  // zero padding needs to have the last number non-zero
 
-            var algorithm = new TwofishManaged() { Padding = padding, };
+            var algorithm = new Twofish() { Padding = padding, };
 
             var expectedCryptLength = padding switch {
                 PaddingMode.None => data.Length,
@@ -222,9 +222,9 @@ public class TwofishManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void TwofishManaged_Randomised(PaddingMode padding) {
+    public void Twofish_Randomised(PaddingMode padding) {
         for (var n = 0; n < 1000; n++) {
-            var crypto = new TwofishManaged() { Padding = padding };
+            var crypto = new Twofish() { Padding = padding };
             crypto.GenerateKey();
             crypto.GenerateIV();
             var data = new byte[Random.Shared.Next(100)];
@@ -251,8 +251,8 @@ public class TwofishManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void TwofishManaged_EncryptDecrypt(PaddingMode padding) {
-        var crypto = new TwofishManaged() { Padding = padding };
+    public void Twofish_EncryptDecrypt(PaddingMode padding) {
+        var crypto = new Twofish() { Padding = padding };
         crypto.GenerateKey();
         crypto.GenerateIV();
         var bytes = RandomNumberGenerator.GetBytes(1024);
@@ -306,7 +306,7 @@ public class TwofishManaged_Tests {
     // http://www.ntua.gr/cryptix/old/cryptix/aes/docs/katmct.html
 
     private static void MonteCarlo_ECB_E(TestBlock test) {
-        using var algorithm = new TwofishManaged() { KeySize = test.KeySize, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = test.KeySize, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var key = test.Key;
         var pt = test.PlainText;
         byte[] ct = null;
@@ -318,7 +318,7 @@ public class TwofishManaged_Tests {
     }
 
     private static void MonteCarlo_ECB_D(TestBlock test) {
-        using var algorithm = new TwofishManaged() { KeySize = test.KeySize, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = test.KeySize, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var key = test.Key;
         var ct = test.CipherText;
         byte[] pt = null;
@@ -331,7 +331,7 @@ public class TwofishManaged_Tests {
 
 
     private static void MonteCarlo_CBC_E(TestBlock test) {
-        using var algorithm = new TwofishManaged() { KeySize = test.KeySize, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = test.KeySize, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         var key = test.Key;
         var cv = test.IV;
         var pt = test.PlainText;
@@ -346,7 +346,7 @@ public class TwofishManaged_Tests {
     }
 
     private static void MonteCarlo_CBC_D(TestBlock test) {
-        using var algorithm = new TwofishManaged() { KeySize = test.KeySize, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = test.KeySize, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         var key = test.Key;
         var cv = test.IV;
         var ct = test.CipherText;
@@ -365,128 +365,128 @@ public class TwofishManaged_Tests {
     #region Multiblock
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_ECB_128_Encrypt() {
+    public void Twofish_MultiBlock_ECB_128_Encrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = ParseBytes("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("9F589F5CF6122C32B6BFEC2F2AE8C35A9F589F5CF6122C32B6BFEC2F2AE8C35A9F589F5CF6122C32B6BFEC2F2AE8C35A", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_ECB_128_Decrypt() {
+    public void Twofish_MultiBlock_ECB_128_Decrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("9F589F5CF6122C32B6BFEC2F2AE8C35A9F589F5CF6122C32B6BFEC2F2AE8C35A9F589F5CF6122C32B6BFEC2F2AE8C35A");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", BitConverter.ToString(pt).Replace("-", ""));
     }
 
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_CBC_128_Encrypt() {
+    public void Twofish_MultiBlock_CBC_128_Encrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var pt = ParseBytes("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         var ct = Encrypt(algorithm, key, iv, pt);
         Assert.AreEqual("9F589F5CF6122C32B6BFEC2F2AE8C35AD491DB16E7B1C39E86CB086B789F541905EF8C61A811582634BA5CB7106AA641", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_CBC_128_Decrypt() {
+    public void Twofish_MultiBlock_CBC_128_Decrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("9F589F5CF6122C32B6BFEC2F2AE8C35AD491DB16E7B1C39E86CB086B789F541905EF8C61A811582634BA5CB7106AA641");
-        var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         var pt = Decrypt(algorithm, key, iv, ct);
         Assert.AreEqual("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", BitConverter.ToString(pt).Replace("-", ""));
     }
 
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_ECB_192_Encrypt() {
+    public void Twofish_MultiBlock_ECB_192_Encrypt() {
         var key = ParseBytes("000000000000000000000000000000000000000000000000");
         var pt = ParseBytes("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        var algorithm = new TwofishManaged() { KeySize = 192, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 192, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("EFA71F788965BD4453F860178FC19101EFA71F788965BD4453F860178FC19101EFA71F788965BD4453F860178FC19101", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_ECB_192_Decrypt() {
+    public void Twofish_MultiBlock_ECB_192_Decrypt() {
         var key = ParseBytes("000000000000000000000000000000000000000000000000");
         var ct = ParseBytes("EFA71F788965BD4453F860178FC19101EFA71F788965BD4453F860178FC19101EFA71F788965BD4453F860178FC19101");
-        var algorithm = new TwofishManaged() { KeySize = 192, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 192, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", BitConverter.ToString(pt).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_CBC_192_Encrypt() {
+    public void Twofish_MultiBlock_CBC_192_Encrypt() {
         var key = ParseBytes("000000000000000000000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var pt = ParseBytes("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        var algorithm = new TwofishManaged() { KeySize = 192, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 192, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         var ct = Encrypt(algorithm, key, iv, pt);
         Assert.AreEqual("EFA71F788965BD4453F860178FC1910188B2B2706B105E36B446BB6D731A1E88F2DD994D2C4E64517CC9DB9AED2D5909", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_CBC_192_Decrypt() {
+    public void Twofish_MultiBlock_CBC_192_Decrypt() {
         var key = ParseBytes("000000000000000000000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("EFA71F788965BD4453F860178FC1910188B2B2706B105E36B446BB6D731A1E88F2DD994D2C4E64517CC9DB9AED2D5909");
-        var algorithm = new TwofishManaged() { KeySize = 192, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 192, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         var pt = Decrypt(algorithm, key, iv, ct);
         Assert.AreEqual("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", BitConverter.ToString(pt).Replace("-", ""));
     }
 
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_ECB_256_Encrypt() {
+    public void Twofish_MultiBlock_ECB_256_Encrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var pt = ParseBytes("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_ECB_256_Decrypt() {
+    public void Twofish_MultiBlock_ECB_256_Decrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var ct = ParseBytes("57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F");
-        var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", BitConverter.ToString(pt).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_CBC_256_Encrypt() {
+    public void Twofish_MultiBlock_CBC_256_Encrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var pt = ParseBytes("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         var ct = Encrypt(algorithm, key, iv, pt);
         Assert.AreEqual("57FF739D4DC92C1BD7FC01700CC8216FD43BB7556EA32E46F2A282B7D45B4E0D2804E32925D62BAE74487A06B3CD2D46", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlock_CBC_256_Decrypt() {
+    public void Twofish_MultiBlock_CBC_256_Decrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("57FF739D4DC92C1BD7FC01700CC8216FD43BB7556EA32E46F2A282B7D45B4E0D2804E32925D62BAE74487A06B3CD2D46");
-        var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         var pt = Decrypt(algorithm, key, iv, ct);
         Assert.AreEqual("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", BitConverter.ToString(pt).Replace("-", ""));
     }
 
 
     [TestMethod]
-    public void TwofishManaged_MultiBlockNonFinal_ECB_256_Encrypt() {
+    public void Twofish_MultiBlockNonFinal_ECB_256_Encrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var pt = ParseBytes("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        using var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         algorithm.Key = key;
         var ct = new byte[pt.Length];
         using (var transform = algorithm.CreateEncryptor()) {
@@ -497,10 +497,10 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlockNotFinal_ECB_256_Decrypt() {
+    public void Twofish_MultiBlockNotFinal_ECB_256_Decrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var ct = ParseBytes("57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F");
-        using var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         algorithm.Key = key;
         var pt = new byte[ct.Length];
         using (var transform = algorithm.CreateDecryptor()) {
@@ -511,20 +511,20 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlockFinal_ECB_256_Encrypt() {
+    public void Twofish_MultiBlockFinal_ECB_256_Encrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var pt = ParseBytes("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        using var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         algorithm.Key = key;
         var ct = algorithm.CreateEncryptor().TransformFinalBlock(pt, 0, pt.Length);
         Assert.AreEqual("57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlockFinal_ECB_256_Decrypt() {
+    public void Twofish_MultiBlockFinal_ECB_256_Decrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var ct = ParseBytes("57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F57FF739D4DC92C1BD7FC01700CC8216F");
-        using var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         algorithm.Key = key;
         var pt = algorithm.CreateDecryptor().TransformFinalBlock(ct, 0, ct.Length);
         Assert.AreEqual("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", BitConverter.ToString(pt).Replace("-", ""));
@@ -532,11 +532,11 @@ public class TwofishManaged_Tests {
 
 
     [TestMethod]
-    public void TwofishManaged_MultiBlockNonFinal_CBC_256_Encrypt() {
+    public void Twofish_MultiBlockNonFinal_CBC_256_Encrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var pt = ParseBytes("9F589F5CF6122C32B6BFEC2F2AE8C35A9F589F5CF6122C32B6BFEC2F2AE8C35A9F589F5CF6122C32B6BFEC2F2AE8C35A");
-        using var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         algorithm.Key = key;
         algorithm.IV = iv;
         var ct = new byte[pt.Length];
@@ -548,11 +548,11 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlockNonFinal_CBC_256_Decrypt() {
+    public void Twofish_MultiBlockNonFinal_CBC_256_Decrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("61B5BC459C4E9491DD9E6ACB7478813047BE7250D34F792C17F0C23583C0B040B95C9FAE11107EE9BAC3D79BBFE019EE");
-        using var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         algorithm.Key = key;
         algorithm.IV = iv;
         var pt = new byte[ct.Length]; pt[ct.Length - 1] = 0xFF;
@@ -564,11 +564,11 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlockFinal_CBC_256_Encrypt() {
+    public void Twofish_MultiBlockFinal_CBC_256_Encrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var pt = ParseBytes("9F589F5CF6122C32B6BFEC2F2AE8C35A9F589F5CF6122C32B6BFEC2F2AE8C35A9F589F5CF6122C32B6BFEC2F2AE8C35A");
-        using var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         algorithm.Key = key;
         algorithm.IV = iv;
         var ct = algorithm.CreateEncryptor().TransformFinalBlock(pt, 0, pt.Length);
@@ -576,11 +576,11 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_MultiBlockFinal_CBC_256_Decrypt() {
+    public void Twofish_MultiBlockFinal_CBC_256_Decrypt() {
         var key = ParseBytes("0000000000000000000000000000000000000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("61B5BC459C4E9491DD9E6ACB7478813047BE7250D34F792C17F0C23583C0B040B95C9FAE11107EE9BAC3D79BBFE019EE");
-        using var algorithm = new TwofishManaged() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 256, Mode = CipherMode.CBC, Padding = PaddingMode.None };
         algorithm.Key = key;
         algorithm.IV = iv;
         var pt = algorithm.CreateDecryptor().TransformFinalBlock(ct, 0, ct.Length);
@@ -593,148 +593,148 @@ public class TwofishManaged_Tests {
     #region Padding
 
     [TestMethod]
-    public void TwofishManaged_Padding_Zeros_ECB_128_Encrypt() {
+    public void Twofish_Padding_Zeros_ECB_128_Encrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.Zeros };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.Zeros };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB33C25C273BF09B94A31DE3C27C28DFB5C", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_Zeros_ECB_128_Decrypt() {
+    public void Twofish_Padding_Zeros_ECB_128_Decrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB33C25C273BF09B94A31DE3C27C28DFB5C");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.Zeros };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.Zeros };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("The quick brown fox jumps over the lazy dog", Encoding.UTF8.GetString(pt));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_None_ECB_128_Encrypt_16() {
+    public void Twofish_Padding_None_ECB_128_Encrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog once");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB59", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_None_ECB_128_Decrypt_16() {
+    public void Twofish_Padding_None_ECB_128_Decrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB59");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.None };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.None };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("The quick brown fox jumps over the lazy dog once", Encoding.UTF8.GetString(pt));
     }
 
 
     [TestMethod]
-    public void TwofishManaged_Padding_Zeros_ECB_128_Encrypt_16() {
+    public void Twofish_Padding_Zeros_ECB_128_Encrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog once");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.Zeros };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.Zeros };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB59", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_Zeros_ECB_128_Decrypt_16() {
+    public void Twofish_Padding_Zeros_ECB_128_Decrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB59");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.Zeros };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.Zeros };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("The quick brown fox jumps over the lazy dog once", Encoding.UTF8.GetString(pt));
     }
 
 
     [TestMethod]
-    public void TwofishManaged_Padding_Pkcs7_ECB_128_Encrypt() {
+    public void Twofish_Padding_Pkcs7_ECB_128_Encrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB3235D2E6063F32DE35B8A62A384FC587E", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_Pkcs7_ECB_128_Decrypt() {
+    public void Twofish_Padding_Pkcs7_ECB_128_Decrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB3235D2E6063F32DE35B8A62A384FC587E");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("The quick brown fox jumps over the lazy dog", Encoding.UTF8.GetString(pt));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_Pkcs7_ECB_128_Encrypt_16() {
+    public void Twofish_Padding_Pkcs7_ECB_128_Encrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog once");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB59771D591428AF301D69FA1E227D083527", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_Pkcs7_ECB_128_Decrypt_16() {
+    public void Twofish_Padding_Pkcs7_ECB_128_Decrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB59771D591428AF301D69FA1E227D083527");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("The quick brown fox jumps over the lazy dog once", Encoding.UTF8.GetString(pt));
     }
 
 
     [TestMethod]
-    public void TwofishManaged_Padding_AnsiX923_ECB_128_Encrypt() {
+    public void Twofish_Padding_AnsiX923_ECB_128_Encrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ANSIX923 };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ANSIX923 };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB3B696D40A5E12225D3E05E8A466F078C2", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_AnsiX923_ECB_128_Decrypt() {
+    public void Twofish_Padding_AnsiX923_ECB_128_Decrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB3B696D40A5E12225D3E05E8A466F078C2");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ANSIX923 };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ANSIX923 };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("The quick brown fox jumps over the lazy dog", Encoding.UTF8.GetString(pt));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_AnsiX923_ECB_128_Encrypt_16() {
+    public void Twofish_Padding_AnsiX923_ECB_128_Encrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog once");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ANSIX923 };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ANSIX923 };
         var ct = Encrypt(algorithm, key, null, pt);
         Assert.AreEqual("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB5958A06DC5AD2D7C0550771D6E9D59D58B", BitConverter.ToString(ct).Replace("-", ""));
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_AnsiX923_ECB_128_Decrypt_16() {
+    public void Twofish_Padding_AnsiX923_ECB_128_Decrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var ct = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB5958A06DC5AD2D7C0550771D6E9D59D58B");
-        using var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ANSIX923 };
+        using var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ANSIX923 };
         var pt = Decrypt(algorithm, key, null, ct);
         Assert.AreEqual("The quick brown fox jumps over the lazy dog once", Encoding.UTF8.GetString(pt));
     }
 
 
     [TestMethod]
-    public void TwofishManaged_Padding_Iso10126_ECB_128_DecryptAndEncrypt() {
+    public void Twofish_Padding_Iso10126_ECB_128_DecryptAndEncrypt() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = "The quick brown fox jumps over the lazy dog";
 
         var ctA = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB3B696D40A5E12225D3E05E8A466F078C2");
-        using (var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ISO10126 }) {
+        using (var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ISO10126 }) {
             var ptA = Decrypt(algorithm, key, null, ctA);
             Assert.AreEqual(pt, Encoding.UTF8.GetString(ptA));
         }
 
         var ptB = Encoding.UTF8.GetBytes(pt);
-        using (var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ISO10126 }) {
+        using (var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ISO10126 }) {
             var ctB = Encrypt(algorithm, key, null, ptB);
             var ptC = Decrypt(algorithm, key, null, ctB);
             Assert.AreEqual(pt, Encoding.UTF8.GetString(ptC));
@@ -743,18 +743,18 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_Padding_Iso10126_ECB_128_DecryptAndEncrypt_16() {
+    public void Twofish_Padding_Iso10126_ECB_128_DecryptAndEncrypt_16() {
         var key = ParseBytes("00000000000000000000000000000000");
         var pt = "The quick brown fox jumps over the lazy dog once";
 
         var ctA = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF1194B36D8E0BDD5AC10842B549230BB36D66FC3AFE1F40216590079AF862AB5958A06DC5AD2D7C0550771D6E9D59D58B");
-        using (var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ISO10126 }) {
+        using (var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ISO10126 }) {
             var ptA = Decrypt(algorithm, key, null, ctA);
             Assert.AreEqual(pt, Encoding.UTF8.GetString(ptA));
         }
 
         var ptB = Encoding.UTF8.GetBytes(pt);
-        using (var algorithm = new TwofishManaged() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ISO10126 }) {
+        using (var algorithm = new Twofish() { KeySize = 128, Mode = CipherMode.ECB, Padding = PaddingMode.ISO10126 }) {
             var ctB = Encrypt(algorithm, key, null, ptB);
             var ptC = Decrypt(algorithm, key, null, ctB);
             Assert.AreEqual(pt, Encoding.UTF8.GetString(ptC));
@@ -768,11 +768,11 @@ public class TwofishManaged_Tests {
     #region Other
 
     [TestMethod]
-    public void TwofishManaged_TransformBlock_Encrypt_UseSameArray() {
+    public void Twofish_TransformBlock_Encrypt_UseSameArray() {
         var key = ParseBytes("00000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var ctpt = Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog once");
-        using (var twofish = new TwofishManaged() { Mode = CipherMode.CBC, Padding = PaddingMode.None, KeySize = 128, Key = key, IV = iv }) {
+        using (var twofish = new Twofish() { Mode = CipherMode.CBC, Padding = PaddingMode.None, KeySize = 128, Key = key, IV = iv }) {
             using var transform = twofish.CreateEncryptor();
             transform.TransformBlock(ctpt, 0, 48, ctpt, 0);
         }
@@ -780,11 +780,11 @@ public class TwofishManaged_Tests {
     }
 
     [TestMethod]
-    public void TwofishManaged_TransformBlock_Decrypt_UseSameArray() {
+    public void Twofish_TransformBlock_Decrypt_UseSameArray() {
         var key = ParseBytes("00000000000000000000000000000000");
         var iv = ParseBytes("00000000000000000000000000000000");
         var ctpt = ParseBytes("B0DD30E9AB1F1329C1BEE154DDBE88AF8C47A4FE24D56DC027ED503652C9D164CE26E0C6E32BCA8756482B99988E8C79");
-        using (var twofish = new TwofishManaged() { Mode = CipherMode.CBC, Padding = PaddingMode.None, KeySize = 128, Key = key, IV = iv }) {
+        using (var twofish = new Twofish() { Mode = CipherMode.CBC, Padding = PaddingMode.None, KeySize = 128, Key = key, IV = iv }) {
             using var transform = twofish.CreateDecryptor();
             transform.TransformBlock(ctpt, 0, 48, ctpt, 0); //no caching last block if Padding is none
         }

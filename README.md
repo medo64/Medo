@@ -158,7 +158,7 @@ algorithms.
 Generic PBKDF2 implementation.
 
 
-## TwofishManaged (Medo.Security.Cryptography)
+## Twofish (Medo.Security.Cryptography)
 
 Twofish algorithm implementation.
 
