@@ -132,7 +132,7 @@ Computes checksum using Fletcher-16 algorithm.
 Computes hash using ISO 7064 algorithm from numerical input.
 
 
-## RabbitManaged (Medo.Security.Cryptography)
+## Rabbit (Medo.Security.Cryptography)
 
 Rabbit stream cipher implementation.
 

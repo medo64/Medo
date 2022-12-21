@@ -3,6 +3,7 @@
  *    Martin Boesgaard, Mette Vesterager, Thomas Pedersen, Jesper Christiansen and Ove Scavenius.
  * Released to public domain in 2008. */
 
+//2022-10-24: Renamed to Rabbit (was RabbitManaged)
 //2022-01-13: Optimizing a bit
 //2022-01-12: Fixed large final block transformation
 //2022-01-09: Initial version
@@ -23,17 +24,17 @@ using System.Security.Cryptography;
 /// - https://www.ietf.org/rfc/rfc4503.txt
 /// </remarks>
 /// <code>
-/// using var algorithm = new RabbitManaged();
+/// using var algorithm = new Rabbit();
 /// using var transform = algorithm.CreateEncryptor(key, iv);
 /// using var cs = new CryptoStream(outStream, transform, CryptoStreamMode.Write);
 /// cs.Write(inStream, 0, inStream.Length);
 /// </code>
-public sealed class RabbitManaged : SymmetricAlgorithm {
+public sealed class Rabbit : SymmetricAlgorithm {
 
     /// <summary>
     /// Initializes a new instance.
     /// </summary>
-    public RabbitManaged()
+    public Rabbit()
         : base() {
         base.KeySizeValue = KeySizeInBits;
         base.BlockSizeValue = BlockSizeInBits;
@@ -52,14 +53,14 @@ public sealed class RabbitManaged : SymmetricAlgorithm {
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Key must be 128 bits (16 bytes). -or- IV must be 64 bits (8 bytes).</exception>
     public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIV) {
-        return new RabbitManagedTransform(rgbKey, rgbIV, RabbitManagedTransformMode.Decrypt, Padding);
+        return new RabbitTransform(rgbKey, rgbIV, RabbitTransformMode.Decrypt, Padding);
     }
 
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Key must be 128 bits (16 bytes). -or- IV must be 64 bits (8 bytes).</exception>
     public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV) {
-        return new RabbitManagedTransform(rgbKey, rgbIV, RabbitManagedTransformMode.Encrypt, Padding);
+        return new RabbitTransform(rgbKey, rgbIV, RabbitTransformMode.Encrypt, Padding);
     }
 
     /// <inheritdoc />
@@ -136,7 +137,7 @@ public sealed class RabbitManaged : SymmetricAlgorithm {
 }
 
 
-internal enum RabbitManagedTransformMode {
+internal enum RabbitTransformMode {
     Encrypt = 0,
     Decrypt = 1
 }
@@ -146,7 +147,7 @@ internal enum RabbitManagedTransformMode {
 /// Performs a cryptographic transformation of data using the Rabbit algorithm.
 /// This class cannot be inherited.
 /// </summary>
-internal sealed class RabbitManagedTransform : ICryptoTransform {
+internal sealed class RabbitTransform : ICryptoTransform {
 
     /// <summary>
     /// Creates a new instance.
@@ -155,7 +156,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
     /// <param name="rgbIV">64-bit IV (optional).</param>
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Key must be 128 bits (16 bytes). -or- IV must be 64 bits (8 bytes).</exception>
-    internal RabbitManagedTransform(byte[] rgbKey, byte[]? rgbIV, RabbitManagedTransformMode transformMode, PaddingMode paddingMode) {
+    internal RabbitTransform(byte[] rgbKey, byte[]? rgbIV, RabbitTransformMode transformMode, PaddingMode paddingMode) {
         if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
         if (rgbKey.Length != 16) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "Key must be 128 bits (16 bytes)."); }
         if ((rgbIV is not null) && (rgbIV.Length != 8)) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "IV must be 64 bits (8 bytes)."); }
@@ -174,7 +175,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         if (rgbIV != null) { SetupIV(rgbIV); }
     }
 
-    private readonly RabbitManagedTransformMode TransformMode;
+    private readonly RabbitTransformMode TransformMode;
     private readonly PaddingMode PaddingMode;
 
     #region ICryptoTransform
@@ -203,7 +204,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
         if (outputOffset + inputCount > outputBuffer.Length) { throw new ArgumentOutOfRangeException(nameof(outputOffset), "Insufficient output buffer."); }
 
-        if (TransformMode == RabbitManagedTransformMode.Encrypt) {
+        if (TransformMode == RabbitTransformMode.Encrypt) {
 
             for (var i = 0; i < inputCount; i += 16) {
                 ProcessBytes(inputBuffer, inputOffset + i, 16, outputBuffer, outputOffset + i);
@@ -249,7 +250,7 @@ internal sealed class RabbitManagedTransform : ICryptoTransform {
         if ((inputCount < 0) || (inputCount > inputBuffer.Length)) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input count."); }
         if ((inputBuffer.Length - inputCount) < inputOffset) { throw new ArgumentOutOfRangeException(nameof(inputCount), "Invalid input length."); }
 
-        if (TransformMode == RabbitManagedTransformMode.Encrypt) {
+        if (TransformMode == RabbitTransformMode.Encrypt) {
 
             int paddedLength;
             byte[] paddedInputBuffer;

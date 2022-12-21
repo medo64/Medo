@@ -12,7 +12,7 @@ using Medo.Security.Cryptography;
 namespace Tests;
 
 [TestClass]
-public class RabbitManaged_Tests {
+public class Rabbit_Tests {
 
     [DataTestMethod]
     [DataRow("VectorA1.txt")]
@@ -24,11 +24,11 @@ public class RabbitManaged_Tests {
     [DataRow("VectorB1.txt")]
     [DataRow("VectorB2.txt")]
     [DataRow("VectorB3.txt")]
-    public void RabbitManaged_Vectors(string fileName) {
+    public void Rabbit_Vectors(string fileName) {
         RetrieveVectors(fileName, out var key, out var iv, out var dataQueue);
 
         using var ct = new MemoryStream();
-        using var transform = new RabbitManaged().CreateEncryptor(key, iv);
+        using var transform = new Rabbit().CreateEncryptor(key, iv);
         using var cs = new CryptoStream(ct, transform, CryptoStreamMode.Write);
 
         var n = 0;
@@ -61,15 +61,15 @@ public class RabbitManaged_Tests {
              "2374EC9C1026B41C",
              "81FDD1CEF6549AA55032B45197B22F0A4A043B59BE7084CA02",
              "Rabbit stream cipher test")]
-    public void RabbitManaged_Examples(string keyHex, string ivHex, string cipherHex, string plainText) {
+    public void Rabbit_Examples(string keyHex, string ivHex, string cipherHex, string plainText) {
         var key = GetBytes(keyHex);
         var iv = GetBytes(ivHex);
         var cipherBytes = GetBytes(cipherHex);
 
-        var ct = Encrypt(new RabbitManaged(), key, iv, Encoding.ASCII.GetBytes(plainText));
+        var ct = Encrypt(new Rabbit(), key, iv, Encoding.ASCII.GetBytes(plainText));
         Assert.AreEqual(BitConverter.ToString(cipherBytes), BitConverter.ToString(ct));
 
-        var pt = Decrypt(new RabbitManaged(), key, iv, cipherBytes);
+        var pt = Decrypt(new Rabbit(), key, iv, cipherBytes);
         Assert.AreEqual(plainText, Encoding.ASCII.GetString(pt));
     }
 
@@ -80,12 +80,12 @@ public class RabbitManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RabbitManaged_PaddingFull(PaddingMode padding) {
+    public void Rabbit_PaddingFull(PaddingMode padding) {
         var key = new byte[16]; RandomNumberGenerator.Fill(key);
         var iv = new byte[8]; RandomNumberGenerator.Fill(iv);
         var data = new byte[48]; RandomNumberGenerator.Fill(data);  // full blocks
 
-        var algorithm = new RabbitManaged() { Padding = padding, };
+        var algorithm = new Rabbit() { Padding = padding, };
 
         var ct = Encrypt(algorithm, key, iv, data);
         var pt = Decrypt(algorithm, key, iv, ct);
@@ -98,12 +98,12 @@ public class RabbitManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RabbitManaged_PaddingPartial(PaddingMode padding) {
+    public void Rabbit_PaddingPartial(PaddingMode padding) {
         var key = new byte[16]; RandomNumberGenerator.Fill(key);
         var iv = new byte[8]; RandomNumberGenerator.Fill(iv);
         var data = new byte[42]; RandomNumberGenerator.Fill(data);
 
-        var algorithm = new RabbitManaged() { Padding = padding };
+        var algorithm = new Rabbit() { Padding = padding };
 
         var ct = Encrypt(algorithm, key, iv, data);
         var pt = Decrypt(algorithm, key, iv, ct);
@@ -116,9 +116,9 @@ public class RabbitManaged_Tests {
     [DataRow(CipherMode.ECB)]
     [DataRow(CipherMode.CFB)]
     [DataRow(CipherMode.CTS)]
-    public void RabbitManaged_OnlyCbcSupported(CipherMode mode) {
+    public void Rabbit_OnlyCbcSupported(CipherMode mode) {
         Assert.ThrowsException<CryptographicException>(() => {
-            var _ = new RabbitManaged() { Mode = mode };
+            var _ = new Rabbit() { Mode = mode };
         });
     }
 
@@ -128,8 +128,8 @@ public class RabbitManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RabbitManaged_LargeFinalBlock(PaddingMode padding) {
-        var crypto = new RabbitManaged() { Padding = padding };
+    public void Rabbit_LargeFinalBlock(PaddingMode padding) {
+        var crypto = new Rabbit() { Padding = padding };
         crypto.GenerateKey();
         crypto.GenerateIV();
         var text = "This is a final block wider than block size.";  // more than 128 bits of data
@@ -153,7 +153,7 @@ public class RabbitManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RabbitManaged_BlockSizeRounding(PaddingMode padding) {
+    public void Rabbit_BlockSizeRounding(PaddingMode padding) {
         var key = new byte[16]; RandomNumberGenerator.Fill(key);
         var iv = new byte[8]; RandomNumberGenerator.Fill(iv);
 
@@ -162,7 +162,7 @@ public class RabbitManaged_Tests {
             RandomNumberGenerator.Fill(data);
             if ((padding == PaddingMode.Zeros) && (data.Length > 0)) { data[^1] = 1; }  // zero padding needs to have the last number non-zero
 
-            var algorithm = new RabbitManaged() { Padding = padding, };
+            var algorithm = new Rabbit() { Padding = padding, };
 
             var expectedCryptLength = padding switch {
                 PaddingMode.None => data.Length,
@@ -188,9 +188,9 @@ public class RabbitManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RabbitManaged_Randomised(PaddingMode padding) {
+    public void Rabbit_Randomised(PaddingMode padding) {
         for (var n = 0; n < 1000; n++) {
-            var crypto = new RabbitManaged() { Padding = padding };
+            var crypto = new Rabbit() { Padding = padding };
             crypto.GenerateKey();
             crypto.GenerateIV();
             var data = new byte[Random.Shared.Next(100)];
@@ -216,8 +216,8 @@ public class RabbitManaged_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RabbitManaged_EncryptDecrypt(PaddingMode padding) {
-        var crypto = new RabbitManaged() { Padding = padding };
+    public void Rabbit_EncryptDecrypt(PaddingMode padding) {
+        var crypto = new Rabbit() { Padding = padding };
         crypto.GenerateKey();
         crypto.GenerateIV();
         var bytes = RandomNumberGenerator.GetBytes(1024);
