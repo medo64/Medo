@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2022-12-20: Renamed Write with IEnumerable<string> parameter to WriteAll so it matches ReadAll
 //2022-12-18: Replaced Environment.Version.Major check with conditional compilation to avoid compile warnings
 //2021-11-25: Refactored to use pattern matching
 //2021-09-16: Changed executable path for .NET 5 and above
@@ -196,7 +197,7 @@ public static class Config {
     /// <param name="value">The value to write.</param>
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Key cannot be empty.</exception>
-    public static void Write(string key, IEnumerable<string> value) {
+    public static void WriteAll(string key, IEnumerable<string> value) {
         key = key?.Trim() ?? throw new ArgumentNullException(nameof(key), "Key cannot be null.");
         if (key.Length == 0) { throw new ArgumentOutOfRangeException(nameof(key), "Key cannot be empty."); }
 

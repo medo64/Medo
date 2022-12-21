@@ -227,10 +227,10 @@ public class Config_Tests {
     public void Config_SpacingPreservedOnAdd() {
         using var loader = new ConfigLoader("SpacingPreservedOnAdd.cfg", "SpacingPreservedOnAdd.Good.cfg");
         Config.Write("One", "Value 1a");
-        Config.Write("Two", new string[] { "Value 2a", "Value 2b" });
+        Config.WriteAll("Two", new string[] { "Value 2a", "Value 2b" });
         Config.Write("Three", "Value 3a");
         Config.Write("Four", "Value 4a");
-        Config.Write("Five", new string[] { "Value 5a", "Value 5b", "Value 5c" });
+        Config.WriteAll("Five", new string[] { "Value 5a", "Value 5b", "Value 5c" });
         Config.Write("FourtyTwo", 42);
 
         Config.Save();
@@ -391,7 +391,7 @@ public class Config_Tests {
     public void Config_MultiWrite() {
         using var loader = new ConfigLoader(null, resourceFileNameGood: "WriteMulti.Good.cfg");
         Config.Write("Key1", "Value 1");
-        Config.Write("Key2", new string[] { "Value 2a", "Value 2b", "Value 2c" });
+        Config.WriteAll("Key2", new string[] { "Value 2a", "Value 2b", "Value 2c" });
         Config.Write("Key3", "Value 3");
         Config.Save();
         Assert.AreEqual(loader.GoodText, File.ReadAllText(loader.FileName));
@@ -409,7 +409,7 @@ public class Config_Tests {
     [TestMethod]
     public void Config_MultiReplace() {
         using var loader = new ConfigLoader("WriteMulti.cfg", resourceFileNameGood: "WriteMulti.Good.cfg");
-        Config.Write("Key2", new string[] { "Value 2a", "Value 2b", "Value 2c" });
+        Config.WriteAll("Key2", new string[] { "Value 2a", "Value 2b", "Value 2c" });
         Config.Save();
         Assert.AreEqual(loader.GoodText, File.ReadAllText(loader.FileName));
 
