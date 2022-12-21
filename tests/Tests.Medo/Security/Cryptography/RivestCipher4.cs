@@ -12,14 +12,14 @@ using Medo.Security.Cryptography;
 namespace Tests;
 
 [TestClass]
-public class RivestCipher4Managed_Tests {
+public class RivestCipher4_Tests {
 
     [DataTestMethod]
     [DataRow("Key", "Plaintext", "BBF316E8D940AF0AD3")]
     [DataRow("Wiki", "pedia", "1021BF0420")]
     [DataRow("Secret", "Attack at dawn", "45A01F645FC35B383552544B9BF5")]
-    public void RivestCipher4Managed_KnownAnswers_Basic(string keyText, string plainText, string cipherTextHex) {
-        using var algorithm = new RivestCipher4Managed();
+    public void RivestCipher4_KnownAnswers_Basic(string keyText, string plainText, string cipherTextHex) {
+        using var algorithm = new RivestCipher4();
 
         var ct = Encrypt(algorithm,
             Encoding.ASCII.GetBytes(keyText),
@@ -38,8 +38,8 @@ public class RivestCipher4Managed_Tests {
     [DataRow("Ke", "y", "Plaintext", "BBF316E8D940AF0AD3")]
     [DataRow("Wi", "ki", "pedia", "1021BF0420")]
     [DataRow("S", "ecret", "Attack at dawn", "45A01F645FC35B383552544B9BF5")]
-    public void RivestCipher4Managed_KnownAnswers_BasicIV(string keyText, string ivText, string plainText, string cipherTextHex) {
-        using var algorithm = new RivestCipher4Managed();
+    public void RivestCipher4_KnownAnswers_BasicIV(string keyText, string ivText, string plainText, string cipherTextHex) {
+        using var algorithm = new RivestCipher4();
 
         var ct = Encrypt(algorithm,
             Encoding.ASCII.GetBytes(keyText),
@@ -70,11 +70,11 @@ public class RivestCipher4Managed_Tests {
     [DataRow("Vector128B.txt")]
     [DataRow("Vector192B.txt")]
     [DataRow("Vector256B.txt")]
-    public void RivestCipher4Managed_Vectors(string fileName) {
+    public void RivestCipher4_Vectors(string fileName) {
         RetrieveVectors(fileName, out var key, out var dataQueue);
 
         using var ct = new MemoryStream();
-        using var transform = new RivestCipher4Managed().CreateEncryptor(key, null);
+        using var transform = new RivestCipher4().CreateEncryptor(key, null);
         using var cs = new CryptoStream(ct, transform, CryptoStreamMode.Write);
 
         var n = 0;
@@ -100,12 +100,12 @@ public class RivestCipher4Managed_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RivestCipher4Managed_PaddingFull(PaddingMode padding) {
+    public void RivestCipher4_PaddingFull(PaddingMode padding) {
         var key = new byte[16]; RandomNumberGenerator.Fill(key);
         var iv = new byte[8]; RandomNumberGenerator.Fill(iv);
         var data = new byte[48]; RandomNumberGenerator.Fill(data);  // full blocks
 
-        var algorithm = new RivestCipher4Managed() { Padding = padding, };
+        var algorithm = new RivestCipher4() { Padding = padding, };
 
         var ct = Encrypt(algorithm, key, iv, data);
         var pt = Decrypt(algorithm, key, iv, ct);
@@ -118,12 +118,12 @@ public class RivestCipher4Managed_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RivestCipher4Managed_PaddingPartial(PaddingMode padding) {
+    public void RivestCipher4_PaddingPartial(PaddingMode padding) {
         var key = new byte[16]; RandomNumberGenerator.Fill(key);
         var iv = new byte[8]; RandomNumberGenerator.Fill(iv);
         var data = new byte[42]; RandomNumberGenerator.Fill(data);
 
-        var algorithm = new RivestCipher4Managed() { Padding = padding };
+        var algorithm = new RivestCipher4() { Padding = padding };
 
         var ct = Encrypt(algorithm, key, iv, data);
         var pt = Decrypt(algorithm, key, iv, ct);
@@ -135,9 +135,9 @@ public class RivestCipher4Managed_Tests {
     [DataRow(CipherMode.ECB)]
     [DataRow(CipherMode.CFB)]
     [DataRow(CipherMode.CTS)]
-    public void RivestCipher4Managed_OnlyCbcSupported(CipherMode mode) {
+    public void RivestCipher4_OnlyCbcSupported(CipherMode mode) {
         Assert.ThrowsException<CryptographicException>(() => {
-            var _ = new RivestCipher4Managed() { Mode = mode };
+            var _ = new RivestCipher4() { Mode = mode };
         });
     }
 
@@ -147,8 +147,8 @@ public class RivestCipher4Managed_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RivestCipher4Managed_LargeFinalBlock(PaddingMode padding) {
-        var crypto = new RivestCipher4Managed() { Padding = padding };
+    public void RivestCipher4_LargeFinalBlock(PaddingMode padding) {
+        var crypto = new RivestCipher4() { Padding = padding };
         crypto.GenerateKey();
         crypto.GenerateIV();
         var text = "This is a final block wider than block size.";  // more than 128 bits of data
@@ -172,7 +172,7 @@ public class RivestCipher4Managed_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RivestCipher4Managed_BlockSizeRounding(PaddingMode padding) {
+    public void RivestCipher4_BlockSizeRounding(PaddingMode padding) {
         var key = new byte[16]; RandomNumberGenerator.Fill(key);
         var iv = new byte[8]; RandomNumberGenerator.Fill(iv);
 
@@ -181,7 +181,7 @@ public class RivestCipher4Managed_Tests {
             RandomNumberGenerator.Fill(data);
             if ((padding == PaddingMode.Zeros) && (data.Length > 0)) { data[^1] = 1; }  // zero padding needs to have the last number non-zero
 
-            var algorithm = new RivestCipher4Managed() { Padding = padding, };
+            var algorithm = new RivestCipher4() { Padding = padding, };
 
             var expectedCryptLength = padding switch {
                 PaddingMode.None => data.Length,
@@ -207,9 +207,9 @@ public class RivestCipher4Managed_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RivestCipher4Managed_Randomised(PaddingMode padding) {
+    public void RivestCipher4_Randomised(PaddingMode padding) {
         for (var n = 0; n < 1000; n++) {
-            var crypto = new RivestCipher4Managed() { Padding = padding };
+            var crypto = new RivestCipher4() { Padding = padding };
             crypto.GenerateKey();
             crypto.GenerateIV();
             var data = new byte[Random.Shared.Next(100)];
@@ -235,7 +235,7 @@ public class RivestCipher4Managed_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RivestCipher4Managed_DifferentBlockSizes(PaddingMode padding) {
+    public void RivestCipher4_DifferentBlockSizes(PaddingMode padding) {
         for (var blockSize = 8; blockSize <= 256; blockSize += 8) {
             var key = RandomNumberGenerator.GetBytes(16);
             var iv = default(byte[]);
@@ -243,7 +243,7 @@ public class RivestCipher4Managed_Tests {
             RandomNumberGenerator.Fill(data);
             if ((padding == PaddingMode.Zeros) && (data.Length > 0)) { data[^1] = 1; }  // zero padding needs to have the last number non-zero
 
-            var crypto = new RivestCipher4Managed() { BlockSize = blockSize, Padding = padding };
+            var crypto = new RivestCipher4() { BlockSize = blockSize, Padding = padding };
             Assert.AreEqual(blockSize, crypto.BlockSize);
 
             var ct = Encrypt(crypto, key, iv, data);
@@ -265,8 +265,8 @@ public class RivestCipher4Managed_Tests {
     [DataRow(PaddingMode.Zeros)]
     [DataRow(PaddingMode.ANSIX923)]
     [DataRow(PaddingMode.ISO10126)]
-    public void RivestCipher4Managed_EncryptDecrypt(PaddingMode padding) {
-        var crypto = new RivestCipher4Managed() { Padding = padding };
+    public void RivestCipher4_EncryptDecrypt(PaddingMode padding) {
+        var crypto = new RivestCipher4() { Padding = padding };
         crypto.GenerateKey();
         crypto.GenerateIV();
         var bytes = RandomNumberGenerator.GetBytes(1024);

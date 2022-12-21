@@ -1,6 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 /* Algorithm designed by Ron Rivest (RSA Security) */
 
+//2022-12-20: Renamed to RivestCipher4 (was RivestCipher4Managed)
 //2022-04-07: Minor refactoring
 //2022-01-13: Added padding support
 //2022-01-07: Initial version
@@ -15,17 +16,17 @@ using System.Security.Cryptography;
 /// Rivest Cipher 4 (RC4) algorithm implementation.
 /// </summary>
 /// <code>
-/// using var algorithm = new RivestCipher4Managed();
+/// using var algorithm = new RivestCipher4();
 /// using var transform = algorithm.CreateEncryptor(key, iv);
 /// using var cs = new CryptoStream(outStream, transform, CryptoStreamMode.Write);
 /// cs.Write(inStream, 0, inStream.Length);
 /// </code>
-public sealed class RivestCipher4Managed : SymmetricAlgorithm {
+public sealed class RivestCipher4 : SymmetricAlgorithm {
 
     /// <summary>
     /// Initializes a new instance.
     /// </summary>
-    public RivestCipher4Managed()
+    public RivestCipher4()
         : base() {
         base.KeySizeValue = KeySizeInBits;
         base.BlockSizeValue = BlockSizeInBits;  // let's assume this is a replacement for 128-bit block size algorithm and work from there
@@ -43,13 +44,13 @@ public sealed class RivestCipher4Managed : SymmetricAlgorithm {
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[]? rgbIV) {
-        return new RivestCipher4ManagedTransform(rgbKey, rgbIV, RivestCipher4TransformMode.Decrypt, Padding, BlockSize);
+        return new RivestCipher4Transform(rgbKey, rgbIV, RivestCipher4TransformMode.Decrypt, Padding, BlockSize);
     }
 
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
     public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV) {
-        return new RivestCipher4ManagedTransform(rgbKey, rgbIV, RivestCipher4TransformMode.Encrypt, Padding, BlockSize);
+        return new RivestCipher4Transform(rgbKey, rgbIV, RivestCipher4TransformMode.Encrypt, Padding, BlockSize);
     }
 
     /// <inheritdoc />
@@ -136,7 +137,7 @@ internal enum RivestCipher4TransformMode {
 /// Performs a cryptographic transformation of data using the RC4 algorithm.
 /// This class cannot be inherited.
 /// </summary>
-internal sealed class RivestCipher4ManagedTransform : ICryptoTransform {
+internal sealed class RivestCipher4Transform : ICryptoTransform {
 
     /// <summary>
     /// Creates a new instance.
@@ -144,7 +145,7 @@ internal sealed class RivestCipher4ManagedTransform : ICryptoTransform {
     /// <param name="rgbKey">Key.</param>
     /// <param name="rgbIV">Optional IV.</param>
     /// <exception cref="ArgumentNullException">Key cannot be null.</exception>
-    internal RivestCipher4ManagedTransform(byte[] rgbKey, byte[]? rgbIV, RivestCipher4TransformMode transformMode, PaddingMode paddingMode, int blockSize) {
+    internal RivestCipher4Transform(byte[] rgbKey, byte[]? rgbIV, RivestCipher4TransformMode transformMode, PaddingMode paddingMode, int blockSize) {
         if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
         TransformMode = transformMode;
         PaddingMode = paddingMode;

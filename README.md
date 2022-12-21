@@ -137,7 +137,7 @@ Computes hash using ISO 7064 algorithm from numerical input.
 Rabbit stream cipher implementation.
 
 
-## RivestCipher4Managed (Medo.Security.Cryptography)
+## RivestCipher4 (Medo.Security.Cryptography)
 
 Rivest Cipher 4 (RC4) algorithm implementation.
 
