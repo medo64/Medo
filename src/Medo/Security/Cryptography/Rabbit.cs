@@ -137,7 +137,7 @@ public sealed class Rabbit : SymmetricAlgorithm {
 }
 
 
-internal enum RabbitTransformMode {
+file enum RabbitTransformMode {
     Encrypt = 0,
     Decrypt = 1
 }
@@ -147,7 +147,7 @@ internal enum RabbitTransformMode {
 /// Performs a cryptographic transformation of data using the Rabbit algorithm.
 /// This class cannot be inherited.
 /// </summary>
-internal sealed class RabbitTransform : ICryptoTransform {
+file sealed class RabbitTransform : ICryptoTransform {
 
     /// <summary>
     /// Creates a new instance.

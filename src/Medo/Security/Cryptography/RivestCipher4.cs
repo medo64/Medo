@@ -127,7 +127,7 @@ public sealed class RivestCipher4 : SymmetricAlgorithm {
 }
 
 
-internal enum RivestCipher4TransformMode {
+file enum RivestCipher4TransformMode {
     Encrypt = 0,
     Decrypt = 1
 }
@@ -137,7 +137,7 @@ internal enum RivestCipher4TransformMode {
 /// Performs a cryptographic transformation of data using the RC4 algorithm.
 /// This class cannot be inherited.
 /// </summary>
-internal sealed class RivestCipher4Transform : ICryptoTransform {
+file sealed class RivestCipher4Transform : ICryptoTransform {
 
     /// <summary>
     /// Creates a new instance.

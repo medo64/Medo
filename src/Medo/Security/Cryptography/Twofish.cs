@@ -134,7 +134,7 @@ public sealed class Twofish : SymmetricAlgorithm {
 }
 
 
-internal enum TwofishTransformMode {
+file enum TwofishTransformMode {
     Encrypt = 0,
     Decrypt = 1
 }
@@ -144,7 +144,7 @@ internal enum TwofishTransformMode {
 /// Performs a cryptographic transformation of data using the Twofish algorithm.
 /// This class cannot be inherited.
 /// </summary>
-public sealed class TwofishTransform : ICryptoTransform {
+file sealed class TwofishTransform : ICryptoTransform {
     internal TwofishTransform(byte[] rgbKey, byte[]? rgbIV, TwofishTransformMode transformMode, CipherMode cipherMode, PaddingMode paddingMode) {
         if (rgbKey == null) { throw new ArgumentNullException(nameof(rgbKey), "Key cannot be null."); }
         if (rgbKey.Length is not 16 and not 24 and not 32) { throw new ArgumentOutOfRangeException(nameof(rgbKey), "Key must be 128, 192, or 256 bits."); }
