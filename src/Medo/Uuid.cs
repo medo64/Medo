@@ -7,11 +7,13 @@ namespace Medo;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 /// <summary>
 /// Implements UUID version 7 as defined in RFC draft at https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format
 /// </summary>
+[StructLayout(LayoutKind.Sequential)]
 public readonly struct Uuid {
 
     /// <summary>
@@ -72,6 +74,7 @@ public readonly struct Uuid {
     }
 
 
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
     private readonly byte[] Bytes;
 
 
@@ -182,4 +185,5 @@ public readonly struct Uuid {
         }
         return true;
     }
+
 }

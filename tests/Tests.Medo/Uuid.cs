@@ -2,6 +2,9 @@ using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Medo;
+using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Tests;
 
@@ -105,12 +108,52 @@ public class Uuid_Tests {
     }
 
 
+    [TestMethod]
+    public void Uuid_MarshalBytes() {
+        var uuid = Uuid.NewUuid7();
+
+        int size = Marshal.SizeOf(uuid);
+        Assert.AreEqual(16, size);
+
+        var bytes = new byte[size];
+        var ptr = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(uuid, ptr, true);
+        Marshal.Copy(ptr, bytes, 0, size);
+        Marshal.FreeHGlobal(ptr);  // it's a test, no need for try/finally block
+
+        Assert.IsTrue(CompareArrays(uuid.ToByteArray(), bytes));
+    }
+
+    [TestMethod]
+    public void Uuid_UnmarshalBytes() {
+        var bytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+
+        var ptr = Marshal.AllocHGlobal(bytes.Length);
+        Marshal.Copy(bytes, 0, ptr, bytes.Length);
+        var uuid = (Uuid) Marshal.PtrToStructure(ptr, typeof(Uuid));
+        Marshal.FreeHGlobal(ptr);
+
+        Assert.IsTrue(CompareArrays(bytes, uuid.ToByteArray()));
+    }
+
+
     private UInt64 UuidToNumber(Uuid uuid) {  // first 64 bits will do
         var bytes = uuid.ToByteArray();
         if (BitConverter.IsLittleEndian) {
             Array.Reverse(bytes, 0, 8);
         }
         return BitConverter.ToUInt64(bytes);
+    }
+
+    private static bool CompareArrays(byte[] buffer1, byte[] buffer2) {
+        var comparer = EqualityComparer<byte>.Default;
+        if (buffer1.Length != buffer2.Length) { return false; }  // should not really happen
+        for (int i = 0; i < buffer1.Length; i++) {
+            if (!comparer.Equals(buffer1[i], buffer2[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
