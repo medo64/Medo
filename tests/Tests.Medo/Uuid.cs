@@ -43,6 +43,7 @@ public class Uuid_Tests {
         }
     }
 
+    [Ignore]
     [TestMethod]
     public void Uuid_TestMany() {
         var sw = Stopwatch.StartNew();

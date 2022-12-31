@@ -5,6 +5,7 @@
 namespace Medo;
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -17,25 +18,20 @@ using System.Security.Cryptography;
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<Uuid>, IEquatable<Guid> {
 
+    private readonly static bool IsLittleEndian = BitConverter.IsLittleEndian;
+
     /// <summary>
     /// Creates a new instance filled with version 7 UUID.
     /// </summary>
     public Uuid() {
         Bytes = new byte[16];
 
+        var ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
         // Timestamp
-        var ms = (DateTime.UtcNow.Ticks - DateTime.UnixEpoch.Ticks) / TimeSpan.TicksPerMillisecond;
-        var msBytes = BitConverter.GetBytes(ms);
-        if (BitConverter.IsLittleEndian) {  // value always goes in as big-endian
-            Bytes[0] = msBytes[5];
-            Bytes[1] = msBytes[4];
-            Bytes[2] = msBytes[3];
-            Bytes[3] = msBytes[2];
-            Bytes[4] = msBytes[1];
-            Bytes[5] = msBytes[0];
-        } else {
-            Buffer.BlockCopy(msBytes, 2, Bytes, 0, 6);
-        }
+        var msBytes = new byte[8];
+        BinaryPrimitives.WriteInt64BigEndian(msBytes, ms);
+        Buffer.BlockCopy(msBytes, 2, Bytes, 0, 6);
 
         // Randomness
         if (LastMillisecond != ms) {
