@@ -1,10 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Medo;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.Collections;
 
 namespace Tests;
 
@@ -56,7 +55,7 @@ public class Uuid_Tests {
     }
 
     [TestMethod]
-    public void Uuid_LessThan() {
+    public void Uuid_OperatorLessThan() {
         var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
         var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
         var uuid3 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
@@ -82,7 +81,7 @@ public class Uuid_Tests {
     }
 
     [TestMethod]
-    public void Uuid_MoreThan() {
+    public void Uuid_OperatorMoreThan() {
         var uuid1 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
         var uuid2 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
         var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
@@ -105,6 +104,162 @@ public class Uuid_Tests {
         Assert.IsFalse(uuid2 == uuid3);
         Assert.IsFalse(uuid3 == uuid4);
         Assert.IsFalse(uuid3 == uuid4);
+    }
+
+    [TestMethod]
+    public void Uuid_CompareTo() {
+        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+
+        Assert.IsTrue(uuid1.CompareTo(uuid1) == 0);
+        Assert.IsTrue(uuid1.CompareTo(uuid2) < 0);
+        Assert.IsTrue(uuid1.CompareTo(uuid3) < 0);
+        Assert.IsTrue(uuid1.CompareTo(uuid4) < 0);
+        Assert.IsTrue(uuid1.CompareTo(uuid5) < 0);
+
+        Assert.IsTrue(uuid2.CompareTo(uuid1) > 0);
+        Assert.IsTrue(uuid2.CompareTo(uuid2) == 0);
+        Assert.IsTrue(uuid2.CompareTo(uuid3) < 0);
+        Assert.IsTrue(uuid2.CompareTo(uuid4) < 0);
+        Assert.IsTrue(uuid2.CompareTo(uuid5) < 0);
+
+        Assert.IsTrue(uuid3.CompareTo(uuid1) > 0);
+        Assert.IsTrue(uuid3.CompareTo(uuid2) > 0);
+        Assert.IsTrue(uuid3.CompareTo(uuid3) == 0);
+        Assert.IsTrue(uuid3.CompareTo(uuid4) < 0);
+        Assert.IsTrue(uuid3.CompareTo(uuid5) < 0);
+
+        Assert.IsTrue(uuid4.CompareTo(uuid1) > 0);
+        Assert.IsTrue(uuid4.CompareTo(uuid2) > 0);
+        Assert.IsTrue(uuid4.CompareTo(uuid3) > 0);
+        Assert.IsTrue(uuid4.CompareTo(uuid4) == 0);
+        Assert.IsTrue(uuid4.CompareTo(uuid5) < 0);
+
+        Assert.IsTrue(uuid5.CompareTo(uuid1) > 0);
+        Assert.IsTrue(uuid5.CompareTo(uuid2) > 0);
+        Assert.IsTrue(uuid5.CompareTo(uuid3) > 0);
+        Assert.IsTrue(uuid5.CompareTo(uuid4) > 0);
+        Assert.IsTrue(uuid5.CompareTo(uuid5) == 0);
+    }
+
+    [TestMethod]
+    public void Uuid_CompareToGuid() {
+        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+
+        Assert.IsTrue(uuid1.CompareTo(new Guid(uuid1.ToByteArray())) == 0);
+        Assert.IsTrue(uuid1.CompareTo(new Guid(uuid2.ToByteArray())) < 0);
+        Assert.IsTrue(uuid1.CompareTo(new Guid(uuid2.ToByteArray())) < 0);
+        Assert.IsTrue(uuid1.CompareTo(new Guid(uuid2.ToByteArray())) < 0);
+        Assert.IsTrue(uuid1.CompareTo(new Guid(uuid2.ToByteArray())) < 0);
+
+        Assert.IsTrue(uuid2.CompareTo(new Guid(uuid1.ToByteArray())) > 0);
+        Assert.IsTrue(uuid2.CompareTo(new Guid(uuid2.ToByteArray())) == 0);
+        Assert.IsTrue(uuid2.CompareTo(new Guid(uuid3.ToByteArray())) < 0);
+        Assert.IsTrue(uuid2.CompareTo(new Guid(uuid4.ToByteArray())) < 0);
+        Assert.IsTrue(uuid2.CompareTo(new Guid(uuid5.ToByteArray())) < 0);
+
+        Assert.IsTrue(uuid3.CompareTo(new Guid(uuid1.ToByteArray())) > 0);
+        Assert.IsTrue(uuid3.CompareTo(new Guid(uuid2.ToByteArray())) > 0);
+        Assert.IsTrue(uuid3.CompareTo(new Guid(uuid3.ToByteArray())) == 0);
+        Assert.IsTrue(uuid3.CompareTo(new Guid(uuid4.ToByteArray())) < 0);
+        Assert.IsTrue(uuid3.CompareTo(new Guid(uuid5.ToByteArray())) < 0);
+
+        Assert.IsTrue(uuid4.CompareTo(new Guid(uuid1.ToByteArray())) > 0);
+        Assert.IsTrue(uuid4.CompareTo(new Guid(uuid2.ToByteArray())) > 0);
+        Assert.IsTrue(uuid4.CompareTo(new Guid(uuid3.ToByteArray())) > 0);
+        Assert.IsTrue(uuid4.CompareTo(new Guid(uuid4.ToByteArray())) == 0);
+        Assert.IsTrue(uuid4.CompareTo(new Guid(uuid5.ToByteArray())) < 0);
+
+        Assert.IsTrue(uuid5.CompareTo(new Guid(uuid1.ToByteArray())) > 0);
+        Assert.IsTrue(uuid5.CompareTo(new Guid(uuid2.ToByteArray())) > 0);
+        Assert.IsTrue(uuid5.CompareTo(new Guid(uuid3.ToByteArray())) > 0);
+        Assert.IsTrue(uuid5.CompareTo(new Guid(uuid4.ToByteArray())) > 0);
+        Assert.IsTrue(uuid5.CompareTo(new Guid(uuid5.ToByteArray())) == 0);
+    }
+
+    [TestMethod]
+    public void Uuid_Equals() {
+        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+
+        Assert.IsTrue(uuid1.Equals(uuid1));
+        Assert.IsFalse(uuid1.Equals(uuid2));
+        Assert.IsFalse(uuid1.Equals(uuid3));
+        Assert.IsFalse(uuid1.Equals(uuid4));
+        Assert.IsFalse(uuid1.Equals(uuid5));
+
+        Assert.IsFalse(uuid2.Equals(uuid1));
+        Assert.IsTrue(uuid2.Equals(uuid2));
+        Assert.IsFalse(uuid2.Equals(uuid3));
+        Assert.IsFalse(uuid2.Equals(uuid4));
+        Assert.IsFalse(uuid2.Equals(uuid5));
+
+        Assert.IsFalse(uuid3.Equals(uuid1));
+        Assert.IsFalse(uuid3.Equals(uuid2));
+        Assert.IsTrue(uuid3.Equals(uuid3));
+        Assert.IsFalse(uuid3.Equals(uuid4));
+        Assert.IsFalse(uuid3.Equals(uuid5));
+
+        Assert.IsFalse(uuid4.Equals(uuid1));
+        Assert.IsFalse(uuid4.Equals(uuid2));
+        Assert.IsFalse(uuid4.Equals(uuid3));
+        Assert.IsTrue(uuid4.Equals(uuid4));
+        Assert.IsFalse(uuid4.Equals(uuid5));
+
+        Assert.IsFalse(uuid5.Equals(uuid1));
+        Assert.IsFalse(uuid5.Equals(uuid2));
+        Assert.IsFalse(uuid5.Equals(uuid3));
+        Assert.IsFalse(uuid5.Equals(uuid4));
+        Assert.IsTrue(uuid5.Equals(uuid5));
+    }
+
+    [TestMethod]
+    public void Uuid_EqualsGuid() {
+        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+
+        Assert.IsTrue(uuid1.Equals(new Guid(uuid1.ToByteArray())));
+        Assert.IsFalse(uuid1.Equals(new Guid(uuid2.ToByteArray())));
+        Assert.IsFalse(uuid1.Equals(new Guid(uuid3.ToByteArray())));
+        Assert.IsFalse(uuid1.Equals(new Guid(uuid4.ToByteArray())));
+        Assert.IsFalse(uuid1.Equals(new Guid(uuid5.ToByteArray())));
+
+        Assert.IsFalse(uuid2.Equals(new Guid(uuid1.ToByteArray())));
+        Assert.IsTrue(uuid2.Equals(new Guid(uuid2.ToByteArray())));
+        Assert.IsFalse(uuid2.Equals(new Guid(uuid3.ToByteArray())));
+        Assert.IsFalse(uuid2.Equals(new Guid(uuid4.ToByteArray())));
+        Assert.IsFalse(uuid2.Equals(new Guid(uuid5.ToByteArray())));
+
+        Assert.IsFalse(uuid3.Equals(new Guid(uuid1.ToByteArray())));
+        Assert.IsFalse(uuid3.Equals(new Guid(uuid2.ToByteArray())));
+        Assert.IsTrue(uuid3.Equals(new Guid(uuid3.ToByteArray())));
+        Assert.IsFalse(uuid3.Equals(new Guid(uuid4.ToByteArray())));
+        Assert.IsFalse(uuid3.Equals(new Guid(uuid5.ToByteArray())));
+
+        Assert.IsFalse(uuid4.Equals(new Guid(uuid1.ToByteArray())));
+        Assert.IsFalse(uuid4.Equals(new Guid(uuid2.ToByteArray())));
+        Assert.IsFalse(uuid4.Equals(new Guid(uuid3.ToByteArray())));
+        Assert.IsTrue(uuid4.Equals(new Guid(uuid4.ToByteArray())));
+        Assert.IsFalse(uuid4.Equals(new Guid(uuid5.ToByteArray())));
+
+        Assert.IsFalse(uuid5.Equals(new Guid(uuid1.ToByteArray())));
+        Assert.IsFalse(uuid5.Equals(new Guid(uuid2.ToByteArray())));
+        Assert.IsFalse(uuid5.Equals(new Guid(uuid3.ToByteArray())));
+        Assert.IsFalse(uuid5.Equals(new Guid(uuid4.ToByteArray())));
+        Assert.IsTrue(uuid5.Equals(new Guid(uuid5.ToByteArray())));
     }
 
 

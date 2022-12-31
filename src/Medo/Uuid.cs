@@ -6,15 +6,17 @@ namespace Medo;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+
 
 /// <summary>
 /// Implements UUID version 7 as defined in RFC draft at https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct Uuid {
+public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<Uuid>, IEquatable<Guid> {
 
     /// <summary>
     /// Creates a new instance filled with version 7 UUID.
@@ -121,9 +123,9 @@ public readonly struct Uuid {
     /// <inheritdoc/>
     public override bool Equals([NotNullWhen(true)] object? obj) {
         if (obj is Uuid uuid) {
-            return CompareArrays(Bytes, uuid.Bytes);
+            return CompareArrays(Bytes, uuid.Bytes) == 0;
         } else if (obj is Guid guid) {
-            return CompareArrays(Bytes, guid.ToByteArray());
+            return CompareArrays(Bytes, guid.ToByteArray()) == 0;
         }
         return false;
     }
@@ -153,37 +155,61 @@ public readonly struct Uuid {
     }
 
     public static bool operator <(Uuid left, Uuid right) {
-        var bytesLeft = left.Bytes;
-        var bytesRight = right.Bytes;
-        for (var i = 0; i < 16; i++) {
-            if (bytesLeft[i] < bytesRight[i]) { return true; }
-            if (bytesLeft[i] > bytesRight[i]) { return false; }
-        }
-        return false;
+        return CompareArrays(left.Bytes, right.Bytes) < 0;
     }
 
     public static bool operator >(Uuid left, Uuid right) {
-        var bytesLeft = left.Bytes;
-        var bytesRight = right.Bytes;
-        for (var i = 0; i < 16; i++) {
-            if (bytesLeft[i] > bytesRight[i]) { return true; }
-            if (bytesLeft[i] < bytesRight[i]) { return false; }
-        }
-        return false;
+        return CompareArrays(left.Bytes, right.Bytes) > 0;
     }
 
     #endregion Operators
 
+    #region IComparable<Guid>
 
-    private static bool CompareArrays(byte[] buffer1, byte[] buffer2) {
-        var comparer = EqualityComparer<byte>.Default;
-        if (buffer1.Length != buffer2.Length) { return false; }  // should not really happen
+    /// <inheritdoc/>
+    public int CompareTo(Guid other) {
+        return CompareArrays(Bytes, other.ToByteArray());
+    }
+
+    #endregion IComparable<Guid>
+
+    #region IComparable<Uuid>
+
+    /// <inheritdoc/>
+    public int CompareTo(Uuid other) {
+        return CompareArrays(Bytes, other.Bytes);
+    }
+
+    #endregion IComparable<Uuid>
+
+    #region IEquatable<Uuid>
+
+    /// <inheritdoc/>
+    public bool Equals(Uuid other) {
+        return CompareArrays(Bytes, other.Bytes) == 0;
+    }
+
+    #endregion IEquatable<Uuid>
+
+    #region IEquatable<Guid>
+
+    /// <inheritdoc/>
+    public bool Equals(Guid other) {
+        return CompareArrays(Bytes, other.ToByteArray()) == 0;
+    }
+
+    #endregion IEquatable<Guid>
+
+
+    private static int CompareArrays(byte[] buffer1, byte[] buffer2) {
+        Debug.Assert(buffer1.Length == 16);
+        Debug.Assert(buffer2.Length == 16);
+        var comparer = Comparer<byte>.Default;
         for (int i = 0; i < buffer1.Length; i++) {
-            if (!comparer.Equals(buffer1[i], buffer2[i])) {
-                return false;
-            }
+            if (comparer.Compare(buffer1[i], buffer2[i]) < 0) { return -1; }
+            if (comparer.Compare(buffer1[i], buffer2[i]) > 0) { return +1; }
         }
-        return true;
+        return 0;  // they're equal
     }
 
 }
