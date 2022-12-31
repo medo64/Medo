@@ -11,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
-
 /// <summary>
 /// Implements UUID version 7 as defined in RFC draft at https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format
 /// </summary>
@@ -150,16 +149,77 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     }
 
     /// <inheritdoc/>
+    public static bool operator ==(Uuid left, Guid right) {
+        return left.Equals(right);
+    }
+
+    /// <inheritdoc/>
+    public static bool operator ==(Guid left, Uuid right) {
+        return left.Equals(right);
+    }
+
+    /// <inheritdoc/>
     public static bool operator !=(Uuid left, Uuid right) {
         return !(left == right);
     }
 
+    /// <inheritdoc/>
+    public static bool operator !=(Uuid left, Guid right) {
+        return !(left == right);
+    }
+
+    /// <inheritdoc/>
+    public static bool operator !=(Guid left, Uuid right) {
+        return !(left == right);
+    }
+
     public static bool operator <(Uuid left, Uuid right) {
-        return CompareArrays(left.Bytes, right.Bytes) < 0;
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator <(Uuid left, Guid right) {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator <(Guid left, Uuid right) {
+        return left.CompareTo(right) < 0;
     }
 
     public static bool operator >(Uuid left, Uuid right) {
-        return CompareArrays(left.Bytes, right.Bytes) > 0;
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator >(Uuid left, Guid right) {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator >(Guid left, Uuid right) {
+        return left.CompareTo(right) > 0;
+    }
+
+
+    public static bool operator <=(Uuid left, Uuid right) {
+        return left.CompareTo(right) is < 0 or 0;
+    }
+
+    public static bool operator <=(Uuid left, Guid right) {
+        return left.CompareTo(right) is < 0 or 0;
+    }
+
+    public static bool operator <=(Guid left, Uuid right) {
+        return left.CompareTo(right) is < 0 or 0;
+    }
+
+    public static bool operator >=(Uuid left, Uuid right) {
+        return left.CompareTo(right) is > 0 or 0;
+    }
+
+    public static bool operator >=(Uuid left, Guid right) {
+        return left.CompareTo(right) is > 0 or 0;
+    }
+
+    public static bool operator >=(Guid left, Uuid right) {
+        return left.CompareTo(right) is > 0 or 0;
     }
 
     #endregion Operators
