@@ -18,6 +18,18 @@ using System.Security.Cryptography;
 /// <summary>
 /// Implements UUID version 7 as defined in RFC draft at https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format
 /// </summary>
+/// <remarks>
+///  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+/// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/// |                           unix_ts_ms                          |
+/// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/// |          unix_ts_ms           |  ver  |       rand_a          |
+/// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/// |var|                        rand_b                             |
+/// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/// |                            rand_b                             |
+/// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/// </remarks>
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<Uuid>, IEquatable<Guid> {
 
