@@ -1,6 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
 //2023-01-11: Added ToId25String method
+//            Added FromString and FromId25String methods
 //2022-12-31: Initial version
 
 namespace Medo;
@@ -122,7 +123,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
                                                                'e', 'f', 'g', 'h', 'i', 'j', 'k',
                                                                'm', 'n', 'o', 'p', 'q', 'r', 's',
                                                                't', 'u', 'v', 'w', 'x', 'y', 'z' };
-    private static readonly BigInteger Id25Divisor = 35;
+    private static readonly BigInteger Id25Modulo = 35;
 
     /// <summary>
     /// Returns UUID representation in Id25 format.
@@ -134,13 +135,80 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
         var number = new BigInteger(Bytes, isUnsigned: true, isBigEndian: true);
         var result = new char[25];  // always the same length
         for (var i = 24; i >= 0; i--) {
-            number = BigInteger.DivRem(number, Id25Divisor, out var remainder);
+            number = BigInteger.DivRem(number, Id25Modulo, out var remainder);
             result[i] = Id25Alphabet[(int)remainder];
         }
         return new string(result);
     }
 
-    #endregion
+    /// <summary>
+    /// Returns UUID from given text representation.
+    /// All characters not belonging to Id25 alphabet are ignored.
+    /// Input must contain exactly 25 characters.
+    /// </summary>
+    /// <param name="id25Text">Id25 text.</param>
+    /// <exception cref="FormatException">Input must be 25 characters.</exception>
+    public static Uuid FromId25String(string id25Text) {
+        var count = 0;
+        var number = new BigInteger();
+        foreach (var ch in id25Text.ToLowerInvariant()) {  // convert to lowercase first
+            var offset = Array.IndexOf(Id25Alphabet, ch);
+            if (offset >= 0) {
+                number = BigInteger.Multiply(number, Id25Modulo);
+                number = BigInteger.Add(number, offset);
+                count++;
+            }
+        }
+        if (count != 25) { throw new FormatException("Input must be 25 characters."); }
+
+        var buffer = number.ToByteArray(isUnsigned: true, isBigEndian: true);
+        if (buffer.Length < 16) {
+            var newBuffer = new byte[16];
+            Buffer.BlockCopy(buffer, 0, newBuffer, newBuffer.Length - buffer.Length, buffer.Length);
+            buffer = newBuffer;
+        }
+        return new Uuid(buffer);
+    }
+
+    #endregion Id25
+
+    #region FromString
+
+    private static readonly char[] Base16Alphabet = new char[] { '0', '1', '2', '3', '4', '5', '6', '7',
+                                                                 '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+    private static readonly BigInteger Base16Modulo = 16;
+
+    /// <summary>
+    /// Returns UUID from given text representation.
+    /// All characters not belonging to hexadecimal alphabet are ignored.
+    /// Input must contain exactly 32 characters.
+    /// </summary>
+    /// <param name="text">UUID text.</param>
+    /// <exception cref="FormatException">Input must be 32 characters.</exception>
+    public static Uuid FromString(string text) {
+        var count = 0;
+        var number = new BigInteger();
+        foreach (var ch in text.ToLowerInvariant()) {  // convert to lowercase first
+            var offset = Array.IndexOf(Base16Alphabet, ch);
+            if (offset >= 0) {
+                number = BigInteger.Multiply(number, Base16Modulo);
+                number = BigInteger.Add(number, offset);
+                count++;
+            }
+        }
+        if (count != 32) { throw new FormatException("Input must be 32 characters."); }
+
+        var buffer = number.ToByteArray(isUnsigned: true, isBigEndian: true);
+        if (buffer.Length < 16) {
+            var newBuffer = new byte[16];
+            Buffer.BlockCopy(buffer, 0, newBuffer, newBuffer.Length - buffer.Length, buffer.Length);
+            buffer = newBuffer;
+        }
+        return new Uuid(buffer);
+    }
+
+    #endregion FromString
 
     #region Overrides
 
@@ -164,9 +232,9 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
         return $"{Bytes[0]:x2}{Bytes[1]:x2}{Bytes[2]:x2}{Bytes[3]:x2}-{Bytes[4]:x2}{Bytes[5]:x2}-{Bytes[6]:x2}{Bytes[7]:x2}-{Bytes[8]:x2}{Bytes[9]:x2}-{Bytes[10]:x2}{Bytes[11]:x2}{Bytes[12]:x2}{Bytes[13]:x2}{Bytes[14]:x2}{Bytes[15]:x2}";
     }
 
-#endregion Overrides
+    #endregion Overrides
 
-#region Operators
+    #region Operators
 
     /// <inheritdoc/>
     public static bool operator ==(Uuid left, Uuid right) {
@@ -247,43 +315,43 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
         return left.CompareTo(right) is > 0 or 0;
     }
 
-#endregion Operators
+    #endregion Operators
 
-#region IComparable<Guid>
+    #region IComparable<Guid>
 
     /// <inheritdoc/>
     public int CompareTo(Guid other) {
         return CompareArrays(Bytes, other.ToByteArray());
     }
 
-#endregion IComparable<Guid>
+    #endregion IComparable<Guid>
 
-#region IComparable<Uuid>
+    #region IComparable<Uuid>
 
     /// <inheritdoc/>
     public int CompareTo(Uuid other) {
         return CompareArrays(Bytes, other.Bytes);
     }
 
-#endregion IComparable<Uuid>
+    #endregion IComparable<Uuid>
 
-#region IEquatable<Uuid>
+    #region IEquatable<Uuid>
 
     /// <inheritdoc/>
     public bool Equals(Uuid other) {
         return CompareArrays(Bytes, other.Bytes) == 0;
     }
 
-#endregion IEquatable<Uuid>
+    #endregion IEquatable<Uuid>
 
-#region IEquatable<Guid>
+    #region IEquatable<Guid>
 
     /// <inheritdoc/>
     public bool Equals(Guid other) {
         return CompareArrays(Bytes, other.ToByteArray()) == 0;
     }
 
-#endregion IEquatable<Guid>
+    #endregion IEquatable<Guid>
 
 
     private static int CompareArrays(byte[] buffer1, byte[] buffer2) {

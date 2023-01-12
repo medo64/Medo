@@ -6,6 +6,11 @@ using Medo;
 internal static class App {
 
     public static void Main() {
+        var one = Uuid.NewUuid7();
+        Console.WriteLine($"UUID: {one}");
+        Console.WriteLine($"ID25: {one.ToId25String()}");
+        Console.WriteLine();
+
         Thread.Sleep(1000);
 
         {

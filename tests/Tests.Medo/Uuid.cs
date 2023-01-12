@@ -264,30 +264,47 @@ public class Uuid_Tests {
         Assert.IsTrue(uuid5.Equals(new Guid(uuid5.ToByteArray())));
     }
 
-    [TestMethod]
-    public void Uuid_Id25() {
-        var uuidEmpty = Uuid.Empty;
-        Assert.AreEqual("0000000000000000000000000", uuidEmpty.ToId25String());
-
-        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 });
-        Assert.AreEqual("0000000000000000000000001", uuid1.ToId25String());
-
-        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 });
-        Assert.AreEqual("0000000000000000000000002", uuid2.ToId25String());
-
-        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0 });
-        Assert.AreEqual("00000000000006q3abpe675nu", uuid3.ToId25String());
-
-        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
-        Assert.AreEqual("042kt5d5ybb4r50zg5p72g3f1", uuid4.ToId25String());
-
-        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
-        Assert.AreEqual("0856marbwnn9ha1yxbde4x6v2", uuid5.ToId25String());
-
-        var uuidFull = new Uuid(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 });
-        Assert.AreEqual("usz5xbbiqsfq7s727n0pzr2xa", uuidFull.ToId25String());
-
+    [DataTestMethod]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "00000000-0000-0000-0000-000000000000")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, "00000000-0000-0000-0000-000000000001")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 }, "00000000-0000-0000-0000-000000000002")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0 }, "00000000-0000-0000-0900-000000000000")]
+    [DataRow(new byte[] { 0, 1, 2, 3, 52, 53, 118, 119, 184, 185, 250, 251, 252, 253, 254, 255 }, "00010203-3435-7677-b8b9-fafbfcfdfeff")]
+    [DataRow(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "01000000-0000-0000-0000-000000000000")]
+    [DataRow(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "02000000-0000-0000-0000-000000000000")]
+    [DataRow(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 }, "ffffffff-ffff-ffff-ffff-ffffffffffff")]
+    public void Uuid_String(byte[] bytes, string text) {
+        var uuid = new Uuid(bytes);
+        Assert.AreEqual(text, uuid.ToString());
+        Assert.AreEqual(uuid, Uuid.FromString(text));
     }
+
+    [DataTestMethod]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "0000000000000000000000000")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, "0000000000000000000000001")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 }, "0000000000000000000000002")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0 }, "00000000000006q3abpe675nu")]
+    [DataRow(new byte[] { 0, 1, 2, 3, 52, 53, 118, 119, 184, 185, 250, 251, 252, 253, 254, 255 }, "000jnpiacvek52kvka6to5ogn")]
+    [DataRow(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "042kt5d5ybb4r50zg5p72g3f1")]
+    [DataRow(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "0856marbwnn9ha1yxbde4x6v2")]
+    [DataRow(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 }, "usz5xbbiqsfq7s727n0pzr2xa")]
+    public void Uuid_Id25(byte[] bytes, string id25Text) {
+        var uuid = new Uuid(bytes);
+        Assert.AreEqual(id25Text, uuid.ToId25String());
+        Assert.AreEqual(uuid, Uuid.FromId25String(id25Text));
+    }
+
+    [DataTestMethod]
+    [DataRow("0001/0203/3435/7677/b8b9/fafb/fcfd/feff", "00/0jn/pi/acv/ek/52k/vk/a6t/o5/ogn")]
+    [DataRow("ffffffff-ffff-ffff-ffff-ffffffffffff", "usz5x bbiqs fq7s7 27n0p zr2xa")]
+    public void Uuid_Id25Dirty(string uuidText, string id25Text) {
+        var expectedUuid = Uuid.FromString(uuidText);
+        var id25Uuid = Uuid.FromId25String(id25Text);
+        Assert.AreEqual(expectedUuid, id25Uuid);
+        Assert.AreNotEqual(Uuid.Empty, expectedUuid);
+        Assert.AreNotEqual(Uuid.Empty, id25Uuid);
+    }
+
 
     [TestMethod]
     public void Uuid_MarshalBytes() {
@@ -311,7 +328,7 @@ public class Uuid_Tests {
 
         var ptr = Marshal.AllocHGlobal(bytes.Length);
         Marshal.Copy(bytes, 0, ptr, bytes.Length);
-        var uuid = (Uuid) Marshal.PtrToStructure(ptr, typeof(Uuid));
+        var uuid = (Uuid)Marshal.PtrToStructure(ptr, typeof(Uuid));
         Marshal.FreeHGlobal(ptr);
 
         Assert.IsTrue(CompareArrays(bytes, uuid.ToByteArray()));
