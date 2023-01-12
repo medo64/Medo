@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2023-01-11: Refactored to remove endian reversals
 //2019-10-04: Refactored for .NET 5
 //2019-03-09: Initial version
 
@@ -22,12 +23,14 @@ using System.Text;
 /// </example>
 public static class Base58 {
 
-    private static readonly char[] Map = new char[] {
+    private static readonly char[] Base58Map = new char[] {
             '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
             'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
             'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm',
             'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
         };
+
+    private static readonly BigInteger Base58Divisor = 58;
 
     private static readonly Encoding Utf8 = new UTF8Encoding(false);
 
@@ -70,24 +73,14 @@ public static class Base58 {
             return true;
         }
 
-        BigInteger input;
-        var buffer = new byte[bytes.Length + 1]; //extra byte is leading 0
-        try {
-            Buffer.BlockCopy(bytes, 0, buffer, 1, bytes.Length);
-            if (BitConverter.IsLittleEndian) { Array.Reverse(buffer); }
-            input = new BigInteger(buffer);
-        } finally {
-            if (buffer != null) { Array.Clear(buffer, 0, buffer.Length); }
-        }
-
+        var input = new BigInteger(bytes, isUnsigned: true, isBigEndian: true);
         var remainders = new List<int>();
         while (input > 0) {
-            var remainder = input % 58;
+            input = BigInteger.DivRem(input, Base58Divisor, out var remainder);
             remainders.Add((int)remainder);
-            input /= 58;
         }
 
-        //preserver leading zeros
+        //preserve leading zeros
         foreach (var b in bytes) {
             if (b == 0) { remainders.Add(0); } else { break; }
         }
@@ -96,7 +89,7 @@ public static class Base58 {
 
         var sbOutput = new StringBuilder();
         foreach (var remainder in remainders) {
-            sbOutput.Append(Map[remainder]);
+            sbOutput.Append(Base58Map[remainder]);
         }
         result = sbOutput.ToString();
 
@@ -150,7 +143,7 @@ public static class Base58 {
         var startingZeros = 0;
         var indices = new List<int>();
         foreach (var c in base58) {
-            var index = Array.IndexOf(Map, c);
+            var index = Array.IndexOf(Base58Map, c);
             if (index >= 0) {
                 if (inStarting && (index == 0)) {
                     startingZeros += 1;
@@ -165,12 +158,10 @@ public static class Base58 {
 
         var output = new BigInteger();
         foreach (var index in indices) {
-            output *= 58;
-            output += index;
+            output = BigInteger.Multiply(output, Base58Divisor);
+            output = BigInteger.Add(output, index);
         }
-        var outputBytes = output.ToByteArray();
-
-        if (BitConverter.IsLittleEndian) { Array.Reverse(outputBytes); }
+        var outputBytes = output.ToByteArray(isUnsigned: false, isBigEndian: true);
 
         try {
             var extraZeros = (outputBytes[0] == 0x00) ? startingZeros - 1 : startingZeros;
