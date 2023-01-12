@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2023-01-11: Added ToId25String method
 //2022-12-31: Initial version
 
 namespace Medo;
@@ -9,6 +10,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
@@ -113,6 +115,33 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     }
 
 
+    #region Id25
+
+    private static readonly char[] Id25Alphabet = new char[] { '0', '1', '2', '3', '4', '5', '6',
+                                                               '7', '8', '9', 'a', 'b', 'c', 'd',
+                                                               'e', 'f', 'g', 'h', 'i', 'j', 'k',
+                                                               'm', 'n', 'o', 'p', 'q', 'r', 's',
+                                                               't', 'u', 'v', 'w', 'x', 'y', 'z' };
+    private static readonly BigInteger Id25Divisor = 35;
+
+    /// <summary>
+    /// Returns UUID representation in Id25 format.
+    /// Please note that while idea is the same as one in
+    /// https://github.com/stevesimmons/uuid7-csharp/, UUIDs are not fully
+    /// compatible and thus not necessarily interchangeable.
+    /// </summary>
+    public string ToId25String() {
+        var number = new BigInteger(Bytes, isUnsigned: true, isBigEndian: true);
+        var result = new char[25];  // always the same length
+        for (var i = 24; i >= 0; i--) {
+            number = BigInteger.DivRem(number, Id25Divisor, out var remainder);
+            result[i] = Id25Alphabet[(int)remainder];
+        }
+        return new string(result);
+    }
+
+    #endregion
+
     #region Overrides
 
     /// <inheritdoc/>
@@ -135,9 +164,9 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
         return $"{Bytes[0]:x2}{Bytes[1]:x2}{Bytes[2]:x2}{Bytes[3]:x2}-{Bytes[4]:x2}{Bytes[5]:x2}-{Bytes[6]:x2}{Bytes[7]:x2}-{Bytes[8]:x2}{Bytes[9]:x2}-{Bytes[10]:x2}{Bytes[11]:x2}{Bytes[12]:x2}{Bytes[13]:x2}{Bytes[14]:x2}{Bytes[15]:x2}";
     }
 
-    #endregion Overrides
+#endregion Overrides
 
-    #region Operators
+#region Operators
 
     /// <inheritdoc/>
     public static bool operator ==(Uuid left, Uuid right) {
@@ -218,43 +247,43 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
         return left.CompareTo(right) is > 0 or 0;
     }
 
-    #endregion Operators
+#endregion Operators
 
-    #region IComparable<Guid>
+#region IComparable<Guid>
 
     /// <inheritdoc/>
     public int CompareTo(Guid other) {
         return CompareArrays(Bytes, other.ToByteArray());
     }
 
-    #endregion IComparable<Guid>
+#endregion IComparable<Guid>
 
-    #region IComparable<Uuid>
+#region IComparable<Uuid>
 
     /// <inheritdoc/>
     public int CompareTo(Uuid other) {
         return CompareArrays(Bytes, other.Bytes);
     }
 
-    #endregion IComparable<Uuid>
+#endregion IComparable<Uuid>
 
-    #region IEquatable<Uuid>
+#region IEquatable<Uuid>
 
     /// <inheritdoc/>
     public bool Equals(Uuid other) {
         return CompareArrays(Bytes, other.Bytes) == 0;
     }
 
-    #endregion IEquatable<Uuid>
+#endregion IEquatable<Uuid>
 
-    #region IEquatable<Guid>
+#region IEquatable<Guid>
 
     /// <inheritdoc/>
     public bool Equals(Guid other) {
         return CompareArrays(Bytes, other.ToByteArray()) == 0;
     }
 
-    #endregion IEquatable<Guid>
+#endregion IEquatable<Guid>
 
 
     private static int CompareArrays(byte[] buffer1, byte[] buffer2) {
