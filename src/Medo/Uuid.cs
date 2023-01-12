@@ -2,6 +2,7 @@
 
 //2023-01-11: Added ToId25String method
 //            Added FromString and FromId25String methods
+//            Expanded monotonic counter from 12 bits to 18 bits
 //2022-12-31: Initial version
 
 namespace Medo;
@@ -16,7 +17,8 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 /// <summary>
-/// Implements UUID version 7 as defined in RFC draft at https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format
+/// Implements UUID version 7 as defined in RFC draft at https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format.
+/// It uses 18 bit monotonic counter (17 random bits + 1 rollover guard bit) and 56 bits of randomness (upper 6 rand_b bits are taken for counter).
 /// </summary>
 /// <remarks>
 ///  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -51,17 +53,17 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
         // Randomness
         if (LastMillisecond != ms) {
             LastMillisecond = ms;
-            RandomNumberGenerator.Fill(Bytes.AsSpan(6));  // 10-bit rand_a + all of rand_b (extra bits will be overwritten)
-            RandomA = (ushort)(((Bytes[6] & 0x03) << 8) | Bytes[7]); // to use as monotonic random for future calls, using only 10 bits to have 2-bit counter rollover guard
+            RandomNumberGenerator.Fill(Bytes.AsSpan(6));  // 12-bit rand_a + all of rand_b (extra bits will be overwritten later)
+            Monotonic = (uint)(((Bytes[6] & 0x07) << 14) | (Bytes[7] << 6) | (Bytes[8] & 0x3F)); // to use as monotonic random for future calls; total of 18 bits but only 17 are used initially with upper 1 bit reserved for rollover guard
         } else {
-            RandomA++;
-            Bytes[7] = (byte)(RandomA & 0xFF);  // lower bits of rand_a, high bits will be set with version
-            RandomNumberGenerator.Fill(Bytes.AsSpan(8));  // rand_b
+            Monotonic++;
+            Bytes[7] = (byte)((Monotonic >> 6) & 0xFF);   // middle bits of monotonics counter
+            RandomNumberGenerator.Fill(Bytes.AsSpan(9));  // rest of rand_b (6 bits "stolen" for monotonic counter)
         }
 
         //Fixup
-        Bytes[6] = (byte)(0x70 | ((RandomA >> 8) & 0x0F));  // set 4-bit version + high bits of rand_a
-        Bytes[8] = (byte)(0x80 | (Bytes[8] & 0x3F));  // set 2-bit variant
+        Bytes[6] = (byte)(0x70 | ((Monotonic >> 14) & 0x0F));  // set 4-bit version + high bits of monotonics counter
+        Bytes[8] = (byte)(0x80 | (Monotonic & 0x3F));  // set 2-bit variant + low bits of monotonics counter
     }
 
     /// <summary>
@@ -94,7 +96,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     private static long LastMillisecond;
 
     [ThreadStatic]
-    private static ushort RandomA;
+    private static uint Monotonic;
 
 
     /// <summary>

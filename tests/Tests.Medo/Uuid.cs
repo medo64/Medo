@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Medo;
+using System.Numerics;
 
 namespace Tests;
 
@@ -37,7 +38,7 @@ public class Uuid_Tests {
     [TestMethod]
     public void Uuid_TestAlwaysIncreasing() {
         var oldUuid = Uuid.Empty;
-        for (var i = 0; i < 1000000; i++) {  // assuming we're not generating more than 3072 each millisecond, they should be monotonically increasing
+        for (var i = 0; i < 1000000; i++) {  // assuming we're not generating more than 2^17 each millisecond, they should be monotonically increasing
             var newUuid = Uuid.NewUuid7();
             Assert.IsTrue(UuidToNumber(newUuid) > UuidToNumber(oldUuid), $"Failed at iteration {i}\n{oldUuid}\n{newUuid}");  // using UuidToNumber intentionaly as to avoid trusting operator overloads
             oldUuid = newUuid;
@@ -49,7 +50,7 @@ public class Uuid_Tests {
     public void Uuid_TestMany() {
         var sw = Stopwatch.StartNew();
         var i = 0;
-        while (sw.ElapsedMilliseconds < 1000) {  // assuming we're not generating more than 3072 each millisecond, they should be monotonically increasing
+        while (sw.ElapsedMilliseconds < 1000) {
             _ = Uuid.NewUuid7();
             i++;
         }
@@ -335,12 +336,8 @@ public class Uuid_Tests {
     }
 
 
-    private UInt64 UuidToNumber(Uuid uuid) {  // first 64 bits will do
-        var bytes = uuid.ToByteArray();
-        if (BitConverter.IsLittleEndian) {
-            Array.Reverse(bytes, 0, 8);
-        }
-        return BitConverter.ToUInt64(bytes);
+    private BigInteger UuidToNumber(Uuid uuid) {
+        return new BigInteger(uuid.ToByteArray(), isUnsigned: true, isBigEndian: true);
     }
 
     private static bool CompareArrays(byte[] buffer1, byte[] buffer2) {
