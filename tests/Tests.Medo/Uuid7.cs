@@ -9,37 +9,37 @@ using System.Numerics;
 namespace Tests;
 
 [TestClass]
-public class Uuid_Tests {
+public class Uuid7_Tests {
 
     [TestMethod]
-    public void Uuid_Empty() {
-        Assert.AreEqual(Guid.Empty, Uuid.Empty.ToGuid());
-        Assert.IsTrue(Uuid.Empty.Equals(Guid.Empty));
-        Assert.IsTrue(Uuid.Empty.Equals(Guid.Empty));
-        Assert.AreEqual("00000000-0000-0000-0000-000000000000", Uuid.Empty.ToString());
-        Assert.AreEqual("0000000000000000000000000", Uuid.Empty.ToId25String());
+    public void Uuid7_Empty() {
+        Assert.AreEqual(Guid.Empty, Uuid7.Empty.ToGuid());
+        Assert.IsTrue(Uuid7.Empty.Equals(Guid.Empty));
+        Assert.IsTrue(Uuid7.Empty.Equals(Guid.Empty));
+        Assert.AreEqual("00000000-0000-0000-0000-000000000000", Uuid7.Empty.ToString());
+        Assert.AreEqual("0000000000000000000000000", Uuid7.Empty.ToId25String());
     }
 
     [TestMethod]
-    public void Uuid_New() {
-        var uuid1 = Uuid.NewUuid7();
-        var uuid2 = Uuid.NewUuid7();
+    public void Uuid7_New() {
+        var uuid1 = Uuid7.NewUuid7();
+        var uuid2 = Uuid7.NewUuid7();
         Assert.AreNotEqual(uuid1, uuid2);
     }
 
     [TestMethod]
-    public void Uuid_GuidAndBack() {
-        var uuid1 = Uuid.NewUuid7();
+    public void Uuid7_GuidAndBack() {
+        var uuid1 = Uuid7.NewUuid7();
         var guid = uuid1.ToGuid();
-        var uuid2 = new Uuid(guid);
+        var uuid2 = new Uuid7(guid);
         Assert.AreEqual(uuid1, uuid2);
     }
 
     [TestMethod]
-    public void Uuid_TestAlwaysIncreasing() {
-        var oldUuid = Uuid.Empty;
-        for (var i = 0; i < 1000000; i++) {  // assuming we're not generating more than 2^17 each millisecond, they should be monotonically increasing
-            var newUuid = Uuid.NewUuid7();
+    public void Uuid7_TestAlwaysIncreasing() {
+        var oldUuid = Uuid7.Empty;
+        for (var i = 0; i < 1000000; i++) {  // assuming we're not generating more than 2^21 each millisecond, they will be monotonically increasing
+            var newUuid = Uuid7.NewUuid7();
             Assert.IsTrue(UuidToNumber(newUuid) > UuidToNumber(oldUuid), $"Failed at iteration {i}\n{oldUuid}\n{newUuid}");  // using UuidToNumber intentionaly as to avoid trusting operator overloads
             oldUuid = newUuid;
         }
@@ -47,22 +47,22 @@ public class Uuid_Tests {
 
     [Ignore]
     [TestMethod]
-    public void Uuid_TestMany() {
+    public void Uuid7_TestMany() {
         var sw = Stopwatch.StartNew();
         var i = 0;
         while (sw.ElapsedMilliseconds < 1000) {
-            _ = Uuid.NewUuid7();
+            _ = Uuid7.NewUuid7();
             i++;
         }
         //Console.WriteLine($"Generated {i:#,##0} UUIDs in 1 second");
     }
 
     [TestMethod]
-    public void Uuid_OperatorLessThan() {
-        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
-        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
-        var uuid3 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid4 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+    public void Uuid7_OperatorLessThan() {
+        var uuid1 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid7(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid7(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
         Assert.IsTrue(uuid1 < uuid2);
         Assert.IsTrue(uuid1 < uuid3);
         Assert.IsTrue(uuid1 < uuid4);
@@ -84,11 +84,11 @@ public class Uuid_Tests {
     }
 
     [TestMethod]
-    public void Uuid_OperatorMoreThan() {
-        var uuid1 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid2 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
-        var uuid4 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+    public void Uuid7_OperatorMoreThan() {
+        var uuid1 = new Uuid7(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid2 = new Uuid7(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid3 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid4 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
         Assert.IsTrue(uuid1 > uuid2);
         Assert.IsTrue(uuid1 > uuid3);
         Assert.IsTrue(uuid1 > uuid4);
@@ -110,12 +110,12 @@ public class Uuid_Tests {
     }
 
     [TestMethod]
-    public void Uuid_CompareTo() {
-        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
-        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
-        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+    public void Uuid7_CompareTo() {
+        var uuid1 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid7(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid5 = new Uuid7(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
 
         Assert.IsTrue(uuid1.CompareTo(uuid1) == 0);
         Assert.IsTrue(uuid1.CompareTo(uuid2) < 0);
@@ -149,12 +149,12 @@ public class Uuid_Tests {
     }
 
     [TestMethod]
-    public void Uuid_CompareToGuid() {
-        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
-        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
-        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+    public void Uuid7_CompareToGuid() {
+        var uuid1 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid7(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid5 = new Uuid7(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
 
         Assert.IsTrue(uuid1.CompareTo(new Guid(uuid1.ToByteArray())) == 0);
         Assert.IsTrue(uuid1.CompareTo(new Guid(uuid2.ToByteArray())) < 0);
@@ -188,12 +188,12 @@ public class Uuid_Tests {
     }
 
     [TestMethod]
-    public void Uuid_Equals() {
-        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
-        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
-        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+    public void Uuid7_Equals() {
+        var uuid1 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid7(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid5 = new Uuid7(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
 
         Assert.IsTrue(uuid1.Equals(uuid1));
         Assert.IsFalse(uuid1.Equals(uuid2));
@@ -227,12 +227,12 @@ public class Uuid_Tests {
     }
 
     [TestMethod]
-    public void Uuid_EqualsGuid() {
-        var uuid1 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
-        var uuid2 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
-        var uuid3 = new Uuid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid4 = new Uuid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
-        var uuid5 = new Uuid(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+    public void Uuid7_EqualsGuid() {
+        var uuid1 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, });
+        var uuid2 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, });
+        var uuid3 = new Uuid7(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid4 = new Uuid7(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
+        var uuid5 = new Uuid7(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, });
 
         Assert.IsTrue(uuid1.Equals(new Guid(uuid1.ToByteArray())));
         Assert.IsFalse(uuid1.Equals(new Guid(uuid2.ToByteArray())));
@@ -265,6 +265,7 @@ public class Uuid_Tests {
         Assert.IsTrue(uuid5.Equals(new Guid(uuid5.ToByteArray())));
     }
 
+
     [DataTestMethod]
     [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "00000000-0000-0000-0000-000000000000")]
     [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, "00000000-0000-0000-0000-000000000001")]
@@ -274,11 +275,39 @@ public class Uuid_Tests {
     [DataRow(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "01000000-0000-0000-0000-000000000000")]
     [DataRow(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "02000000-0000-0000-0000-000000000000")]
     [DataRow(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 }, "ffffffff-ffff-ffff-ffff-ffffffffffff")]
-    public void Uuid_String(byte[] bytes, string text) {
-        var uuid = new Uuid(bytes);
+    public void Uuid7_String(byte[] bytes, string text) {
+        var uuid = new Uuid7(bytes);
         Assert.AreEqual(text, uuid.ToString());
-        Assert.AreEqual(uuid, Uuid.FromString(text));
+        Assert.AreEqual(uuid, Uuid7.FromString(text));
     }
+
+
+    [DataTestMethod]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "1111111111111111111111")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, "1111111111111111111112")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 }, "1111111111111111111113")]
+    [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0 }, "111111111112WK48GNSUQf")]
+    [DataRow(new byte[] { 0, 1, 2, 3, 52, 53, 118, 119, 184, 185, 250, 251, 252, 253, 254, 255 }, "112drYSDr45nCJ6chixdxJ")]
+    [DataRow(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "18AQGAut7N92awznwCnjuR")]
+    [DataRow(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "1FKoXLpmDjH4AtzasQaUoq")]
+    [DataRow(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 }, "YcVfxkQb6JRzqk5kF2tNLv")]
+    public void Uuid7_Id22(byte[] bytes, string id22Text) {
+        var uuid = new Uuid7(bytes);
+        Assert.AreEqual(id22Text, uuid.ToId22String());
+        Assert.AreEqual(uuid, Uuid7.FromId22String(id22Text));
+    }
+
+    [DataTestMethod]
+    [DataRow("0001/0203/3435/7677/b8b9/fafb/fcfd/feff", "112d/rYSD/r45/nCJ6/chix/dxJ")]
+    [DataRow("ffffffff-ffff-ffff-ffff-ffffffffffff", "YcVfx kQb6JR zqk5k F2tNLv")]
+    public void Uuid7_Id22Dirty(string uuidText, string id22Text) {
+        var expectedUuid = Uuid7.FromString(uuidText);
+        var id22Uuid = Uuid7.FromId22String(id22Text);
+        Assert.AreEqual(expectedUuid, id22Uuid);
+        Assert.AreNotEqual(Uuid7.Empty, expectedUuid);
+        Assert.AreNotEqual(Uuid7.Empty, id22Uuid);
+    }
+
 
     [DataTestMethod]
     [DataRow(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "0000000000000000000000000")]
@@ -289,27 +318,27 @@ public class Uuid_Tests {
     [DataRow(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "042kt5d5ybb4r50zg5p72g3f1")]
     [DataRow(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, "0856marbwnn9ha1yxbde4x6v2")]
     [DataRow(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 }, "usz5xbbiqsfq7s727n0pzr2xa")]
-    public void Uuid_Id25(byte[] bytes, string id25Text) {
-        var uuid = new Uuid(bytes);
+    public void Uuid7_Id25(byte[] bytes, string id25Text) {
+        var uuid = new Uuid7(bytes);
         Assert.AreEqual(id25Text, uuid.ToId25String());
-        Assert.AreEqual(uuid, Uuid.FromId25String(id25Text));
+        Assert.AreEqual(uuid, Uuid7.FromId25String(id25Text));
     }
 
     [DataTestMethod]
     [DataRow("0001/0203/3435/7677/b8b9/fafb/fcfd/feff", "00/0jn/pi/acv/ek/52k/vk/a6t/o5/ogn")]
     [DataRow("ffffffff-ffff-ffff-ffff-ffffffffffff", "usz5x bbiqs fq7s7 27n0p zr2xa")]
-    public void Uuid_Id25Dirty(string uuidText, string id25Text) {
-        var expectedUuid = Uuid.FromString(uuidText);
-        var id25Uuid = Uuid.FromId25String(id25Text);
+    public void Uuid7_Id25Dirty(string uuidText, string id25Text) {
+        var expectedUuid = Uuid7.FromString(uuidText);
+        var id25Uuid = Uuid7.FromId25String(id25Text);
         Assert.AreEqual(expectedUuid, id25Uuid);
-        Assert.AreNotEqual(Uuid.Empty, expectedUuid);
-        Assert.AreNotEqual(Uuid.Empty, id25Uuid);
+        Assert.AreNotEqual(Uuid7.Empty, expectedUuid);
+        Assert.AreNotEqual(Uuid7.Empty, id25Uuid);
     }
 
 
     [TestMethod]
-    public void Uuid_MarshalBytes() {
-        var uuid = Uuid.NewUuid7();
+    public void Uuid7_MarshalBytes() {
+        var uuid = Uuid7.NewUuid7();
 
         int size = Marshal.SizeOf(uuid);
         Assert.AreEqual(16, size);
@@ -324,19 +353,19 @@ public class Uuid_Tests {
     }
 
     [TestMethod]
-    public void Uuid_UnmarshalBytes() {
+    public void Uuid7_UnmarshalBytes() {
         var bytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         var ptr = Marshal.AllocHGlobal(bytes.Length);
         Marshal.Copy(bytes, 0, ptr, bytes.Length);
-        var uuid = (Uuid)Marshal.PtrToStructure(ptr, typeof(Uuid));
+        var uuid = (Uuid7)Marshal.PtrToStructure(ptr, typeof(Uuid7));
         Marshal.FreeHGlobal(ptr);
 
         Assert.IsTrue(CompareArrays(bytes, uuid.ToByteArray()));
     }
 
 
-    private BigInteger UuidToNumber(Uuid uuid) {
+    private BigInteger UuidToNumber(Uuid7 uuid) {
         return new BigInteger(uuid.ToByteArray(), isUnsigned: true, isBigEndian: true);
     }
 

@@ -1,8 +1,11 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
-//2023-01-11: Added ToId25String method
-//            Added FromString and FromId25String methods
-//            Expanded monotonic counter from 12 bits to 18 bits
+//2023-01-12: Expanded monotonic counter from 18 to 26 bits
+//            Added ToId22String and FromId22String methods
+//            Moved to semi-random increment within the same millisecond
+//2023-01-11: Expanded monotonic counter from 12 to 18 bits
+//            Added ToId25String and FromId25String methods
+//            Added FromString method
 //2022-12-31: Initial version
 
 namespace Medo;
@@ -17,8 +20,8 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 /// <summary>
-/// Implements UUID version 7 as defined in RFC draft at https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format.
-/// It uses 18 bit monotonic counter (17 random bits + 1 rollover guard bit) and 56 bits of randomness (upper 6 rand_b bits are taken for counter).
+/// Implements UUID version 7 as defined in RFC draft at https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-04.html.
+/// It uses 26 bit monotonic counter (25 random bits + 1 rollover guard bit, +1 increase) and 48 bits of randomness (upper 14 rand_b bits are taken for counter).
 /// </summary>
 /// <remarks>
 ///  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -33,17 +36,16 @@ using System.Security.Cryptography;
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /// </remarks>
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<Uuid>, IEquatable<Guid> {
-
-    private readonly static bool IsLittleEndian = BitConverter.IsLittleEndian;
+public readonly struct Uuid7 : IComparable<Guid>, IComparable<Uuid7>, IEquatable<Uuid7>, IEquatable<Guid> {
 
     /// <summary>
     /// Creates a new instance filled with version 7 UUID.
     /// </summary>
-    public Uuid() {
+    public Uuid7() {
         Bytes = new byte[16];
 
-        var ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var now = DateTimeOffset.UtcNow;
+        var ms = now.ToUnixTimeMilliseconds();
 
         // Timestamp
         var msBytes = new byte[8];
@@ -54,16 +56,17 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
         if (LastMillisecond != ms) {
             LastMillisecond = ms;
             RandomNumberGenerator.Fill(Bytes.AsSpan(6));  // 12-bit rand_a + all of rand_b (extra bits will be overwritten later)
-            Monotonic = (uint)(((Bytes[6] & 0x07) << 14) | (Bytes[7] << 6) | (Bytes[8] & 0x3F)); // to use as monotonic random for future calls; total of 18 bits but only 17 are used initially with upper 1 bit reserved for rollover guard
+            MonotonicCounter = (uint)(((Bytes[6] & 0x07) << 22) | (Bytes[7] << 14) | ((Bytes[8] & 0x3F) << 8) | Bytes[9]);  // to use as monotonic random for future calls; total of 26 bits but only 25 are used initially with upper 1 bit reserved for rollover guard
         } else {
-            Monotonic++;
-            Bytes[7] = (byte)((Monotonic >> 6) & 0xFF);   // middle bits of monotonics counter
-            RandomNumberGenerator.Fill(Bytes.AsSpan(9));  // rest of rand_b (6 bits "stolen" for monotonic counter)
+            MonotonicCounter += (uint)(now.Ticks % 16 + 1);  // not fully random increment but random enough; will reduce overall counter space by 3 bits on average (to 2^22 combinations)
+            Bytes[7] = (byte)((MonotonicCounter >> 14) & 0xFF);   // bits 14:21 of monotonics counter
+            Bytes[9] = (byte)(MonotonicCounter & 0xFF);           // bits 0:7 of monotonics counter
+            RandomNumberGenerator.Fill(Bytes.AsSpan(10));  // rest of rand_b (14 bits "stolen" for monotonic counter)
         }
 
         //Fixup
-        Bytes[6] = (byte)(0x70 | ((Monotonic >> 14) & 0x0F));  // set 4-bit version + high bits of monotonics counter
-        Bytes[8] = (byte)(0x80 | (Monotonic & 0x3F));  // set 2-bit variant + low bits of monotonics counter
+        Bytes[6] = (byte)(0x70 | ((MonotonicCounter >> 22) & 0x0F));  // set 4-bit version + bits 22:25 of monotonics counter
+        Bytes[8] = (byte)(0x80 | ((MonotonicCounter >> 8) & 0x3F));  // set 2-bit variant + bits 8:13 of monotonics counter
     }
 
     /// <summary>
@@ -72,7 +75,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     /// </summary>
     /// <exception cref="ArgumentNullException">Buffer cannot be null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Buffer must be exactly 16 bytes in length.</exception>
-    public Uuid(byte[] buffer) {
+    public Uuid7(byte[] buffer) {
         if (buffer == null) { throw new ArgumentNullException(nameof(buffer), "Buffer cannot be null."); }
         if (buffer.Length != 16) { throw new ArgumentOutOfRangeException(nameof(buffer), "Buffer must be exactly 16 bytes in length."); }
         Bytes = new byte[16];
@@ -83,7 +86,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     /// Creates a new instance from given GUID bytes.
     /// No check if GUID is version 7 UUID is made.
     /// </summary>
-    public Uuid(Guid guid) {
+    public Uuid7(Guid guid) {
         Bytes = guid.ToByteArray();
     }
 
@@ -96,21 +99,28 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     private static long LastMillisecond;
 
     [ThreadStatic]
-    private static uint Monotonic;
+    private static uint MonotonicCounter;
 
 
     /// <summary>
     /// A read-only instance of the Guid structure whose value is all zeros.
     /// Please note this is not a valid UUID7 as it lacks version bits.
     /// </summary>
-    public static readonly Uuid Empty = new(new byte[16]);
+    public static readonly Uuid7 Empty = new(new byte[16]);
+
+    /// <summary>
+    /// A read-only instance of the Guid structure whose value is all 1's.
+    /// Please note this is not a valid UUID7 as it lacks version bits.
+    /// </summary>
+    public static readonly Uuid7 Max = new(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 });
+
 
     /// <summary>
     /// Returns new UUID version 7.
     /// </summary>
     /// <returns></returns>
-    public static Uuid NewUuid7() {
-        return new Uuid();
+    public static Uuid7 NewUuid7() {
+        return new Uuid7();
     }
 
     /// <summary>
@@ -130,18 +140,87 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     }
 
 
+    #region Id22
+
+    private static readonly BigInteger Id22Modulo = 58;
+    private static readonly char[] Id22Alphabet = new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
+                                                               'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L',
+                                                               'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
+                                                               'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+                                                               'h', 'i', 'j', 'k', 'm', 'n', 'o', 'p', 'q', 'r',
+                                                               's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+    private static readonly Lazy<Dictionary<char, BigInteger>> Id22AlphabetDict = new(() => {
+        var dict = new Dictionary<char, BigInteger>();
+        for (var i = 0; i < Id22Alphabet.Length; i++) {
+            dict.Add(Id22Alphabet[i], i);
+        }
+        return dict;
+    });
+
+    /// <summary>
+    /// Returns UUID representation in Id22 format. This is base58 encoder
+    /// using the same alphabet as bitcoin does.
+    /// </summary>
+    public string ToId22String() {
+        var number = new BigInteger(Bytes, isUnsigned: true, isBigEndian: true);
+        var result = new char[22];  // always the same length
+        for (var i = 21; i >= 0; i--) {
+            number = BigInteger.DivRem(number, Id22Modulo, out var remainder);
+            result[i] = Id22Alphabet[(int)remainder];
+        }
+        return new string(result);
+    }
+
+    /// <summary>
+    /// Returns UUID from given text representation.
+    /// All characters not belonging to Id22 alphabet are ignored.
+    /// Input must contain exactly 22 characters.
+    /// </summary>
+    /// <param name="id22Text">Id22 text.</param>
+    /// <exception cref="FormatException">Input must be 22 characters.</exception>
+    public static Uuid7 FromId22String(string id22Text) {
+        var alphabetDict = Id22AlphabetDict.Value;
+        var count = 0;
+        var number = new BigInteger();
+        foreach (var ch in id22Text) {
+            if (alphabetDict.TryGetValue(ch, out var offset)) {
+                number = BigInteger.Multiply(number, Id22Modulo);
+                number = BigInteger.Add(number, offset);
+                count++;
+            }
+        }
+        if (count != 22) { throw new FormatException("Input must be 22 characters."); }
+
+        var buffer = number.ToByteArray(isUnsigned: true, isBigEndian: true);
+        if (buffer.Length < 16) {
+            var newBuffer = new byte[16];
+            Buffer.BlockCopy(buffer, 0, newBuffer, newBuffer.Length - buffer.Length, buffer.Length);
+            buffer = newBuffer;
+        }
+        return new Uuid7(buffer);
+    }
+
+    #endregion Id22
+
     #region Id25
 
+    private static readonly BigInteger Id25Modulo = 35;
     private static readonly char[] Id25Alphabet = new char[] { '0', '1', '2', '3', '4', '5', '6',
                                                                '7', '8', '9', 'a', 'b', 'c', 'd',
                                                                'e', 'f', 'g', 'h', 'i', 'j', 'k',
                                                                'm', 'n', 'o', 'p', 'q', 'r', 's',
                                                                't', 'u', 'v', 'w', 'x', 'y', 'z' };
-    private static readonly BigInteger Id25Modulo = 35;
+    private static readonly Lazy<Dictionary<char, BigInteger>> Id25AlphabetDict = new(() => {
+        var dict = new Dictionary<char, BigInteger>();
+        for (var i = 0; i < Id25Alphabet.Length; i++) {
+            dict.Add(Id25Alphabet[i], i);
+        }
+        return dict;
+    });
 
     /// <summary>
     /// Returns UUID representation in Id25 format.
-    /// Please note that while idea is the same as one in
+    /// Please note that while conversion is the same as one in
     /// https://github.com/stevesimmons/uuid7-csharp/, UUIDs are not fully
     /// compatible and thus not necessarily interchangeable.
     /// </summary>
@@ -162,12 +241,12 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     /// </summary>
     /// <param name="id25Text">Id25 text.</param>
     /// <exception cref="FormatException">Input must be 25 characters.</exception>
-    public static Uuid FromId25String(string id25Text) {
+    public static Uuid7 FromId25String(string id25Text) {
+        var alphabetDict = Id25AlphabetDict.Value;
         var count = 0;
         var number = new BigInteger();
         foreach (var ch in id25Text.ToLowerInvariant()) {  // convert to lowercase first
-            var offset = Array.IndexOf(Id25Alphabet, ch);
-            if (offset >= 0) {
+            if (alphabetDict.TryGetValue(ch, out var offset)) {
                 number = BigInteger.Multiply(number, Id25Modulo);
                 number = BigInteger.Add(number, offset);
                 count++;
@@ -181,7 +260,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
             Buffer.BlockCopy(buffer, 0, newBuffer, newBuffer.Length - buffer.Length, buffer.Length);
             buffer = newBuffer;
         }
-        return new Uuid(buffer);
+        return new Uuid7(buffer);
     }
 
     #endregion Id25
@@ -200,7 +279,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     /// </summary>
     /// <param name="text">UUID text.</param>
     /// <exception cref="FormatException">Input must be 32 characters.</exception>
-    public static Uuid FromString(string text) {
+    public static Uuid7 FromString(string text) {
         var count = 0;
         var number = new BigInteger();
         foreach (var ch in text.ToLowerInvariant()) {  // convert to lowercase first
@@ -219,7 +298,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
             Buffer.BlockCopy(buffer, 0, newBuffer, newBuffer.Length - buffer.Length, buffer.Length);
             buffer = newBuffer;
         }
-        return new Uuid(buffer);
+        return new Uuid7(buffer);
     }
 
     #endregion FromString
@@ -228,7 +307,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
 
     /// <inheritdoc/>
     public override bool Equals([NotNullWhen(true)] object? obj) {
-        if (obj is Uuid uuid) {
+        if (obj is Uuid7 uuid) {
             return CompareArrays(Bytes, uuid.Bytes) == 0;
         } else if (obj is Guid guid) {
             return CompareArrays(Bytes, guid.ToByteArray()) == 0;
@@ -251,81 +330,81 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     #region Operators
 
     /// <inheritdoc/>
-    public static bool operator ==(Uuid left, Uuid right) {
+    public static bool operator ==(Uuid7 left, Uuid7 right) {
         return left.Equals(right);
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(Uuid left, Guid right) {
+    public static bool operator ==(Uuid7 left, Guid right) {
         return left.Equals(right);
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(Guid left, Uuid right) {
+    public static bool operator ==(Guid left, Uuid7 right) {
         return left.Equals(right);
     }
 
     /// <inheritdoc/>
-    public static bool operator !=(Uuid left, Uuid right) {
+    public static bool operator !=(Uuid7 left, Uuid7 right) {
         return !(left == right);
     }
 
     /// <inheritdoc/>
-    public static bool operator !=(Uuid left, Guid right) {
+    public static bool operator !=(Uuid7 left, Guid right) {
         return !(left == right);
     }
 
     /// <inheritdoc/>
-    public static bool operator !=(Guid left, Uuid right) {
+    public static bool operator !=(Guid left, Uuid7 right) {
         return !(left == right);
     }
 
-    public static bool operator <(Uuid left, Uuid right) {
+    public static bool operator <(Uuid7 left, Uuid7 right) {
         return left.CompareTo(right) < 0;
     }
 
-    public static bool operator <(Uuid left, Guid right) {
+    public static bool operator <(Uuid7 left, Guid right) {
         return left.CompareTo(right) < 0;
     }
 
-    public static bool operator <(Guid left, Uuid right) {
+    public static bool operator <(Guid left, Uuid7 right) {
         return left.CompareTo(right) < 0;
     }
 
-    public static bool operator >(Uuid left, Uuid right) {
+    public static bool operator >(Uuid7 left, Uuid7 right) {
         return left.CompareTo(right) > 0;
     }
 
-    public static bool operator >(Uuid left, Guid right) {
+    public static bool operator >(Uuid7 left, Guid right) {
         return left.CompareTo(right) > 0;
     }
 
-    public static bool operator >(Guid left, Uuid right) {
+    public static bool operator >(Guid left, Uuid7 right) {
         return left.CompareTo(right) > 0;
     }
 
 
-    public static bool operator <=(Uuid left, Uuid right) {
+    public static bool operator <=(Uuid7 left, Uuid7 right) {
         return left.CompareTo(right) is < 0 or 0;
     }
 
-    public static bool operator <=(Uuid left, Guid right) {
+    public static bool operator <=(Uuid7 left, Guid right) {
         return left.CompareTo(right) is < 0 or 0;
     }
 
-    public static bool operator <=(Guid left, Uuid right) {
+    public static bool operator <=(Guid left, Uuid7 right) {
         return left.CompareTo(right) is < 0 or 0;
     }
 
-    public static bool operator >=(Uuid left, Uuid right) {
+    public static bool operator >=(Uuid7 left, Uuid7 right) {
         return left.CompareTo(right) is > 0 or 0;
     }
 
-    public static bool operator >=(Uuid left, Guid right) {
+    public static bool operator >=(Uuid7 left, Guid right) {
         return left.CompareTo(right) is > 0 or 0;
     }
 
-    public static bool operator >=(Guid left, Uuid right) {
+    public static bool operator >=(Guid left, Uuid7 right) {
         return left.CompareTo(right) is > 0 or 0;
     }
 
@@ -343,7 +422,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     #region IComparable<Uuid>
 
     /// <inheritdoc/>
-    public int CompareTo(Uuid other) {
+    public int CompareTo(Uuid7 other) {
         return CompareArrays(Bytes, other.Bytes);
     }
 
@@ -352,7 +431,7 @@ public readonly struct Uuid : IComparable<Guid>, IComparable<Uuid>, IEquatable<U
     #region IEquatable<Uuid>
 
     /// <inheritdoc/>
-    public bool Equals(Uuid other) {
+    public bool Equals(Uuid7 other) {
         return CompareArrays(Bytes, other.Bytes) == 0;
     }
 

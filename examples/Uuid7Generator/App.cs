@@ -7,14 +7,15 @@ using Medo;
 internal static class App {
 
     public static void Main() {
-        var uuids = new List<Uuid>();
+        var uuids = new List<Uuid7>();
         for (var i = 0; i < 5; i++) {
-            uuids.Add(Uuid.NewUuid7());
+            uuids.Add(Uuid7.NewUuid7());
         }
 
         foreach (var uuid in uuids) {
             Console.WriteLine($"UUID: {uuid}");
             Console.WriteLine($"ID25: {uuid.ToId25String()}");
+            Console.WriteLine($"ID22: {uuid.ToId22String()}");
             Console.WriteLine();
         }
 
@@ -24,7 +25,7 @@ internal static class App {
             var uuidCount = 0;
             var sw = Stopwatch.StartNew();
             while (sw.ElapsedMilliseconds < 3000) {
-                _ = Uuid.NewUuid7();
+                _ = Uuid7.NewUuid7();
                 uuidCount++;
             }
             sw.Stop();
