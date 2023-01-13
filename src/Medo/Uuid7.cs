@@ -20,19 +20,32 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 /// <summary>
-/// Implements UUID version 7 as defined in RFC draft at https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-04.html.
-/// It uses 26 bit monotonic counter (25 random bits + 1 rollover guard bit, +1 increase) and 48 bits of randomness (upper 14 rand_b bits are taken for counter).
+/// Implements UUID version 7 as defined in RFC draft at
+/// https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-04.html.
+/// As monotonicity is important for UUID version 7 generation, this
+/// implementation uses randomly seeded 26 bit monotonic counter (25 random
+/// bits + 1 rollover guard bit) with a 4-bit increment. Counter uses 12-bits
+/// from rand_a field and it "steals" 14 bits from rand_b field.
+/// Counter is fully randomized each millisecond tick. Within the same
+/// millisecond tick, counter will be increased using 4-bit nanosecond tick
+/// value. Counter seed is different for each thread.
+/// The last 48 bits are filled with independently generated random data
+/// for each generated UUID.
+/// As each UUID uses 48 random bits in addition to at least 21 bits of randomly
+/// seeded counter (25 bits with up to 4-bit increment), this means we have at
+/// least 69 bits of entropy (and that is without taking 48-bit timestamp into
+/// account).
 /// </summary>
 /// <remarks>
 ///  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /// |                           unix_ts_ms                          |
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-/// |          unix_ts_ms           |  ver  |       rand_a          |
+/// |          unix_ts_ms           |  ver  |        counter        |
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-/// |var|                        rand_b                             |
+/// |var|          counter          |            random             |
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-/// |                            rand_b                             |
+/// |                            random                             |
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /// </remarks>
 [DebuggerDisplay("{ToString(),nq}")]
