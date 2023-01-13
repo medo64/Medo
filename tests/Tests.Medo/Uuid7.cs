@@ -337,6 +337,20 @@ public class Uuid7_Tests {
 
 
     [TestMethod]
+    public void Uuid7_Fill() {
+        var uuids = new Uuid7[1000];
+        Uuid7.Fill(uuids);
+
+        var prevUuid = Uuid7.Empty;
+        foreach (var uuid in uuids) {
+            Assert.AreNotEqual(Uuid7.Empty, uuid);
+            Assert.IsTrue(uuid > prevUuid);
+            prevUuid = uuid;
+        }
+    }
+
+
+    [TestMethod]
     public void Uuid7_MarshalBytes() {
         var uuid = Uuid7.NewUuid7();
 
@@ -365,6 +379,8 @@ public class Uuid7_Tests {
     }
 
 
+    #region Helpers
+
     private BigInteger UuidToNumber(Uuid7 uuid) {
         return new BigInteger(uuid.ToByteArray(), isUnsigned: true, isBigEndian: true);
     }
@@ -379,5 +395,7 @@ public class Uuid7_Tests {
         }
         return true;
     }
+
+    #endregion Helpers
 
 }

@@ -35,6 +35,7 @@ using System.Security.Cryptography;
 /// |                            rand_b                             |
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /// </remarks>
+[DebuggerDisplay("{ToString(),nq}")]
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct Uuid7 : IComparable<Guid>, IComparable<Uuid7>, IEquatable<Uuid7>, IEquatable<Guid> {
 
@@ -101,27 +102,6 @@ public readonly struct Uuid7 : IComparable<Guid>, IComparable<Uuid7>, IEquatable
     [ThreadStatic]
     private static uint MonotonicCounter;
 
-
-    /// <summary>
-    /// A read-only instance of the Guid structure whose value is all zeros.
-    /// Please note this is not a valid UUID7 as it lacks version bits.
-    /// </summary>
-    public static readonly Uuid7 Empty = new(new byte[16]);
-
-    /// <summary>
-    /// A read-only instance of the Guid structure whose value is all 1's.
-    /// Please note this is not a valid UUID7 as it lacks version bits.
-    /// </summary>
-    public static readonly Uuid7 Max = new(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 });
-
-
-    /// <summary>
-    /// Returns new UUID version 7.
-    /// </summary>
-    /// <returns></returns>
-    public static Uuid7 NewUuid7() {
-        return new Uuid7();
-    }
 
     /// <summary>
     /// Returns current UUID version 7 as binary equivalent System.Guid.
@@ -447,6 +427,44 @@ public readonly struct Uuid7 : IComparable<Guid>, IComparable<Uuid7>, IEquatable
     #endregion IEquatable<Guid>
 
 
+    #region Static
+
+    /// <summary>
+    /// A read-only instance of the Guid structure whose value is all zeros.
+    /// Please note this is not a valid UUID7 as it lacks version bits.
+    /// </summary>
+    public static readonly Uuid7 Empty = new(new byte[16]);
+
+    /// <summary>
+    /// A read-only instance of the Guid structure whose value is all 1's.
+    /// Please note this is not a valid UUID7 as it lacks version bits.
+    /// </summary>
+    public static readonly Uuid7 Max = new(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 });
+
+
+    /// <summary>
+    /// Returns new UUID version 7.
+    /// </summary>
+    public static Uuid7 NewUuid7() {
+        return new Uuid7();
+    }
+
+    /// <summary>
+    /// Fills a span with UUIDs.
+    /// </summary>
+    /// <param name="data">The span to fill.</param>
+    public static void Fill(Span<Uuid7> data) {
+        for (var i = 0; i < data.Length; i++) {
+            data[i] = NewUuid7();
+        }
+    }
+
+
+    #endregion Static
+
+
+    #region Helpers
+
     private static int CompareArrays(byte[] buffer1, byte[] buffer2) {
         Debug.Assert(buffer1.Length == 16);
         Debug.Assert(buffer2.Length == 16);
@@ -457,5 +475,7 @@ public readonly struct Uuid7 : IComparable<Guid>, IComparable<Uuid7>, IEquatable
         }
         return 0;  // they're equal
     }
+
+    #endregion Helpers
 
 }
