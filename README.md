@@ -158,11 +158,6 @@ algorithms.
 Generic PBKDF2 implementation.
 
 
-## Twofish (Medo.Security.Cryptography)
-
-Twofish algorithm implementation.
-
-
 ## CsvTextOutput (Medo.Text)
 
 Writing comma separated values.

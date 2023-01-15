@@ -134,11 +134,6 @@
     <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector64A.txt" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector56A.txt" />
     <EmbeddedResource Include="_Resources\Security\Cryptography\RivestCipher4\Vector40A.txt" />
-    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_D_M.TXT" />
-    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\CBC_E_M.TXT" />
-    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_D_M.TXT" />
-    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_E_M.TXT" />
-    <EmbeddedResource Include="_Resources\Security\Cryptography\Twofish\ECB_TBL.TXT" />
     <EmbeddedResource Include="_Resources\Text\CsvTextOutput\Basic.csv" />
     <EmbeddedResource Include="_Resources\Text\CsvTextOutput\Escaping.csv" />
     <EmbeddedResource Include="_Resources\Text\CsvTextOutput\Incomplete.csv" />
