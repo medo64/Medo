@@ -27,8 +27,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.IO.Hashing", "..
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingleInstanceApplication", "..\examples\SingleInstanceApplication\SingleInstanceApplication.csproj", "{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Uuid7Generator", "..\examples\Uuid7Generator\Uuid7Generator.csproj", "{0EBC5ED0-A860-4EC1-86D0-7E96A39C1563}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
