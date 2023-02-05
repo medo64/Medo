@@ -87,61 +87,6 @@ Simple NTP client.
 Returns various info about the assembly that started process.
 
 
-## Crc8 (Medo.Security.Checksum)
-
-Computes hash using the standard 8-bit CRC algorithm. The following CRC-8
-variants are supported: AUTOSAR, BLUETOOTH, CCITT, CDMA2000, DALLAS, DARC,
-DVB-S2, GSM-A, GSM-B, HITAG, I-432-1, I-CODE, ITU, LTE, MAXIM, MAXIM-DOW,
-MIFARE, MIFARE-MAD, NRSC-5, OpenSAFETY, ROHC, SAE-J1850, SMBUS, TECH-3250, and
-WCDMA2000.
-
-
-## Crc16 (Medo.Security.Checksum)
-
-Computes hash using 16-bit CRC algorithm. The following CRC-16 variants are
-supported: ACORN, ARC, AUG-CCITT, AUTOSAR, BUYPASS, CDMA2000, CCITT,
-CCITT-FALSE, CCITT-TRUE, CMS, DARC, DDS-110, DECT-R, DECT-X, DNP, EN-13757, EPC,
-EPC-C1G2, GENIBUS, GSM, I-CODE, IBM-3740, ISO-HDLD, IBM-SDLC, IEC-61158-2,
-IEEE 802.3, ISO-IEC-14443-3-A, ISO-IEC-14443-3-B, KERMIT, LHA, LJ1200, LTE,
-MAXIM, MAXIM-DOW, MCRF4XX, MODBUS, NRSC-5, OPENSAFETY-A, OPENSAFETY-B, PROFIBUS,
-RIELLO, SPI-FUJITSU, T10-DIF, TELEDISK, TMS37157, UMTS, USB, V-41-LSB, V-41-MSB,
-VERIFONE, X-25, XMODEM, and ZMODEM.
-
-
-## Crc32 (Medo.Security.Checksum)
-
-Computes hash using 32-bit CRC algorithm. The following CRC-16 variants are
-supported: AAL5, ADCCP, AIXM, AUTOSAR, BASE91-C, BASE91-D, BZIP2, CASTAGNOLI,
-CD-ROM-EDC, CKSUM, DECT-B, IEEE-802.3, INTERLAKEN, ISCSI, ISO-HDLC, JAMCRC,
-MPEG-2, PKZIP, POSIX, V-42, XFER, and XZ.
-
-
-## Damm (Medo.Security.Checksum)
-
-Computes checksum using Damm's algorithm from numerical input. This algorithm
-allows detection of all single-digit errors and all adjacent transposition errors.
-
-
-## Fletcher16 (Medo.Security.Checksum)
-
-Computes checksum using Fletcher-16 algorithm.
-
-
-## Iso7064 (Medo.Security.Checksum)
-
-Computes hash using ISO 7064 algorithm from numerical input.
-
-
-## Rabbit (Medo.Security.Cryptography)
-
-Rabbit stream cipher implementation.
-
-
-## RivestCipher4 (Medo.Security.Cryptography)
-
-Rivest Cipher 4 (RC4) algorithm implementation.
-
-
 ## CryptPassword (Medo.Security.Cryptography)
 
 Various password generation algorithms compatible with Unix crypt.

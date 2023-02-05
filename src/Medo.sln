@@ -21,10 +21,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Medo.Device.BearBu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BearBusMonitor", "..\examples\BearBusMonitor\BearBusMonitor.csproj", "{E5524CC5-6FB4-4289-A970-506223A08C9B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Medo.IO.Hashing", "Medo.IO.Hashing\Medo.IO.Hashing.csproj", "{753D366D-69B1-48AF-B535-2082CF26F0C7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Medo.IO.Hashing", "..\tests\Tests.Medo.IO.Hashing\Tests.Medo.IO.Hashing.csproj", "{A565AC18-5AC5-4456-BD21-1CE975A12189}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingleInstanceApplication", "..\examples\SingleInstanceApplication\SingleInstanceApplication.csproj", "{41FDBAB1-E1EF-4E0E-841F-A59683A4CE6B}"
 EndProject
 Global
