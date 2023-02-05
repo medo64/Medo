@@ -1,1 +1,0 @@
-// Moved to a separate repository: https://github.com/medo64/Medo.Twofish
