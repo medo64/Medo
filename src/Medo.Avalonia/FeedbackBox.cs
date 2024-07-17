@@ -2,6 +2,7 @@
 
 //2024-07-16: Waiting for dialog close
 //            Move window outside of bounds
+//            Red title if exception
 //2024-07-07: Initial Avalonia version
 
 namespace Medo.Avalonia;
@@ -197,7 +198,9 @@ public static class FeedbackBox {
 
         var windowStack = new StackPanel();
         windowStack.Children.Add(new TextBlock {
-            Background = GetBrush("SystemBaseHighColor", Brushes.DarkGray, Brushes.LightGray),
+            Background = (exception == null)
+                       ? GetBrush("SystemBaseHighColor", Brushes.DarkGray, Brushes.LightGray)
+                       : GetRedBrush("SystemBaseHighColor", Brushes.DarkRed, Brushes.Red),
             Foreground = GetBrush("SystemAltHighColor", Brushes.White, Brushes.Black),
             FontSize = window.FontSize * 1.25,
             FontWeight = FontWeight.SemiBold,
@@ -556,6 +559,7 @@ public static class FeedbackBox {
         }
     }
 
+
     private static ISolidColorBrush GetBrush(string name, ISolidColorBrush lightDefault, ISolidColorBrush darkDefault) {
         var variant = Application.Current?.ActualThemeVariant ?? ThemeVariant.Light;
         if (Application.Current?.Styles[0] is IResourceProvider provider && provider.TryGetResource(name, variant, out var resource)) {
@@ -566,4 +570,23 @@ public static class FeedbackBox {
         Debug.WriteLine("[FeedbackBox] Cannot find brush " + name);
         return (variant == ThemeVariant.Light) ? lightDefault : darkDefault;
     }
+
+    private static ISolidColorBrush GetRedBrush(string name, ISolidColorBrush lightDefault, ISolidColorBrush darkDefault) {
+        var variant = Application.Current?.ActualThemeVariant ?? ThemeVariant.Light;
+        if (Application.Current?.Styles[0] is IResourceProvider provider && provider.TryGetResource(name, variant, out var resource)) {
+            if (resource is Color color) {
+                var hslColor = color.ToHsl();
+                if (hslColor.L < 0.4) {
+                    return new SolidColorBrush(HslColor.FromHsl(0, 1, 0.25).ToRgb());
+                } else if (hslColor.L > 0.6) {
+                    return new SolidColorBrush(HslColor.FromHsl(0, 1, 0.75).ToRgb());
+                } else {
+                    return new SolidColorBrush(HslColor.FromHsl(0, 1, 0.50).ToRgb());
+                }
+            }
+        }
+        Debug.WriteLine("[FeedbackBox] Cannot find brush " + name);
+        return (variant == ThemeVariant.Light) ? lightDefault : darkDefault;
+    }
+
 }
