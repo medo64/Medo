@@ -1,6 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
 //2024-07-16: Waiting for dialog close
+//            Move window outside of bounds
 //2024-07-07: Initial Avalonia version
 
 namespace Medo.Avalonia;
@@ -75,6 +76,22 @@ public static class FeedbackBox {
         window.SystemDecorations = SystemDecorations.BorderOnly;
         window.ExtendClientAreaToDecorationsHint = true;
         window.Title = (exception == null) ? "Feedback" : "Error Report";
+
+        window.Opened += (sender, e) => {  // adjust position as needed
+            var screen = window.Screens.ScreenFromWindow(window);
+            if ((screen == null) || (window.FrameSize == null)) { return; }
+
+            var pos = window.Position;
+            var size = PixelSize.FromSize(window.FrameSize.Value, screen.Scaling);
+            var rect = new PixelRect(pos, size);
+            Debug.WriteLine(rect);
+
+            if (rect.Right > screen.Bounds.Right) { rect = rect.WithX(screen.Bounds.Right - rect.Width); }
+            if (rect.X < screen.Bounds.X) { rect = rect.WithX(screen.Bounds.X); }
+            if (rect.Bottom > screen.Bounds.Bottom) { rect = rect.WithY(screen.Bounds.Bottom - rect.Height); }
+            if (rect.Y < screen.Bounds.Y) { rect = rect.WithY(screen.Bounds.Y); }
+            if (window.Position != rect.Position) { window.Position = rect.Position; }
+        };
 
         var privacyTextBlock = new TextBlock() {
             Foreground = GetBrush("SystemAccentColor", Brushes.DarkBlue, Brushes.LightBlue),
