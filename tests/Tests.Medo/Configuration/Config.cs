@@ -51,7 +51,9 @@ public class Config_Tests {
         var userFileDirectory = Path.GetDirectoryName(userFileLocation);
 
         //clean files
-        if (Directory.Exists(userFileDirectory)) { Directory.Delete(userFileDirectory, true); }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {  // on Linux this would be home directory, don't do it
+            if (Directory.Exists(userFileDirectory)) { Directory.Delete(userFileDirectory, true); }
+        }
         if (File.Exists(localFileLocation)) { File.Delete(localFileLocation); }
 
         try {
@@ -60,7 +62,9 @@ public class Config_Tests {
             Assert.IsNotNull(Config.FileName);
             Assert.IsNull(Config.OverrideFileName);
         } finally { //clean files
-            if (Directory.Exists(userFileDirectory)) { Directory.Delete(userFileDirectory, true); }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {  // on Linux this would be home directory, don't do it
+                if (Directory.Exists(userFileDirectory)) { Directory.Delete(userFileDirectory, true); }
+            }
             if (File.Exists(localFileLocation)) { File.Delete(localFileLocation); }
         }
 
@@ -161,7 +165,7 @@ public class Config_Tests {
 
         Config.Save();
 
-        Assert.AreEqual(loader.GoodText, File.ReadAllText(loader.FileName));
+        Assert.AreEqual(loader.GoodText.ReplaceLineEndings(), File.ReadAllText(loader.FileName).ReplaceLineEndings());
     }
 
     [TestMethod]
@@ -172,7 +176,7 @@ public class Config_Tests {
 
         Config.Save();
 
-        Assert.AreEqual(loader.GoodText, File.ReadAllText(loader.FileName));
+        Assert.AreEqual(loader.GoodText.ReplaceLineEndings(), File.ReadAllText(loader.FileName).ReplaceLineEndings());
     }
 
     [TestMethod]
@@ -246,7 +250,7 @@ public class Config_Tests {
 
         Config.Save();
 
-        Assert.AreEqual(loader.GoodText, File.ReadAllText(loader.FileName));
+        Assert.AreEqual(loader.GoodText.ReplaceLineEndings(), File.ReadAllText(loader.FileName).ReplaceLineEndings());
     }
 
     [TestMethod]
@@ -394,7 +398,7 @@ public class Config_Tests {
         Config.WriteAll("Key2", new string[] { "Value 2a", "Value 2b", "Value 2c" });
         Config.Write("Key3", "Value 3");
         Config.Save();
-        Assert.AreEqual(loader.GoodText, File.ReadAllText(loader.FileName));
+        Assert.AreEqual(loader.GoodText.ReplaceLineEndings(), File.ReadAllText(loader.FileName).ReplaceLineEndings());
 
         Assert.AreEqual("Value 1", Config.Read("Key1"));
         Assert.AreEqual("Value 3", Config.Read("Key3"));
@@ -456,7 +460,7 @@ public class Config_Tests {
         Config.Write("Double Infinity-", double.NegativeInfinity);
 
         Config.Save();
-        Assert.AreEqual(loader.GoodText, File.ReadAllText(loader.FileName));
+        Assert.AreEqual(loader.GoodText.ReplaceLineEndings(), File.ReadAllText(loader.FileName).ReplaceLineEndings());
 
         using var loader2 = new ConfigLoader(loader.FileName, resourceFileNameGood: "WriteConverted.Good.cfg");
         Assert.AreEqual(42, Config.Read("Integer", 0));
