@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2025-02-22: Updated for .NET 9
 //2024-07-08: Changed Debug.WriteLine prefix
 //2022-12-20: Renamed Write with IEnumerable<string> parameter to WriteAll so it matches ReadAll
 //2022-12-18: Replaced Environment.Version.Major check with conditional compilation to avoid compile warnings
@@ -21,11 +22,15 @@ namespace Medo.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+#if NET9_0_OR_GREATER
+using System.Threading;
+#endif
 
 /// <summary>
 /// Provides cached access to reading and writing settings.
@@ -204,7 +209,7 @@ public static class Config {
 
         lock (SyncReadWrite) {
             if (!IsLoaded) { Load(); }
-            DefaultPropertiesFile?.WriteMany(key, value);
+            DefaultPropertiesFile?.WriteMany(key, value ?? []);
             if (ImmediateSave) { Save(); }
         }
     }
@@ -282,8 +287,11 @@ public static class Config {
     private static bool IsLoaded { get; set; }
     private static PropertiesFile? DefaultPropertiesFile;
     private static PropertiesFile? OverridePropertiesFile;
+#if NET9_0_OR_GREATER
+    private static readonly Lock SyncReadWrite = new();
+#else
     private static readonly object SyncReadWrite = new();
-
+#endif
 
     private static bool _isAssumedInstalled;
     /// <summary>
@@ -445,6 +453,7 @@ public static class Config {
     public static bool ImmediateSave { get; set; } = true;
 
 
+    [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase")]
     private static void Initialize() {
         var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
 
@@ -461,11 +470,11 @@ public static class Config {
 
         var company = companyValue ?? "";
         var application = productValue ?? titleValue ?? assembly.GetName().Name ?? "application";
-        #if NET5_0_OR_GREATER
-            var executablePath = AppContext.BaseDirectory;
-        #else
-            var executablePath = assembly.Location;
-        #endif
+#if NET5_0_OR_GREATER
+        var executablePath = AppContext.BaseDirectory;
+#else
+        var executablePath = assembly.Location;
+#endif
 
         var baseFileName = IsOSWindows
             ? application + ".cfg"
@@ -544,11 +553,11 @@ public static class Config {
 
         private static readonly Encoding Utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         private static readonly StringComparer KeyComparer = StringComparer.OrdinalIgnoreCase;
-        private static readonly StringComparison KeyComparison = StringComparison.OrdinalIgnoreCase;
+        private const StringComparison KeyComparison = StringComparison.OrdinalIgnoreCase;
 
         private readonly string FileName;
         private readonly string LineEnding;
-        private readonly List<LineData> Lines = new();
+        private readonly List<LineData> Lines = [];
 
         public PropertiesFile(string fileName, bool isOverride = false) {
             FileName = fileName;
@@ -742,6 +751,9 @@ public static class Config {
                                 state = (state is State.KeyEscapeLong) ? State.Key : State.Value;
                             }
                             break;
+
+                        default:
+                            throw new InvalidOperationException("Unexpected state.");
                     }
 
                     if (char.IsWhiteSpace(ch) && (prevState != State.KeyEscape) && (prevState != State.ValueEscape) && (prevState != State.KeyEscapeLong) && (prevState != State.ValueEscapeLong)) {
@@ -878,16 +890,13 @@ public static class Config {
                         } else {
                             sb.Append(string.IsNullOrEmpty(SeparatorSuffix) ? " " : SeparatorSuffix);
                         }
-                        EscapeIntoStringBuilder(sb, Value ?? "");
+                        EscapeIntoStringBuilder(sb, Value);
                     } else { //try to preserve formatting in case of spaces (thus omitted)
                         sb.Append(SeparatorPrefix);
                         switch (Separator) {
-                            case ':':
-                                sb.Append(':');
-                                break;
-                            case '=':
-                                sb.Append('=');
-                                break;
+                            case ':': sb.Append(':'); break;
+                            case '=': sb.Append('='); break;
+                            default: break;
                         }
                         sb.Append(SeparatorSuffix);
                     }
@@ -977,10 +986,8 @@ public static class Config {
             for (var i = 0; i < Lines.Count; i++) {
                 var line = Lines[i];
                 if (!line.IsEmpty && line.Key is not null) {
-                    if (CachedEntries.ContainsKey(line.Key)) {
-                        CachedEntries[line.Key] = i; //last key takes precedence
-                    } else {
-                        CachedEntries.Add(line.Key, i);
+                    if (!CachedEntries.TryAdd(line.Key, i)) {
+                        CachedEntries[line.Key] = i;  // last key takes precedence
                     }
                 }
             }
