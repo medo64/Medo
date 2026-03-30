@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2026-03-29: Obsoleted.
 //2024-07-23: Rewritten for file-based storage
 
 namespace Medo.Configuration;
@@ -29,6 +30,7 @@ using System.Text;
 /// foreach (var file in RecentFiles.GetFiles()) {}
 /// </code>
 /// </example>
+[Obsolete("Use Medo.Config package instead.")]
 public static class RecentFiles {
 
     private static readonly object Lock = new();

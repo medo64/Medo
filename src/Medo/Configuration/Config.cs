@@ -1,5 +1,6 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2026-03-29: Obsoleted.
 //2025-02-22: Updated for .NET 9
 //2024-07-08: Changed Debug.WriteLine prefix
 //2022-12-20: Renamed Write with IEnumerable<string> parameter to WriteAll so it matches ReadAll
@@ -51,6 +52,7 @@ using System.Threading;
 /// Config.Save()
 /// </code>
 /// </example>
+[Obsolete("Use Medo.Config package instead.")]
 public static class Config {
 
     /// <summary>
