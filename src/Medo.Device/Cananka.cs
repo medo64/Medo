@@ -1,5 +1,7 @@
 /* Josip Medved <jmedved@jmedved.com> * www.medo64.com * MIT License */
 
+//2026-03-20: Improved background processing
+//            Updated for C# 14
 //2022-11-11: Minor refactoring
 //2021-11-25: Refactored to use pattern matching
 //2021-10-08: Refactored for .NET 5
@@ -54,8 +56,8 @@ public class Cananka : IDisposable {
         portName = portName.Trim().TrimEnd(':');
 
         Uart = new SerialPort(portName, baudRate, parity, dataBits, stopBits) {
-            ReadTimeout = 100,
-            WriteTimeout = 100,
+            ReadTimeout = 50,
+            WriteTimeout = 50,
             NewLine = "\0"
         };
 
@@ -66,7 +68,7 @@ public class Cananka : IDisposable {
             Name = "Cananka:" + portName,
             Priority = ThreadPriority.AboveNormal
         };
-        CancelEvent = new ManualResetEvent(false);
+        CancellationTokenSource = new CancellationTokenSource();
     }
 
 
@@ -74,7 +76,7 @@ public class Cananka : IDisposable {
     private readonly object UartLock = new();
 
     private readonly SynchronizationContext? Context;
-    private readonly ManualResetEvent CancelEvent;
+    private readonly CancellationTokenSource CancellationTokenSource;
     private readonly Thread Thread;
 
 
@@ -85,10 +87,18 @@ public class Cananka : IDisposable {
     public bool Open() {
         Uart.Open();
 
-        WriteCommand(new byte[] { (byte)'C', CR }); //first close
-        WriteCommand(new byte[] { (byte)'*', (byte)'r', CR }); //then clear debug (ignored on non-Cananka devices)
+        // cleanup, just in the case
+        WriteCommand([(byte)'C', CR]); //first close
+        WriteCommand([(byte)'*', (byte)'r', CR]); //then clear debug (ignored on non-Cananka devices)
 
-        var response = WriteCommand(new byte[] { (byte)'O', CR });
+        // read everything currently in the queue
+        lock (UartLock) {
+            var buffer = new byte[BufferSize];
+            while ((Uart.BytesToRead > 0) && (Uart.Read(buffer, 0, buffer.Length) > 0)) { }
+        }
+
+        // send open command and check response
+        var response = WriteCommand([(byte)'O', CR]);
         if ((response != null) && response.IsPositive) {
             Thread.Start();
             return true;
@@ -110,10 +120,18 @@ public class Cananka : IDisposable {
     /// </summary>
     public void Close() {
         if (IsOpen) {
-            WriteCommand(new byte[] { (byte)'C', CR });
+            WriteCommand([(byte)'C', CR]);
 
             //stop thread
-            CancelEvent.Set();
+            CancellationTokenSource.Cancel();
+
+            // read everything currently in the queue
+            lock (UartLock) {
+                var buffer = new byte[BufferSize];
+                while ((Uart.BytesToRead > 0) && (Uart.Read(buffer, 0, buffer.Length) > 0)) { }
+            }
+
+            // wait for thread to finish
             var sw = Stopwatch.StartNew();
             while (Thread.IsAlive && (sw.ElapsedMilliseconds < 500)) { Thread.Sleep(10); }
             if (Thread.IsAlive) {
@@ -124,8 +142,6 @@ public class Cananka : IDisposable {
                     }
                 } catch (ThreadStateException) { }
             }
-            CancelEvent.Reset();
-
             Uart.Close();
         }
     }
@@ -134,7 +150,7 @@ public class Cananka : IDisposable {
     /// Returns device flags.
     /// </summary>
     public CanankaStatus GetStatus() {
-        var response = WriteCommand(new byte[] { (byte)'F', CR });
+        var response = WriteCommand([(byte)'F', CR]);
         return new CanankaStatus(response?.ToBytes());
     }
 
@@ -142,7 +158,7 @@ public class Cananka : IDisposable {
     /// Returns device version.
     /// </summary>
     public CanankaVersion GetVersion() {
-        var response = WriteCommand(new byte[] { (byte)'V', CR });
+        var response = WriteCommand([(byte)'V', CR]);
         return new CanankaVersion(response?.ToBytes());
     }
 
@@ -163,13 +179,13 @@ public class Cananka : IDisposable {
         bytes.AddRange(Encoding.ASCII.GetBytes(message.Id.ToString(message.IsExtended ? "X8" : "X3", CultureInfo.InvariantCulture)));
         bytes.Add((byte)(0x30 + message.Length));
         if (!message.IsRemoteRequest) {
-            foreach (var b in message.GetData() ?? Array.Empty<byte>()) {
+            foreach (var b in message.GetData() ?? []) {
                 bytes.AddRange(Encoding.ASCII.GetBytes(b.ToString("X2", CultureInfo.InvariantCulture)));
             }
         }
         bytes.Add(CR);
 
-        var response = WriteCommand(bytes.ToArray());
+        var response = WriteCommand([.. bytes]);
         return response?.IsPositive ?? false;
     }
 
@@ -187,7 +203,7 @@ public class Cananka : IDisposable {
     /// <param name="e">Arguments.</param>
     protected void OnMessageArrived(CanankaMessageEventArgs e) {
         if (Context != null) {
-            Context.Post((object? state) => {
+            Context.Post(state => {
                 MessageArrived?.Invoke(this, (CanankaMessageEventArgs)state!);
             }, e);
         } else {
@@ -202,7 +218,7 @@ public class Cananka : IDisposable {
     /// Returns extended device flags (only on Cananka USB).
     /// </summary>
     public CanankaExtendedStatus GetExtendedStatus() {
-        var response = WriteCommand(new byte[] { (byte)'*', (byte)'F', CR });
+        var response = WriteCommand([(byte)'*', (byte)'F', CR]);
         return new CanankaExtendedStatus(response?.ToBytes());
     }
 
@@ -212,7 +228,7 @@ public class Cananka : IDisposable {
     /// </summary>
     /// <param name="state">Whether to turn on or off 5V power output.</param>
     public bool SetPower(bool state) {
-        var response = WriteCommand(new byte[] { (byte)'*', (byte)'P', state ? (byte)'1' : (byte)'0', CR });
+        var response = WriteCommand([(byte)'*', (byte)'P', state ? (byte)'1' : (byte)'0', CR]);
         return (response != null) && response.IsPositive;
     }
 
@@ -221,7 +237,7 @@ public class Cananka : IDisposable {
     /// </summary>
     /// <param name="state">Whether to turn on or off termination resistors.</param>
     public bool SetTermination(bool state) {
-        var response = WriteCommand(new byte[] { (byte)'*', (byte)'T', state ? (byte)'1' : (byte)'0', CR });
+        var response = WriteCommand([(byte)'*', (byte)'T', state ? (byte)'1' : (byte)'0', CR]);
         return (response != null) && response.IsPositive;
     }
 
@@ -232,7 +248,7 @@ public class Cananka : IDisposable {
     /// <exception cref="ArgumentOutOfRangeException">Level must be between 0 (off) and 9 (highest).</exception>
     public bool SetLoad(int level) {
         if (level is < 0 or > 9) { throw new ArgumentOutOfRangeException(nameof(level), "Level must be between 0 (off) and 9 (highest)."); }
-        var response = WriteCommand(new byte[] { (byte)'*', (byte)'L', (byte)(0x30 + level), CR });
+        var response = WriteCommand([(byte)'*', (byte)'L', (byte)(0x30 + level), CR]);
         return (response != null) && response.IsPositive;
     }
 
@@ -250,7 +266,7 @@ public class Cananka : IDisposable {
         if (disposing) {
             Close();
             Uart.Dispose();
-            CancelEvent.Dispose();
+            CancellationTokenSource.Dispose();
         }
     }
 
@@ -276,7 +292,7 @@ public class Cananka : IDisposable {
 
             var buffer = new byte[BufferSize];
             var sw = Stopwatch.StartNew();
-            while (sw.ElapsedMilliseconds < 500) { //wait only 500ms for response to a command
+            while (sw.ElapsedMilliseconds < 200) { //wait only 200ms for response to a command
                 try {
                     while (Uart.BytesToRead > 0) {
                         var readLength = Uart.Read(buffer, 0, buffer.Length);
@@ -297,13 +313,14 @@ public class Cananka : IDisposable {
     private const byte BEL = 0x07;
     private const byte CR = 0x0D;
     private const int BufferSize = 1024;
-    private readonly string[] LowAscii = new string[] { "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
-                                                            "BS", "HT", "LF", "VT", "FF", "CR", "SO", "SI",
-                                                            "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
-                                                            "CAN", "EM", "SUB", "ESC", "FS", "GS", "RS", "US" };
+    private readonly string[] LowAscii = [ "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
+                                           "BS",  "HT",  "LF",  "VT",  "FF",  "CR",  "SO",  "SI",
+                                           "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
+                                           "CAN", "EM",  "SUB", "ESC", "FS",  "GS",  "RS",  "US" ];
 
     private readonly Queue<byte> ByteQueue = new();
     private readonly Queue<CanankaMessage> MessageQueue = new();
+    private readonly object MessageQueueLock = new();
 
 
     private ParsedResponseData? ProcessRawBytesAndReturnResponse(byte[] buffer, int length) { //returns non-message response AFTER processing all the bytes
@@ -322,7 +339,9 @@ public class Cananka : IDisposable {
                 if (response.IsMessage) {
                     var message = response.ToMessage();
                     if (message != null) {
-                        MessageQueue.Enqueue(message);
+                        lock (MessageQueueLock) {
+                            MessageQueue.Enqueue(message);
+                        }
 #if DEBUG
                         Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, "[Cananka] <= {0}", message.ToString()));
 #endif
@@ -382,17 +401,11 @@ public class Cananka : IDisposable {
             var buffer = RawData;
             if (buffer.Length > 0) {
                 switch (buffer[0]) {
-                    case (byte)'t':
-                        return ToStandardMessage(buffer, isRemoteRequest: false);
-
-                    case (byte)'r':
-                        return ToStandardMessage(buffer, isRemoteRequest: true);
-
-                    case (byte)'T':
-                        return ToExtendedMessage(buffer, isRemoteRequest: false);
-
-                    case (byte)'R':
-                        return ToExtendedMessage(buffer, isRemoteRequest: true);
+                    case (byte)'t': return ToStandardMessage(buffer, isRemoteRequest: false);
+                    case (byte)'r': return ToStandardMessage(buffer, isRemoteRequest: true);
+                    case (byte)'T': return ToExtendedMessage(buffer, isRemoteRequest: false);
+                    case (byte)'R': return ToExtendedMessage(buffer, isRemoteRequest: true);
+                    default: break;
                 }
             }
             return null;
@@ -404,7 +417,7 @@ public class Cananka : IDisposable {
                 Buffer.BlockCopy(RawData, 0, data, 0, data.Length);
                 return data;
             } else {
-                return Array.Empty<byte>();
+                return [];
             }
         }
 
@@ -464,26 +477,38 @@ public class Cananka : IDisposable {
         var buffer = new byte[BufferSize];
 
         try {
-            while (!CancelEvent.WaitOne(0, false)) {
+            while (!CancellationTokenSource.Token.IsCancellationRequested) {
+                var anyProcessing = false;
+
                 lock (UartLock) {
                     try {
+                        var swU = Stopwatch.StartNew();
                         while (Uart.BytesToRead > 0) {
                             var readLength = Uart.Read(buffer, 0, buffer.Length);
                             if (readLength > 0) {
+                                anyProcessing = true;
                                 ProcessRawBytesAndReturnResponse(buffer, readLength);
                             }
+                        }
+                        if (swU.ElapsedMilliseconds > 20) {
+                            Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, "[Cananka] Byte processing is taking too long ({0}ms).", swU.ElapsedMilliseconds));
                         }
                     } catch (TimeoutException) {
                     } catch (InvalidOperationException) { } //probably unplugged
 
-                    while (MessageQueue.Count > 0) {
-                        var e = new CanankaMessageEventArgs(MessageQueue.Dequeue());
-                        OnMessageArrived(e);
-                    }
-
                     if (!Uart.IsOpen) { break; } //exit thread as port is closed
-                    Thread.Sleep(1);
                 }
+
+                lock (MessageQueueLock) {
+                    while (MessageQueue.Count > 0) {
+                        anyProcessing = true;
+                        var e = new CanankaMessageEventArgs(MessageQueue.Dequeue());
+                        ThreadPool.QueueUserWorkItem(_ => OnMessageArrived(e));
+                    }
+                }
+
+                if (!anyProcessing) { Thread.Sleep(1); }
+
             }
         } catch (ThreadAbortException) { }
     }
