@@ -205,7 +205,7 @@ dotnet_diagnostic.IDE0070.severity                                            = 
 ## Simplify interpolation (IDE0071)
 dotnet_style_prefer_simplified_interpolation                                  = true : suggestion
 ## Add missing cases to switch expression (IDE0072)
-dotnet_diagnostic.IDE0072.severity                                            = warning
+dotnet_diagnostic.IDE0072.severity                                            = suggestion
 ## Require file header (IDE0073)
 file_header_template                                                          =
 ## Simplify conditional expression (IDE0075)
@@ -276,6 +276,8 @@ csharp_prefer_system_threading_lock                                           = 
 ## Use conditional delegate call (IDE1005)
 csharp_style_conditional_delegate_call                                        = true : suggestion
 # Extra
+## CA1008: Enums should have zero value
+dotnet_diagnostic.CA1008.severity                                             = none
 ## CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity                                             = none
 ## CA1710: Identifiers should have correct suffix
