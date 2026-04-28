@@ -6,6 +6,7 @@ using Medo.Security.Cryptography;
 namespace Tests;
 
 [TestClass]
+[Obsolete("OneTimePassword is deprecated, use Medo.Otp NuGet package instead.")]
 public class OneTimePassword_Tests {
 
     #region New
