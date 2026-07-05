@@ -22,7 +22,6 @@ public static class HexStringExtension {
     /// <param name="buffer">Bytes to convert.</param>
     /// <exception cref="ArgumentNullException">Buffer must not be null.</exception>
     public static string ToHexString(this ReadOnlySpan<byte> buffer) {
-        if (buffer == null) { throw new ArgumentNullException(nameof(buffer), "Buffer must not be null."); }
         if (buffer.Length == 0) { return String.Empty; }
 
         var sb = new StringBuilder();
@@ -38,7 +37,6 @@ public static class HexStringExtension {
     /// <param name="buffer">Bytes to convert.</param>
     /// <exception cref="ArgumentNullException">Buffer must not be null.</exception>
     public static string ToHexString(this Span<byte> buffer) {
-        if (buffer == null) { throw new ArgumentNullException(nameof(buffer), "Buffer must not be null."); }
         if (buffer.Length == 0) { return String.Empty; }
 
         return ToHexString((ReadOnlySpan<byte>)buffer);
