@@ -403,7 +403,7 @@ public sealed class OneTimePassword : IDisposable {
         using var ms = new MemoryStream(_secretBuffer);
         using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
 
-        cs.Read(_secretBuffer, 0, _secretBuffer.Length);
+        cs.ReadExactly(_secretBuffer, 0, _secretBuffer.Length);
     }
 
     private static void ClearSecret(byte[] array) {

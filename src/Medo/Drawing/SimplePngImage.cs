@@ -210,7 +210,7 @@ public sealed class SimplePngImage {
 
     private static Color[,] GetBufferFromStream(Stream stream) {
         var headerBytes = new byte[8];
-        stream.Read(headerBytes, 0, 8);
+        stream.ReadExactly(headerBytes, 0, 8);
 
         if (!CheckIfEqual(headerBytes, PngHeaderBytes)) { throw new InvalidDataException("Invalid header."); }
 
@@ -225,17 +225,17 @@ public sealed class SimplePngImage {
         var crcBytes = new byte[4];
         var palette = new List<Color>();
         while (true) {
-            stream.Read(lengthBytes, 0, 4);
-            stream.Read(chunkNameBytes, 0, 4);
+            stream.ReadExactly(lengthBytes, 0, 4);
+            stream.ReadExactly(chunkNameBytes, 0, 4);
             if (CheckIfEqual(chunkNameBytes, PngChunkEndNameBytes)) { break; }  // end chunk - don't even bother checking length
 
             var length = (int)FromBytes(lengthBytes);
             if (length < 0) { throw new InvalidDataException("Invalid chunk length."); }
 
             var dataBytes = new byte[length];
-            stream.Read(dataBytes, 0, length);
+            stream.ReadExactly(dataBytes, 0, length);
 
-            stream.Read(crcBytes, 0, 4);
+            stream.ReadExactly(crcBytes, 0, 4);
 
             var crc = CalculateCrc32(0xFFFFFFFF, chunkNameBytes);  // start CRC calculation with chunk name
             crc = CalculateCrc32(crc, dataBytes);  // add data bytes to CRC
@@ -314,7 +314,7 @@ public sealed class SimplePngImage {
                 var bitCount = width * bitDepth * bitMultiplier;
                 var byteCount = bitCount / 8 + (bitCount % 8 != 0 ? 1 : 0);
                 var lineBytes = new byte[byteCount];
-                deflateStream.Read(lineBytes, 0, lineBytes.Length);
+                deflateStream.ReadExactly(lineBytes, 0, lineBytes.Length);
 
                 switch (lineFilter) {
                     case 0:  // None
