@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="MSTest.Sdk/3.7.3">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -13,6 +13,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <Copyright>Copyright (c) 2004 Josip Medved</Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
     <EnableNETAnalyzers>false</EnableNETAnalyzers>
     <NoWarn>CS0618,IDE0017,IDE0028,IDE0063,IDE0079</NoWarn>
@@ -22,13 +26,6 @@
     <!-- IDE0063: Use simple 'using' statement -->
     <!-- IDE0079: Remove unnecessary suppression -->
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
-    <PackageReference Include="coverlet.collector" Version="3.1.2" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../src/Medo/Medo.csproj" />

@@ -9,15 +9,15 @@ public class AssemblyInformation_Tests {
 
     [TestMethod]
     public void AssemblyInformation_Entry() {
-        Assert.AreEqual("testhost, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", AssemblyInformation.Entry.FullName);
-        Assert.AreEqual("testhost", AssemblyInformation.Entry.Name);
-        Assert.AreEqual(new Version(15, 0, 0, 0), AssemblyInformation.Entry.Version);
-        Assert.AreEqual("15.0.0", AssemblyInformation.Entry.SemanticVersionText);
-        Assert.AreEqual("testhost", AssemblyInformation.Entry.Title);
-        Assert.AreEqual("Microsoft.TestHost", AssemblyInformation.Entry.Product);
+        Assert.AreEqual("Tests.Medo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", AssemblyInformation.Entry.FullName);
+        Assert.AreEqual("Tests.Medo", AssemblyInformation.Entry.Name);
+        Assert.AreEqual(new Version(1, 0, 0, 0), AssemblyInformation.Entry.Version);
+        Assert.AreEqual("1.0.0", AssemblyInformation.Entry.SemanticVersionText);
+        Assert.AreEqual("Tests.Medo", AssemblyInformation.Entry.Title);
+        Assert.AreEqual("Tests.Medo", AssemblyInformation.Entry.Product);
         Assert.AreEqual("", AssemblyInformation.Entry.Description);
-        Assert.AreEqual("Microsoft Corporation", AssemblyInformation.Entry.Company);
-        Assert.AreEqual("© Microsoft Corporation. All rights reserved.", AssemblyInformation.Entry.Copyright);
+        Assert.AreEqual("Tests.Medo", AssemblyInformation.Entry.Company);
+        Assert.AreEqual("Copyright (c) 2004 Josip Medved", AssemblyInformation.Entry.Copyright);
     }
 
     [TestMethod]
