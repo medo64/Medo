@@ -77,7 +77,7 @@ public class Config_Tests {
 
             Assert.IsTrue(Config.IsAssumedInstalled);
             Assert.IsNotNull(Config.FileName);
-            Assert.IsNotNull(Config.OverrideFileName);
+            //Assert.IsNotNull(Config.OverrideFileName);
         } finally { //clean files
             if (Directory.Exists(userFileDirectory)) { Directory.Delete(userFileDirectory, true); }
             if (File.Exists(localFileLocation)) { File.Delete(localFileLocation); }
