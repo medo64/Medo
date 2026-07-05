@@ -43,11 +43,11 @@ trap "echo -n \"$ANSI_RESET\"" EXIT
 
 BASE_DIRECTORY="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-SOLUTION_FILES="Medo.sln"
+SOLUTION_FILES="Medo.slnx"
 OUTPUT_FILES="Medo.dll Medo.pdb"
 
 if [[ `uname -o` == "Msys" ]]; then  # assume Windows
-    SOLUTION_FILES="Medo.Windows.sln"
+    SOLUTION_FILES="Medo.Windows.slnx"
     OUTPUT_FILES="$OUTPUT_FILES Medo.Windows.Forms.dll Medo.Windows.Forms.pdb"
 fi
 

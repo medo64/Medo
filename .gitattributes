@@ -5,6 +5,6 @@
 *.cs      text diff=csharp
 *.csproj  text
 *.md      text
-*.sln     text
+*.slnx    text
 *.input   binary
 *.output  binary
