@@ -1,0 +1,16 @@
+﻿<Solution>
+    <Project Path="Medo/Medo.csproj" />
+    <Project Path="Medo.Device/Medo.Device.csproj" />
+    <Folder Name="/Examples/">
+        <Project Path="../examples/BearBusMonitor/BearBusMonitor.csproj" />
+        <Project Path="../examples/Examples.Medo/Examples.Medo.csproj" />
+        <Project Path="../examples/Examples.Medo.Device.BearBus/Examples.Medo.Device.BearBus.csproj" />
+        <Project Path="../examples/RecentFiles/RecentFiles.csproj" />
+        <Project Path="../examples/SingleInstanceApplication/SingleInstanceApplication.csproj" />
+        <Project Path="../examples/UpgradeApplication/UpgradeApplication.csproj" />
+    </Folder>
+    <Folder Name="/Tests/">
+        <Project Path="../tests/Tests.Medo/Tests.Medo.csproj" />
+        <Project Path="../tests/Tests.Medo.Device/Tests.Medo.Device.csproj" />
+    </Folder>
+</Solution>
