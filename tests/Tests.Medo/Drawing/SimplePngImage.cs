@@ -31,9 +31,15 @@ public class SimplePngImage_Tests {
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-color-basic.png"));
         var memStream = new MemoryStream();
         bmp.Save(memStream);
+#if NET10_0_OR_GREATER
+        Assert.AreEqual(78, memStream.Length);
+        Assert.AreEqual("89504E470D0A1A0A0000000D4948445200000002000000030802000000368849D60000001549444154789C63F8CFC0F0FFFF7F0686060608F8DFC0D000001B936D410000000049454E44AE426082",
+                        BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
+#else
         Assert.AreEqual(76, memStream.Length);
         Assert.AreEqual("89504E470D0A1A0A0000000D4948445200000002000000030802000000368849D60000001349444154789C63F8CFC0F0FF3F9068608080FF0D0C0D00D6C212940000000049454E44AE426082",
                         BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
+#endif
     }
 
     [TestMethod]
@@ -58,9 +64,15 @@ public class SimplePngImage_Tests {
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-color-transparency.png"));
         var memStream = new MemoryStream();
         bmp.Save(memStream);
+#if NET10_0_OR_GREATER
+        Assert.AreEqual(80, memStream.Length);
+        Assert.AreEqual("89504E470D0A1A0A0000000D4948445200000002000000030806000000B9EADE810000001749444154789C25C38109003010032147BFCDF3940A1A7BC8F8973A51BF03EF0000000049454E44AE426082",
+                        BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
+#else
         Assert.AreEqual(80, memStream.Length);
         Assert.AreEqual("89504E470D0A1A0A0000000D4948445200000002000000030806000000B9EADE810000001749444154789C63F8CFC0F01F0418181A18800404FF6F6068680000700275140000000049454E44AE426082",
                         BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
+#endif
     }
 
 
@@ -135,9 +147,15 @@ public class SimplePngImage_Tests {
         //bmp.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "png-clone.png"));
         var memStream = new MemoryStream();
         bmp.Save(memStream);
+#if NET10_0_OR_GREATER
+        Assert.AreEqual(78, memStream.Length);
+        Assert.AreEqual("89504E470D0A1A0A0000000D4948445200000002000000030802000000368849D60000001549444154789C63F8CFC0F0FFFF7F0686060608F8DFC0D000001B936D410000000049454E44AE426082",
+                        BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
+#else
         Assert.AreEqual(76, memStream.Length);
         Assert.AreEqual("89504E470D0A1A0A0000000D4948445200000002000000030802000000368849D60000001349444154789C63F8CFC0F0FF3F9068608080FF0D0C0D00D6C212940000000049454E44AE426082",
                         BitConverter.ToString(memStream.ToArray()).Replace("-", ""));
+#endif
     }
 
     [TestMethod]
